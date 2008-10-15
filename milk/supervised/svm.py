@@ -87,7 +87,9 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
         return sum
         
     def get_error(i):
-        if Alphas[i] in (0,C):
+        # This avoids the cache, but the cache is not correctly implemented!
+        return f_at(X[i])-Y[i]
+        if Alphas[i] in (0,C) or True:
             return f_at(X[i])-Y[i]
         return E[i]
     def take_step(i1,i2):
