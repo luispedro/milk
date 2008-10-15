@@ -44,15 +44,14 @@ def svm_apply(SVM,q):
     return res
 
 def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
-    def compute_threshold():
-        S=0.
-        n=0
+    assert numpy.all(numpy.abs(Y) == 1)
+    assert len(X) == len(Y)
+    def f_at(y):
+        sum = -thresh[0]
         for i in xrange(N):
-            if Alphas[i] and Alphas[i] != C:
-                S += Y[i] - (f_at(X[i]) + thresh[0])
-                n += 1
-        if n: return -S/n
-        return 0.
+            if Alphas[i] != C:
+                sum += Y[i]*Alphas[i]*kernel(X[i],y)
+        return sum
     def objective_function():
         sum = Alphas.sum()
         for i in xrange(N):
@@ -60,19 +59,13 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
                 sum -= .5*Y[i]*Y[j]*kernel(X[i],X[j])*Alphas[i]*Alphas[j]
         return sum
         
-    def f_at(y):
-        sum = -thresh[0]
-        for i in xrange(N):
-            if Alphas[i] != C:
-                sum += Y[i]*Alphas[i]*kernel(X[i],y)
-        return sum
-    #@observe
     def take_step(i1,i2):
         if i1 == i2: return False
         alpha1 = Alphas[i1]
         alpha2 = Alphas[i2]
         y1 = Y[i1]
         y2 = Y[i2]
+        s = y1*y2
         E1 = f_at(X[i1])-y1 
         E2 = f_at(X[i2])-y2 
         #print 'E1', E1, 'E2', E2
@@ -93,11 +86,12 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
             a2 = alpha2-y2*(E1-E2)/eta
             a2 = median((L,a2,H))
         else:
-            Alphas[i2]=L
-            L_obj = objective_function()
-            Alphas[i2]=H
-            H_obj = objective_function()
-            Alphas[i2]=alpha2
+            # Implement (12.23) from Platt's paper:
+            gamma = alpha1+s*alpha2
+            v1=f_at(X[i1])+thresh[0]-y1*alpha1*k11-y2*alpha2*k12
+            v2=f_at(X[i2])+thresh[0]-y1*alpha1*k12-y2*alpha2*k22
+            L_obj = gamma-s*L+L-.5*k11*(gamma-s*L)**2-.5*k22*L**2-s*k12*(gamma-s*L)*L-y1*(gamma-s*L)*v1-y2*L*v2 # + W_const
+            H_obj = gamma-s*H+H-.5*k11*(gamma-s*H)**2-.5*k22*H**2-s*k12*(gamma-s*H)*H-y1*(gamma-s*H)*v1-y2*H*v2 # + W_const
             if L_obj > H_obj + eps:
                 a2 = L
             elif L_obj < H_obj - eps:
@@ -109,7 +103,6 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
         elif a2 > C-tol:
             a2 = C
         if abs(a2-alpha2) < eps*(a2+alpha2+eps): return False
-        s = y1*y2
         a1 = alpha1+s*(alpha2-a2)
         if a1 < eps: a1 = 0
         if a1 > C-eps: a1 = C
