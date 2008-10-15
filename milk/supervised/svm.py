@@ -66,9 +66,13 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
         y1 = Y[i1]
         y2 = Y[i2]
         s = y1*y2
-        E1 = f_at(X[i1])-y1 
-        E2 = f_at(X[i2])-y2 
-        #print 'E1', E1, 'E2', E2
+        E1 = E[i1] 
+        E2 = E[i2] 
+        if  Alphas[i1] in (0,C):
+            E1 = f_at(X[i1])-y1
+        if Alphas[i2] in (0,C):
+            E2 = f_at(X[i2])-y2
+
         if y1 != y2:
             L = max(0,alpha2-alpha1)
             H = min(C,C+alpha2-alpha1)
@@ -86,12 +90,11 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
             a2 = alpha2-y2*(E1-E2)/eta
             a2 = median((L,a2,H))
         else:
-            # Implement (12.23) from Platt's paper:
-            gamma = alpha1+s*alpha2
-            v1=f_at(X[i1])+thresh[0]-y1*alpha1*k11-y2*alpha2*k12
-            v2=f_at(X[i2])+thresh[0]-y1*alpha1*k12-y2*alpha2*k22
-            L_obj = gamma-s*L+L-.5*k11*(gamma-s*L)**2-.5*k22*L**2-s*k12*(gamma-s*L)*L-y1*(gamma-s*L)*v1-y2*L*v2 # + W_const
-            H_obj = gamma-s*H+H-.5*k11*(gamma-s*H)**2-.5*k22*H**2-s*k12*(gamma-s*H)*H-y1*(gamma-s*H)*v1-y2*H*v2 # + W_const
+            gamma = alpha1+s*alpha2 # Eq. (12.22)
+            v1=f_at(X[i1])+thresh[0]-y1*alpha1*k11-y2*alpha2*k12 # Eq. (12.21)
+            v2=f_at(X[i2])+thresh[0]-y1*alpha1*k12-y2*alpha2*k22 # Eq. (12.21)
+            L_obj = gamma-s*L+L-.5*k11*(gamma-s*L)**2-.5*k22*L**2-s*k12*(gamma-s*L)*L-y1*(gamma-s*L)*v1-y2*L*v2 # + W_const # Eq. (12.23)
+            H_obj = gamma-s*H+H-.5*k11*(gamma-s*H)**2-.5*k22*H**2-s*k12*(gamma-s*H)*H-y1*(gamma-s*H)*v1-y2*H*v2 # + W_const # Eq. (12.23)
             if L_obj > H_obj + eps:
                 a2 = L
             elif L_obj < H_obj - eps:
@@ -110,11 +113,18 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
         # update everything
         Alphas[i1]=a1
         Alphas[i2]=a2
-        b1 = E1 + Y[i1]*(a1-alpha1)*k11+Y[i2]*(a2-alpha2)*k12+thresh[0]
-        b2 = E2 + Y[i1]*(a1-alpha1)*k12+Y[i2]*(a2-alpha2)*k22+thresh[0]
-        thresh[0] = (b1+b2)/2.
+        b1 = E1 + Y[i1]*(a1-alpha1)*k11+Y[i2]*(a2-alpha2)*k12+thresh[0] # Eq. (12.9)
+        b2 = E2 + Y[i1]*(a1-alpha1)*k12+Y[i2]*(a2-alpha2)*k22+thresh[0] # Eq. (12.10)
+        new_b = (b1+b2)/2.
+        for i in xrange(N):
+            if 0 < Alphas[i] < C:
+                continue
+            elif i == i1 or i == i2:
+                E[i] = 0
+            else:
+                E[i] += y1*(a1-alpha1)*kernel(X[i1],X[i])+y2*(a2-alpha2)*kernel(X[i2],X[i]) + (thresh[0]-new_b) # Eq. (12.11)
+        thresh[0] = new_b
         return True
-    #@observe
     def examine_example(i2):
         y2 = Y[i2]
         alpha2 = Alphas[i2]
@@ -136,7 +146,8 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
         return False
     
     N = len(X)
-    Alphas = numpy.zeros(N)+.5
+    Alphas = numpy.zeros(N)
+    E = -Y
     # This should be a simple variable.
     # That wouldn't allow one to update it inside the take_step function
     # This is one case where nonlocal would make it work. Til Python3k, we do this.
