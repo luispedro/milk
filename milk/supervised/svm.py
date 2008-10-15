@@ -21,13 +21,12 @@
 
 from __future__ import division
 from numpy import vectorize
-from math import *
 import numpy
 import random
 
 def randomize(L):
     L = list(L)
-    #random.shuffle(L)
+    random.shuffle(L)
     return L
 
 def svm_size(SVM):
