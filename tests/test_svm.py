@@ -1,4 +1,4 @@
-from milk.supervised.svm import svm_learn, svm_apply, svm_size
+from milk.supervised.svm import svm_learn, _svm_apply, _svm_size
 import numpy
 eps=1e-3
 def approximate(a,b):
@@ -11,22 +11,22 @@ def assert_kkt(SVM):
     N=len(Alphas)
     for i in xrange(N):
         if Alphas[i] == 0.:
-            assert Y[i]*svm_apply(SVM,X[i])+eps >= 1
+            assert Y[i]*_svm_apply(SVM,X[i])+eps >= 1
         elif Alphas[i] == C:
-            assert Y[i]*svm_apply(SVM,X[i])-eps <= 1
+            assert Y[i]*_svm_apply(SVM,X[i])-eps <= 1
         else:
-            assert abs(Y[i]*svm_apply(SVM,X[i])-1) <= eps
+            assert abs(Y[i]*_svm_apply(SVM,X[i])-1) <= eps
 
 def assert_all_correctly_classified(SVM,X,Y):
-    N=svm_size(SVM)
+    N=_svm_size(SVM)
     for i in xrange(N):
-        assert svm_apply(SVM,X[i]) * Y[i] > 0
+        assert _svm_apply(SVM,X[i]) * Y[i] > 0
 
 def assert_more_than_50(SVM,X,Y):
-    N=svm_size(SVM)
+    N=_svm_size(SVM)
     correct = 0
     for i in xrange(N):
-        correct += (svm_apply(SVM,X[i]) * Y[i] > 0)
+        correct += (_svm_apply(SVM,X[i]) * Y[i] > 0)
     assert correct > N/2
 
 def test_simplest():
@@ -85,7 +85,7 @@ def test_rbf():
 def test_random():
     R=numpy.random.RandomState(123)
     X=R.rand(10,3)
-    X[:5]+=.3
+    X[:5]+=1.
     C=2
     Y=numpy.ones(10)
     Y[5:] *= -1
@@ -94,6 +94,8 @@ def test_random():
     assert_more_than_50(SVM,X,Y)
 
 if __name__ == '__main__':
+    import random
+    random.seed(0)
     test_simplest()
     test_more_complex()
     test_rbf()

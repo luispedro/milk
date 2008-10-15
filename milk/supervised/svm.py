@@ -24,16 +24,28 @@ from numpy import vectorize
 import numpy
 import random
 
-def randomize(L):
+def _randomize(L):
     L = list(L)
     random.shuffle(L)
     return L
 
-def svm_size(SVM):
+def _svm_size(SVM):
+    '''
+    N = _svm_size(SVM)
+
+    Nr. of elements in the SVM
+
+    @internal: This is mostly used for testing. see the class svm_raw
+    '''
     return len(SVM[2])
 
-def svm_apply(SVM,q):
-    N=svm_size(SVM)
+def _svm_apply(SVM,q):
+    '''
+    f_i = _svm_apply(SVM,q)
+   
+    @internal: This is mostly used for testing
+    '''
+    N=_svm_size(SVM)
     X,Y,Alphas,b,C,kernel=SVM
     res = -b
     for i in xrange(N):
@@ -42,6 +54,23 @@ def svm_apply(SVM,q):
     return res
 
 def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
+    '''
+    Learn a svm classifier
+
+    X: data
+    Y: labels in SVM format (ie Y[i] in (1,-1))
+
+
+    This is a very raw interface. In general, you should use a class
+        like svm_classifier.
+
+    Implements the Sequential Minimum Optimisation Algorithm from Platt's
+        "Fast training of support vector machines using sequential minimal optimization"
+        in Advances in kernel methods: support vector learning
+             Pages: 185 - 208   
+             Year of Publication: 1999 
+             ISBN:0-262-19416-3
+    '''
     assert numpy.all(numpy.abs(Y) == 1)
     assert len(X) == len(Y)
     def f_at(y):
@@ -133,14 +162,13 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
         if (r2 < -tol) and (alpha2 < C) or (r2 > tol) and (alpha2 > 0):
             if Alphas.any() or (Alphas==C).any():
                  dE = numpy.array([numpy.abs(get_error(i)-E2) for i in xrange(N)])
-                 dE = numpy.array([numpy.abs(f_at(X[i])-Y[i]) for i in xrange(N)])
                  i1 = dE.argmax()
                  if take_step(i1,i2):
                      return True
-            for i1 in randomize(xrange(len(Alphas))):
+            for i1 in _randomize(xrange(len(Alphas))):
                 if Alphas[i1] and Alphas[i1] != C and take_step(i1,i2):
                     return True
-            for i1 in randomize(xrange(len(Alphas))):
+            for i1 in _randomize(xrange(len(Alphas))):
                 if take_step(i1,i2):
                     return True
         return False
@@ -164,5 +192,75 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
         elif not changed:
             examineAll = True
     return Alphas, thresh[0]
+
+
+def rbf_kernel(sigma,beta=1):
+    '''
+    kernel = rbf(sigma,beta=1)
+
+    Radial Basis Function kernel
+
+    Returns a kernel (ie, a function that implements)
+        beta * exp( - ||x1 - x2|| / sigma) 
+    '''
+    def k(x1,x2):
+        d2=((x1-x2)**2).sum()
+        return beta*numpy.exp(-d2/sigma)
+    return k
+
+def poly_kernel(d,c=1):
+    '''
+    kernel = polynomial_kernel(d,c=1)
+
+    returns a kernel (ie, a function) that implements:
+        (<x1,x2>+c)**d
+    '''
+    def k(x1,x2):
+        return (numpy.dot(x1,x2)+c)**d
+    return k
+
+class svm_raw(object):
+    '''
+    svm_raw: classifier
+
+    MAJOR PARAMETERS:
+    * kernel: the kernel to use. This should be a function
+    * C: the C parameter
+
+    MINOR PARAMETERS
+    * eps: the precision to which to solve the problem (default 1e-3)
+    * tol: (|x| < tol) is considered zero
+    '''
+    def __init__(self,kernel,eps=1e-3,tol=1e-8):
+        self.eps = eps
+        self.tol = tol
+        self.kernel = kernel
+        self.trained = False
+
+    def train(features,labels):
+        self.Y, self.classnames = normaliselabels(features,labels)
+        self.Y *= 2
+        self.Y -= 1
+        alphas,b = svm_learn(features,self.Y,self.kernel,self.eps,self.tol)
+        svs = (alphas != 0) & (alphas != self.C)
+        self.svs = features[svs]
+        self.w = alphas[svs]
+        self.trained = True
+    
+    def get_params(self):
+        return self.C, self.eps,self.tol
+
+    def set_params(self,params):
+        self.C,self.eps,self.tol = params
+
+    def __call__(self,x):
+        f = -self.b
+        for i in xrange(len(self.svs)):
+            f += self.w[i] * self.kernel(self.svs[i],x)
+        return f
+
+
+def learn_sigmoid_constants(F,Y):
+    return 0,1
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
