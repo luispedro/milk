@@ -1,5 +1,6 @@
-from milk.supervised.svm import svm_learn, _svm_apply, _svm_size
+from milk.supervised.svm import svm_learn, _svm_apply, _svm_size, _randomize, learn_sigmoid_constants
 import numpy
+import random
 eps=1e-3
 def approximate(a,b):
     a=numpy.asanyarray(a)
@@ -93,11 +94,27 @@ def test_random():
     SVM=(X,Y,Alphas,b,C,rbf)
     assert_more_than_50(SVM,X,Y)
 
+def test_randomize():
+    assert len(_randomize(xrange(10))) == 10
+    assert len(_randomize(xrange(11))) == 11
+    assert len(_randomize(xrange(0))) == 0
+    assert sum(_randomize(xrange(10))) == sum(range(10))
+
+def test_platt_correction():
+    F=numpy.ones(10)
+    L=numpy.ones(10)
+    F[:5] *= -1
+    L[:5] *= 0
+    A,B=learn_sigmoid_constants(F,L)
+    assert 1./(1.+numpy.exp(+10*A+B)) > .99
+    assert 1./(1.+numpy.exp(-10*A+B)) <.01
+
+
 if __name__ == '__main__':
-    import random
     random.seed(0)
     test_simplest()
     test_more_complex()
     test_rbf()
     test_random()
+    test_randomize
 
