@@ -263,7 +263,7 @@ class svm_raw(object):
 
 
 def learn_sigmoid_constants(F,Y,
-            max_iters=1000,
+            max_iters=None,
             min_step=1e-10,
             sigma=1e-12,
             eps=1e-5):
@@ -297,6 +297,7 @@ def learn_sigmoid_constants(F,Y,
     assert numpy.all( (Y == 1) | (Y == 0) )
     from numpy import log, exp
     N=len(F)
+    if max_iters is None: max_iters = 1000
 
     prior1 = Y.sum()
     prior0 = N-prior1
@@ -340,10 +341,8 @@ def learn_sigmoid_constants(F,Y,
             h21 += F[i]*d2
             d1 = T[i] - p
             g1 += F[i]*d1
-            print T[i],p, d1, g1
             g2 += d1
         if abs(g1) < eps and abs(g2) < eps: # Stopping criteria
-            print 'stopping...', g1 ,g2
             break
         
         det = h11*h22 - h21*h21
@@ -366,5 +365,28 @@ def learn_sigmoid_constants(F,Y,
             print 'Line search fails'
             break
     return A,B
+
+class svm_sigmoidal_correction(object):
+    '''
+    svm_sigmoidal_correction : a classifier
+
+    Sigmoidal approximation for obtaining a probability estimate out of the output
+    of an SVM.
+    '''
+    def __init__(self):
+        self.max_iters = None
+    
+    def train(self,features,labels):
+        self.A,self.B = learn_sigmoid_constants(features,labels,self.max_iters)
+
+    def get_params(self):
+        return self.max_iters
+
+    def set_params(self,params):
+        self.max_iters = params
+
+    def apply(self,features):
+        return 1./(1.+numpy.exp(features*self.A+self.B))
+
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:

@@ -1,4 +1,4 @@
-from milk.supervised.svm import svm_learn, _svm_apply, _svm_size, _randomize, learn_sigmoid_constants
+from milk.supervised.svm import svm_learn, _svm_apply, _svm_size, _randomize, learn_sigmoid_constants, svm_sigmoidal_correction
 import numpy
 import random
 eps=1e-3
@@ -109,6 +109,21 @@ def test_platt_correction():
     assert 1./(1.+numpy.exp(+10*A+B)) > .99
     assert 1./(1.+numpy.exp(-10*A+B)) <.01
 
+def test_platt_correction_class():
+    F=numpy.ones(10)
+    L=numpy.ones(10)
+    F[:5] *= -1
+    L[:5] *= 0
+    corrector=svm_sigmoidal_correction()
+    A,B=learn_sigmoid_constants(F,L)
+    corrector.train(F,L)
+    assert corrector.A == A
+    assert corrector.B == B
+    assert corrector.apply(10) > .99
+    assert corrector.apply(-10) < .01
+
+
+    
 
 if __name__ == '__main__':
     random.seed(0)
@@ -116,5 +131,4 @@ if __name__ == '__main__':
     test_more_complex()
     test_rbf()
     test_random()
-    test_randomize
-
+    test_randomize()
