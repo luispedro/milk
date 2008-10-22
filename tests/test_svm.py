@@ -1,3 +1,4 @@
+import milk.supervised.svm
 from milk.supervised.svm import svm_learn, _svm_apply, _svm_size, _randomize, learn_sigmoid_constants, svm_sigmoidal_correction
 import numpy
 import random
@@ -72,6 +73,7 @@ def test_more_complex():
 
 def rbf(xi,xj):
     return numpy.exp(-((xi-xj)**2).sum())
+
 def test_rbf():
     X=numpy.array([
         [0,0,0],
@@ -122,8 +124,17 @@ def test_platt_correction_class():
     assert corrector.apply(10) > .99
     assert corrector.apply(-10) < .01
 
+def test_perfect():
+    data = numpy.zeros((10,2))
+    data[5:] = 1
+    labels = numpy.zeros(10)
+    labels[5:] = 1
+    classifier=milk.supervised.svm.svm_raw(kernel=milk.supervised.svm.rbf_kernel(1),C=4)
+    classifier.train(data,labels)
+    assert numpy.all( (numpy.array([classifier(data[i]) for i in xrange(10)]) > 0) == labels )
 
-    
+if __name__ == '__main__':
+    test_perfect()
 
 if __name__ == '__main__':
     random.seed(0)
@@ -132,3 +143,4 @@ if __name__ == '__main__':
     test_rbf()
     test_random()
     test_randomize()
+    test_perfect()
