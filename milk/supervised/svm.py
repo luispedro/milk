@@ -20,7 +20,7 @@
 #  THE SOFTWARE.
 
 from __future__ import division
-from numpy import vectorize
+from .classifier import normaliselabels
 import numpy
 import random
 
@@ -225,6 +225,8 @@ class svm_raw(object):
     '''
     svm_raw: classifier
 
+    classifier = svm_raw(kernel=K,eps=1e-3,tol=1e-8)
+
     MAJOR PARAMETERS:
     * kernel: the kernel to use. This should be a function
     * C: the C parameter
@@ -239,8 +241,8 @@ class svm_raw(object):
         self.kernel = kernel
         self.trained = False
 
-    def train(features,labels):
-        self.Y, self.classnames = normaliselabels(features,labels)
+    def train(self,features,labels):
+        self.Y, self.classnames = normaliselabels(labels)
         self.Y *= 2
         self.Y -= 1
         alphas,b = svm_learn(features,self.Y,self.kernel,self.eps,self.tol)
