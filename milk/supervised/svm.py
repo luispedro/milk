@@ -21,6 +21,7 @@
 
 from __future__ import division
 from .classifier import normaliselabels
+from collections import deque
 import numpy
 import random
 
@@ -53,6 +54,31 @@ def _svm_apply(SVM,q):
             res += Y[i]*Alphas[i]*kernel(X[i],q)
     return res
 
+def _svm_apply_precomputed(j,Y,Alphas,b,kernels,C):
+    sum = -b
+    N = len(Y)
+    try:
+        from scipy import weave
+        from scipy.weave import converters
+        code = '''
+        for (int i = 0; i != N; ++i) {
+            if (Alphas(i) != C) {
+                sum += Y(i) * Alphas(i) * kernels(i,j);
+            }
+        }
+        return_val = sum;
+        '''
+        return weave.inline(code,
+            ['j','N','Alphas','C','Y','kernels','sum'],
+        type_converters=converters.blitz)
+    except:
+        import warnings
+        warnings.warn('scipy.weave failed! Resorting to (slow) Python code')
+        for i in xrange(N):
+            if Alphas[i] != C:
+                sum += Y[i]*Alphas[i]*kernels[i,j]
+        return sum
+
 def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
     '''
     Learn a svm classifier
@@ -73,24 +99,23 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
     '''
     assert numpy.all(numpy.abs(Y) == 1)
     assert len(X) == len(Y)
-    def f_at(y):
-        sum = -thresh[0]
-        for i in xrange(N):
-            if Alphas[i] != C:
-                sum += Y[i]*Alphas[i]*kernel(X[i],y)
-        return sum
+    kernels=numpy.array([[kernel(X[i],X[j]) for i in xrange(len(Y))] for j in xrange(len(X))])
+    def kernel_apply(i,j):
+        return kernels[i,j]
+    def f_at(idx):
+        return _svm_apply_precomputed(idx,Y,Alphas,thresh[0],kernels,C)
     def objective_function():
         sum = Alphas.sum()
         for i in xrange(N):
             for j in xrange(N):
-                sum -= .5*Y[i]*Y[j]*kernel(X[i],X[j])*Alphas[i]*Alphas[j]
+                sum -= .5*Y[i]*Y[j]*kernel_apply(i,j)*Alphas[i]*Alphas[j]
         return sum
         
     def get_error(i):
         # This avoids the cache, but the cache is not correctly implemented!
-        return f_at(X[i])-Y[i]
+        return f_at(i)-Y[i]
         if Alphas[i] in (0,C) or True:
-            return f_at(X[i])-Y[i]
+            return f_at(i)-Y[i]
         return E[i]
     def take_step(i1,i2):
         if i1 == i2: return False
@@ -110,9 +135,9 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
         #print 'L',L,'H',H
         if L == H:
             return False
-        k11 = kernel(X[i1],X[i1])
-        k12 = kernel(X[i1],X[i2]) 
-        k22 = kernel(X[i2],X[i2]) 
+        k11 = kernel_apply(i1,i1)
+        k12 = kernel_apply(i1,i2)
+        k22 = kernel_apply(i2,i2) 
         eta = 2*k12-k11-k22
         if eta < 0:
             a2 = alpha2-y2*(E1-E2)/eta
@@ -150,10 +175,10 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
             elif i == i1 or i == i2:
                 E[i] = 0
             else:
-                E[i] += y1*(a1-alpha1)*kernel(X[i1],X[i])+y2*(a2-alpha2)*kernel(X[i2],X[i]) + (thresh[0]-new_b) # Eq. (12.11)
+                E[i] += y1*(a1-alpha1)*kernel_apply(i1,i)+y2*(a2-alpha2)*kernel_apply(i2,i) + (thresh[0]-new_b) # Eq. (12.11)
         thresh[0] = new_b
-        E[i1]=f_at(X[i1])-y1
-        E[i2]=f_at(X[i2])-y2
+        E[i1]=f_at(i1)-y1
+        E[i2]=f_at(i2)-y2
         return True
     def examine_example(i2):
         y2 = Y[i2]
@@ -210,7 +235,7 @@ def rbf_kernel(sigma,beta=1):
         return beta*numpy.exp(-d2/sigma)
     return k
 
-def poly_kernel(d,c=1):
+def polynomial_kernel(d,c=1):
     '''
     kernel = polynomial_kernel(d,c=1)
 
@@ -225,30 +250,34 @@ class svm_raw(object):
     '''
     svm_raw: classifier
 
-    classifier = svm_raw(kernel=K,eps=1e-3,tol=1e-8)
+    classifier = svm_raw(kernel,C,eps=1e-3,tol=1e-8)
 
     MAJOR PARAMETERS:
-    * kernel: the kernel to use. This should be a function
+    * kernel: the kernel to use.
+        This should be a function that takes two data arguments
+        see rbf_kernel and polynomial_kernel.
     * C: the C parameter
 
     MINOR PARAMETERS
     * eps: the precision to which to solve the problem (default 1e-3)
     * tol: (|x| < tol) is considered zero
     '''
-    def __init__(self,kernel,eps=1e-3,tol=1e-8):
+    def __init__(self,kernel,C,eps=1e-3,tol=1e-8):
+        self.C = C
+        self.kernel = kernel
         self.eps = eps
         self.tol = tol
-        self.kernel = kernel
         self.trained = False
 
     def train(self,features,labels):
         self.Y, self.classnames = normaliselabels(labels)
         self.Y *= 2
         self.Y -= 1
-        alphas,b = svm_learn(features,self.Y,self.kernel,self.eps,self.tol)
+        alphas,self.b = svm_learn(features,self.Y,self.kernel,self.C,self.eps,self.tol)
         svs = (alphas != 0) & (alphas != self.C)
         self.svs = features[svs]
         self.w = alphas[svs]
+        self.Y = self.Y[svs]
         self.trained = True
     
     def get_params(self):
@@ -258,10 +287,8 @@ class svm_raw(object):
         self.C,self.eps,self.tol = params
 
     def __call__(self,x):
-        f = -self.b
-        for i in xrange(len(self.svs)):
-            f += self.w[i] * self.kernel(self.svs[i],x)
-        return f
+        assert self.trained
+        return _svm_apply((self.svs,self.Y,self.w,self.b,self.C,self.kernel),x)
 
 
 def learn_sigmoid_constants(F,Y,
