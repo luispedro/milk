@@ -395,6 +395,24 @@ def learn_sigmoid_constants(F,Y,
             break
     return A,B
 
+class svm_binary(object):
+    def __init__(self):
+        pass
+
+    def train(self,features,labels):
+        c0 = labels[0]
+        i = 1
+        while labels[i] == c0:
+            i += 1
+            if i == len(labels):
+                i -= 1
+                break
+        c1 = labels[i]
+        self.classes = [c0,c1]
+
+    def __call__(self,f):
+        return self.classes[f >= 0.]
+
 class svm_sigmoidal_correction(object):
     '''
     svm_sigmoidal_correction : a classifier
@@ -414,7 +432,7 @@ class svm_sigmoidal_correction(object):
     def set_params(self,params):
         self.max_iters = params
 
-    def apply(self,features):
+    def __call__(self,features):
         return 1./(1.+numpy.exp(features*self.A+self.B))
 
 

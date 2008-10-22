@@ -22,7 +22,7 @@
 from __future__ import division
 import numpy
 
-__all__ = ['normaliselabels']
+__all__ = ['normaliselabels', 'ctransforms']
 
 def normaliselabels(labels):
     '''
@@ -46,5 +46,19 @@ def normaliselabels(labels):
         normalised.append(nr) 
     return numpy.array(normalised),names
 
+
+class ctransforms(object):
+    def __init__(self,*args):
+        self.transforms = args
+
+    def train(self,features,labels):
+        for T in self.transforms:
+            T.train(features,labels) 
+            features = numpy.array([T(f) for f in features])
+
+    def __call__(self,features):
+        for T in self.transforms:
+            features = numpy.array([T(f) for f in features])
+        return features
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
