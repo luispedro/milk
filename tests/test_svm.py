@@ -121,8 +121,8 @@ def test_platt_correction_class():
     corrector.train(F,L)
     assert corrector.A == A
     assert corrector.B == B
-    assert corrector.apply(10) > .99
-    assert corrector.apply(-10) < .01
+    assert corrector(10) > .99
+    assert corrector(-10) < .01
 
 def test_perfect():
     data = numpy.zeros((10,2))
@@ -133,14 +133,3 @@ def test_perfect():
     classifier.train(data,labels)
     assert numpy.all( (numpy.array([classifier(data[i]) for i in xrange(10)]) > 0) == labels )
 
-if __name__ == '__main__':
-    test_perfect()
-
-if __name__ == '__main__':
-    random.seed(0)
-    test_simplest()
-    test_more_complex()
-    test_rbf()
-    test_random()
-    test_randomize()
-    test_perfect()
