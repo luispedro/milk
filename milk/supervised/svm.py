@@ -54,30 +54,27 @@ def _svm_apply(SVM,q):
             res += Y[i]*Alphas[i]*kernel(X[i],q)
     return res
 
-def _svm_apply_precomputed(j,Y,Alphas,b,kernels,C):
-    sum = -b
-    N = len(Y)
+def _svm_apply_precomputed(j,Y,Alphas,b,Kernel_Line,C):
     try:
         from scipy import weave
         from scipy.weave import converters
+        sum = -b
+        N = len(Y)
         code = '''
         for (int i = 0; i != N; ++i) {
             if (Alphas(i) != C) {
-                sum += Y(i) * Alphas(i) * kernels(i,j);
+                sum += Y(i) * Alphas(i) * Kernel_Line(i);
             }
         }
         return_val = sum;
         '''
         return weave.inline(code,
-            ['j','N','Alphas','C','Y','kernels','sum'],
+            ['j','N','Alphas','C','Y','Kernel_Line','sum'],
         type_converters=converters.blitz)
     except:
         import warnings
         warnings.warn('scipy.weave failed! Resorting to (slow) Python code')
-        for i in xrange(N):
-            if Alphas[i] != C:
-                sum += Y[i]*Alphas[i]*kernels[i,j]
-        return sum
+        return (Y*Alphas*(Alphas != C)*Kernel_Line).sum() - b
 
 def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
     '''
@@ -103,7 +100,7 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
     def kernel_apply(i,j):
         return kernels[i,j]
     def f_at(idx):
-        return _svm_apply_precomputed(idx,Y,Alphas,thresh[0],kernels,C)
+        return _svm_apply_precomputed(idx,Y,Alphas,thresh[0],kernels[idx],C)
     def objective_function():
         sum = Alphas.sum()
         for i in xrange(N):
@@ -112,8 +109,7 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
         return sum
         
     def get_error(i):
-        # This avoids the cache, but the cache is not correctly implemented!
-        return f_at(i)-Y[i]
+        # This avoids the cache, bc the cache is not correctly implemented!
         if Alphas[i] in (0,C) or True:
             return f_at(i)-Y[i]
         return E[i]
@@ -160,8 +156,8 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
             a2 = C
         if numpy.abs(a2-alpha2) < eps*(a2+alpha2+eps): return False
         a1 = alpha1+s*(alpha2-a2)
-        if a1 < eps: a1 = 0
-        if a1 > C-eps: a1 = C
+        if a1 < tol: a1 = 0
+        if a1 > C-tol: a1 = C
 
         # update everything
         Alphas[i1]=a1
@@ -169,16 +165,16 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
         b1 = E1 + Y[i1]*(a1-alpha1)*k11+Y[i2]*(a2-alpha2)*k12+thresh[0] # Eq. (12.9)
         b2 = E2 + Y[i1]*(a1-alpha1)*k12+Y[i2]*(a2-alpha2)*k22+thresh[0] # Eq. (12.10)
         new_b = (b1+b2)/2.
-        for i in xrange(N):
-            if Alphas[i] in (0,C):
-                continue
-            elif i == i1 or i == i2:
-                E[i] = 0
-            else:
-                E[i] += y1*(a1-alpha1)*kernel_apply(i1,i)+y2*(a2-alpha2)*kernel_apply(i2,i) + (thresh[0]-new_b) # Eq. (12.11)
+        #for i in xrange(N):
+        #    if Alphas[i] in (0,C):
+        #        continue
+        #    elif i == i1 or i == i2:
+        #        E[i] = 0
+        #    else:
+        #        E[i] += y1*(a1-alpha1)*kernel_apply(i1,i)+y2*(a2-alpha2)*kernel_apply(i2,i) + (thresh[0]-new_b) # Eq. (12.11)
         thresh[0] = new_b
-        E[i1]=f_at(i1)-y1
-        E[i2]=f_at(i2)-y2
+        #E[i1]=f_at(i1)-y1
+        #E[i2]=f_at(i2)-y2
         return True
     def examine_example(i2):
         y2 = Y[i2]
@@ -187,7 +183,7 @@ def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8):
         r2 = E2 * y2
         #print 'alpha2', alpha2, 'E2', E2, 'r2', r2
         if (r2 < -tol) and (alpha2 < C) or (r2 > tol) and (alpha2 > 0):
-            if Alphas.any() or (Alphas==C).any():
+            if ( (Alphas != 0) & (Alphas != C) ).any():
                  dE = numpy.array([numpy.abs(get_error(i)-E2) for i in xrange(N)])
                  i1 = dE.argmax()
                  if take_step(i1,i2):
@@ -400,6 +396,7 @@ class svm_binary(object):
         pass
 
     def train(self,features,labels):
+        assert len(labels) >= 2, 'Cannot train from a single example'
         c0 = labels[0]
         i = 1
         while labels[i] == c0:
