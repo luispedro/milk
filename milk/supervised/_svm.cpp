@@ -117,6 +117,8 @@ double KernelCache::do_kernel(int i1, int i2) {
     }
     PyObject* arglist = Py_BuildValue("(OO)",obj1,obj2);
     PyObject* result = PyEval_CallObject(pykernel_,arglist);
+    Py_XDECREF(obj1);
+    Py_XDECREF(obj2);
     Py_DECREF(arglist);
     if (!result) { 
         if (PyErr_Occurred()) {
@@ -280,6 +282,7 @@ void SMO::optimise() {
     int changed = 0;
     bool examineAll = true;
     while (changed || examineAll) {
+        if (PyErr_Occurred()) throw Python_Exception();
         changed = 0;
         for (int i = 0; i != N; ++i) {
             if (examineAll || Alphas[i] != 0 && Alphas[i] != C) {
