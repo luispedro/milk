@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <cmath>
 #include <iostream>
 #include <list>
@@ -29,6 +30,8 @@ struct SMO_Exception {
     const char* msg;
 
 };
+
+struct Python_Exception { };
 class KernelCache {
     public:
         KernelCache(PyObject* X, PyObject* kernel, int N, int cache_nr_doubles);
@@ -75,7 +78,7 @@ double* KernelCache::get_kline(int idx) {
             --cache_free_;
         }
         for (int i = 0; i != N_; ++i) {
-            if (cache[i]) cache[idx][i] = cache[i][idx];
+            if (i != idx && cache[i]) cache[idx][i] = cache[i][idx];
             else cache[idx][i] = do_kernel(idx,i);
         }
     } else {
@@ -91,8 +94,14 @@ double* KernelCache::get_kline(int idx) {
  * Uses the cache if possible, but does not update it.
  */
 double KernelCache::kernel_apply(int i1, int i2) {
-    if (cache[i1]) return cache[i1][i2];
-    if (cache[i2]) return cache[i2][i1];
+    if (cache[i1]) {
+        assert(do_kernel(i1,i2) == cache[i1][i2]);
+        return cache[i1][i2];
+    }
+    if (cache[i2]) {
+        assert(do_kernel(i1,i2) == cache[i2][i1]);
+        return cache[i2][i1];
+    }
     return do_kernel(i1,i2);
 }
 
@@ -108,6 +117,9 @@ double KernelCache::do_kernel(int i1, int i2) {
     PyObject* arglist = Py_BuildValue("(OO)",obj1,obj2);
     PyObject* result = PyEval_CallObject(pykernel_,arglist);
     if (!result) { 
+        if (PyObject* excp = PyErr_Occurred()) {
+            throw Python_Exception();
+        }
         throw SMO_Exception("Unable to call kernel");
     }
     Py_DECREF(arglist);
@@ -156,10 +168,11 @@ double SMO::apply(int j) const {
             sum += Y[i] * Alphas[i] * Kernel_Line[i];
         }
     }
+    //std::cout << "SMO::apply( " << j << " ): " << sum << '\n';
     return sum;
 }
 bool SMO::take_step(int i1, int i2) {
-    //std::cout << "take_step( " << i1 << ", " << i2 << " );\n";
+    std::cout << "take_step( " << i1 << ", " << i2 << " );\n";
     if (i1 == i2) return false;
     const double alpha1 = Alphas[i1];
     const double alpha2 = Alphas[i2];
@@ -268,12 +281,12 @@ void SMO::optimise() {
     while (changed || examineAll) {
         changed = 0;
         for (int i = 0; i != N; ++i) {
-            if (Alphas[i] != 0 || Alphas[i] != C || examineAll) {
+            if (examineAll || Alphas[i] != 0 && Alphas[i] != C) {
                 changed += examine_example(i);
             }
         }
         if (examineAll) examineAll = false;
-        else if (changed) examineAll = true;
+        else if (!changed) examineAll = true;
     }
 }
 
@@ -311,6 +324,11 @@ PyObject* eval_SMO(PyObject* self, PyObject* args) {
         SMO optimiser(X,Yv,Alphas,b,C,N,kernel,eps,tol,cache_size);
         optimiser.optimise();
         Py_RETURN_NONE;
+    } catch (const Python_Exception& exc) {
+        return 0;
+    } catch (const SMO_Exception& exc) {
+        PyErr_SetString(PyExc_RuntimeError,exc.msg);
+        return 0;
     } catch (...) {
         PyErr_SetString(PyExc_RuntimeError,"Some sort of exception in eval_SMO.");
         return 0;
