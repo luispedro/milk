@@ -35,8 +35,8 @@ def zscore(features):
 
     Returns a copy of features which has been normalised to zscores 
     """
-    mu=features.mean(0)
-    sigma=_std(features,0)
+    mu = features.mean(0)
+    sigma = _std(features,0)
     sigma[sigma == 0] = 1
     return (features - mu) / sigma
 
@@ -45,7 +45,7 @@ class subtract_divide(object):
         if features:
             self.train(features)
     def __call__(self,features):
-        return (features - self.mu)/self.factor
+        return (features - self.shift)/self.factor
 
 class zscore_normalise(subtract_divide):
     '''
@@ -57,9 +57,9 @@ class zscore_normalise(subtract_divide):
         subtract_divide.__init__(self,features)
 
     def train(self,features,labels):
-        self.mu=features.mean(0)
-        self.factor=_std(features,0)
-        self.factor[self.sigma == 0.]=1 # This makes the division a null op.
+        self.shift = features.mean(0)
+        self.factor = _std(features,0)
+        self.factor[self.factor== 0.] = 1 # This makes the division a null op.
 
 class interval_normalise(subtract_divide):
     '''
@@ -70,9 +70,10 @@ class interval_normalise(subtract_divide):
         subtract_divide.__init__(self,features)
 
     def train(self,features,labels):
-        self.mu=features.mean(0)
-        self.factor=features.max(0)-features.min(0)
-        self.factor[self.range == 0.]=1 # This makes the division a null op.
+        D = features.max(0) - features.min(0)
+        self.shift = features.mean(0) + D/2.
+        self.factor = D/2.
+        self.factor[self.factor== 0.]=1 # This makes the division a null op.
 
 class chkfinite(object):
     '''
