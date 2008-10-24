@@ -9,6 +9,7 @@ extern "C" {
 }
 
 
+namespace { 
 /// This is a boost function
 template <typename Iter>
 inline Iter prior(Iter it) {
@@ -112,17 +113,17 @@ double KernelCache::do_kernel(int i1, int i2) {
     if (!obj1 || !obj2) {
         Py_XDECREF(obj1);
         Py_XDECREF(obj2);
-        throw SMO_Exception("Unable to access element in X array");
+        throw SMO_Exception("svm.eval_SMO: Unable to access element in X array");
     }
     PyObject* arglist = Py_BuildValue("(OO)",obj1,obj2);
     PyObject* result = PyEval_CallObject(pykernel_,arglist);
+    Py_DECREF(arglist);
     if (!result) { 
-        if (PyObject* excp = PyErr_Occurred()) {
+        if (PyErr_Occurred()) {
             throw Python_Exception();
         }
-        throw SMO_Exception("Unable to call kernel");
+        throw SMO_Exception("svm.eval_SMO: Unable to call kernel");
     }
-    Py_DECREF(arglist);
     double val = PyFloat_AsDouble(result);
     Py_DECREF(result);
     return val;
@@ -172,7 +173,7 @@ double SMO::apply(int j) const {
     return sum;
 }
 bool SMO::take_step(int i1, int i2) {
-    std::cout << "take_step( " << i1 << ", " << i2 << " );\n";
+    //std::cout << "take_step( " << i1 << ", " << i2 << " );\n";
     if (i1 == i2) return false;
     const double alpha1 = Alphas[i1];
     const double alpha2 = Alphas[i2];
@@ -323,8 +324,10 @@ PyObject* eval_SMO(PyObject* self, PyObject* args) {
         double tol = *static_cast<double*>(PyArray_GETPTR1(params,3));
         SMO optimiser(X,Yv,Alphas,b,C,N,kernel,eps,tol,cache_size);
         optimiser.optimise();
+        *static_cast<double*>(PyArray_GETPTR1(params,0)) = b; // Write back b
         Py_RETURN_NONE;
-    } catch (const Python_Exception& exc) {
+    } catch (const Python_Exception&) {
+        // if Python_Exception was thrown, then PyErr is already set.
         return 0;
     } catch (const SMO_Exception& exc) {
         PyErr_SetString(PyExc_RuntimeError,exc.msg);
@@ -345,6 +348,8 @@ const char  * module_doc =
     "Internal SVM Module.\n"
     "\n"
     "Do NOT use directly!\n";
+
+} // namespace
 
 extern "C"
 void init_svm()
