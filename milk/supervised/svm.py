@@ -77,7 +77,7 @@ def _svm_apply_precomputed(j,Y,Alphas,b,Kernel_Line,C):
         warnings.warn('scipy.weave failed! Resorting to (slow) Python code')
         return (Y*Alphas*(Alphas != C)*Kernel_Line).sum() - b
 
-def svm_learn(X,Y,kernel,C,eps=1e-3,tol=1e-8,cache_size=(1<<20)):
+def svm_learn(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
     '''
     Learn a svm classifier
 
