@@ -154,6 +154,7 @@ class svm_raw(object):
         self.trained = False
 
     def train(self,features,labels):
+        assert numpy.all( (labels == 0) | (labels == 1) ), 'milk.supervised.svm_raw can only handle binary problems'
         self.Y, self.classnames = normaliselabels(labels)
         self.Y *= 2
         self.Y -= 1
