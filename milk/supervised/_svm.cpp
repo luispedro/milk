@@ -1,3 +1,24 @@
+// Copyright (C) 2008, Luís Pedro Coelho <lpc@cmu.edu>
+// Copyright (c) 2000-2008 Chih-Chung Chang and Chih-Jen Lin (LIBSVM Code)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
+
 #include <assert.h>
 #include <cmath>
 #include <iostream>
@@ -10,6 +31,7 @@ extern "C" {
 
 
 namespace { 
+const double INF = 1e200;
 /// This is a boost function
 template <typename Iter>
 inline Iter prior(Iter it) {
@@ -38,15 +60,17 @@ class KernelCache {
         KernelCache(PyObject* X, PyObject* kernel, int N, int cache_nr_doubles);
         ~KernelCache();
    
-        double* get_kline(int idx);
-        double kernel_apply(int i1, int i2);
+        double* get_kline(int idx, int size = -1);
+        double* get_diag();
+        double kernel_apply(int i1, int i2) const;
     private:
-        double do_kernel(int i1, int i2);
+        double do_kernel(int i1, int i2) const;
 
         PyObject* const X_;
         PyObject* const pykernel_;
         const int N_;
         double ** cache;
+        double * dcache_;
         int cache_free_;
         std::list<int> cache_lru;
         std::vector<std::list<int>::iterator> cache_iter;
@@ -55,7 +79,8 @@ class KernelCache {
 KernelCache::KernelCache(PyObject* X, PyObject* kernel, int N, int cache_nr_floats):
     X_(X),
     pykernel_(kernel),
-    N_(N) {
+    N_(N),
+    dcache_(0) {
     cache = new double*[N_];
     for (int i = 0; i != N_; ++i) cache[i] = 0;
     cache_free_ = (cache_nr_floats/N_);
@@ -65,9 +90,11 @@ KernelCache::KernelCache(PyObject* X, PyObject* kernel, int N, int cache_nr_floa
 KernelCache::~KernelCache() {
     for (int i = 0; i != N_; ++i) delete [] cache[i];
     delete [] cache;
+    delete [] dcache_;
 }
 
-double* KernelCache::get_kline(int idx) {
+double* KernelCache::get_kline(int idx, int s) {
+    assert (s == N_);
     if (!cache[idx]) {
         if (!cache_free_) {
             int to_remove = cache_lru.front();
@@ -79,7 +106,8 @@ double* KernelCache::get_kline(int idx) {
             --cache_free_;
         }
         for (int i = 0; i != N_; ++i) {
-            if (i != idx && cache[i]) cache[idx][i] = cache[i][idx];
+            if (i == idx && dcache_) cache[i][i] = dcache_[i];
+            else if(i != idx && cache[i]) cache[idx][i] = cache[i][idx];
             else cache[idx][i] = do_kernel(idx,i);
         }
     } else {
@@ -90,11 +118,23 @@ double* KernelCache::get_kline(int idx) {
     return cache[idx];
 }
 
+double* KernelCache::get_diag() {
+    if (!dcache_) {
+        dcache_ = new double[N_];
+        for (int i = 0; i != N_; ++i) {
+            if (cache[i]) dcache_[i] = cache[i][i];
+            else dcache_[i] = do_kernel(i,i);
+        }
+    }
+    return dcache_;
+}
+
+
 /***
  * Returns the value of Kernel(X_i1, X_i2).
  * Uses the cache if possible, but does not update it.
  */
-double KernelCache::kernel_apply(int i1, int i2) {
+double KernelCache::kernel_apply(int i1, int i2) const {
     if (cache[i1]) {
         assert(do_kernel(i1,i2) == cache[i1][i2]);
         return cache[i1][i2];
@@ -106,7 +146,7 @@ double KernelCache::kernel_apply(int i1, int i2) {
     return do_kernel(i1,i2);
 }
 
-double KernelCache::do_kernel(int i1, int i2) {
+double KernelCache::do_kernel(int i1, int i2) const {
     PyObject* obj1 = PySequence_GetItem(X_,i1);
     PyObject* obj2 = PySequence_GetItem(X_,i2);
 
@@ -342,6 +382,10 @@ PyObject* eval_SMO(PyObject* self, PyObject* args) {
 }
 
 
+// The code for LIBSVM_Solver is taken from LIBSVM
+// Copyright (c) 2000-2008 Chih-Chung Chang and Chih-Jen Lin
+// Changes were made to make it more similar to our formulation.
+
 // An SMO algorithm in Fan et al., JMLR 6(2005), p. 1889--1918
 // Solves:
 //
@@ -360,366 +404,319 @@ PyObject* eval_SMO(PyObject* self, PyObject* args) {
 //
 // solution will be put in \alpha, objective value will be put in obj
 //
-class Solver {
-public:
-	Solver() {};
-	virtual ~Solver() {};
 
-	struct SolutionInfo {
-		double obj;
-		double rho;
-		double upper_bound_p;
-		double upper_bound_n;
-		double r;	// for Solver_NU
-	};
 
-	void Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
-		   double *alpha_, double Cp, double Cn, double eps,
-		   SolutionInfo* si, int shrinking);
-protected:
-	int active_size;
-	schar *y;
-	double *G;		// gradient of objective function
-	enum { LOWER_BOUND, UPPER_BOUND, FREE };
-	char *alpha_status;	// LOWER_BOUND, UPPER_BOUND, FREE
-	double *alpha;
-	const QMatrix *Q;
-	const Qfloat *QD;
-	double eps;
-	double Cp,Cn;
-	double *p;
-	int *active_set;
-	double *G_bar;		// gradient, if we treat free variables as 0
-	int l;
-	bool unshrinked;	// XXX
 
-	double get_C(int i)
-	{
-		return (y[i] > 0)? Cp : Cn;
-	}
-	void update_alpha_status(int i)
-	{
-		if(alpha[i] >= get_C(i))
-			alpha_status[i] = UPPER_BOUND;
-		else if(alpha[i] <= 0)
-			alpha_status[i] = LOWER_BOUND;
-		else alpha_status[i] = FREE;
-	}
-	bool is_upper_bound(int i) { return alpha_status[i] == UPPER_BOUND; }
-	bool is_lower_bound(int i) { return alpha_status[i] == LOWER_BOUND; }
-	bool is_free(int i) { return alpha_status[i] == FREE; }
-	void swap_index(int i, int j);
-	void reconstruct_gradient();
-	virtual int select_working_set(int &i, int &j);
-	virtual double calculate_rho();
-	virtual void do_shrinking();
-private:
-	bool be_shrunken(int i, double Gmax1, double Gmax2);	
+
+class LIBSVM_Solver {
+    public:
+        LIBSVM_Solver(PyObject* X, int* Y, double* Alphas, double& b, double C, int N, PyObject* kernel, double eps, double tol, int cache_size, bool shrinking):
+            Alphas(Alphas),
+            Y(Y),
+            b(b),
+            C(C),
+            N(N),
+            cache_(X,kernel,N,cache_size),
+            eps(eps),
+            tol(tol),
+            alpha_status(N),
+            active_size(N),
+            shrinking(shrinking),
+            tau(eps) {}
+        virtual ~LIBSVM_Solver();
+
+        struct SolutionInfo {
+            double obj;
+            double rho;
+            double upper_bound_p;
+            double upper_bound_n;
+            double r;	// for LIBSVM_Solver_NU
+        };
+
+        void optimise();
+    protected:
+        double* Alphas;
+        int* Y;
+        double b;
+        double C;
+        const int N;
+        KernelCache cache_;
+        const double eps;
+        const double tol;
+        double *G;		// gradient of objective function
+        enum alpha_status_e { lower_bound, upper_bound, free};
+        std::vector<alpha_status_e> alpha_status;
+        int active_size;
+        std::vector<int> active_set;
+        double *p;
+        double *G_bar;		// gradient, if we treat free variables as 0
+        bool unshrinked;	// XXX
+        bool shrinking;
+        double tau;
+
+        double get_C(int i) const
+        {
+            return C;
+            //return (Y[i] > 0)? Cp : Cn;
+        }
+        void update_alpha_status(int i)
+        {
+            if(Alphas[i] >= get_C(i))
+                alpha_status[i] = upper_bound;
+            else if(Alphas[i] <= 0)
+                alpha_status[i] = lower_bound;
+            else alpha_status[i] = free;
+        }
+        bool is_upper_bound(int i) const { return alpha_status[i] == upper_bound; }
+        bool is_lower_bound(int i) const { return alpha_status[i] == lower_bound; }
+        bool is_free(int i) const { return alpha_status[i] == free; }
+        void swap_index(int i, int j);
+        void reconstruct_gradient();
+        virtual bool select_working_set(int &i, int &j);
+        virtual double calculate_rho();
+        virtual void do_shrinking();
+    private:
+        bool be_shrunken(int i, double Gmax1, double Gmax2);	
 };
 
-void Solver::swap_index(int i, int j)
+void LIBSVM_Solver::swap_index(int i, int j)
 {
-	Q->swap_index(i,j);
-	swap(y[i],y[j]);
-	swap(G[i],G[j]);
-	swap(alpha_status[i],alpha_status[j]);
-	swap(alpha[i],alpha[j]);
-	swap(p[i],p[j]);
-	swap(active_set[i],active_set[j]);
-	swap(G_bar[i],G_bar[j]);
+	std::swap(Y[i],Y[j]);
+	std::swap(G[i],G[j]);
+	std::swap(alpha_status[i],alpha_status[j]);
+	std::swap(Alphas[i],Alphas[j]);
+	std::swap(p[i],p[j]);
+	std::swap(active_set[i],active_set[j]);
+	std::swap(G_bar[i],G_bar[j]);
 }
 
-void Solver::reconstruct_gradient()
+void LIBSVM_Solver::reconstruct_gradient()
 {
 	// reconstruct inactive elements of G from G_bar and free variables
 
-	if(active_size == l) return;
+	if(active_size == N) return;
 
-	int i;
-	for(i=active_size;i<l;i++)
+	for(int i=active_size;i<N;++i)
 		G[i] = G_bar[i] + p[i];
 	
-	for(i=0;i<active_size;i++)
+	for(int i=0;i<active_size;++i) {
 		if(is_free(i))
 		{
-			const Qfloat *Q_i = Q->get_Q(i,l);
-			double alpha_i = alpha[i];
-			for(int j=active_size;j<l;j++)
+			const double *Q_i = cache_.get_kline(i,N);
+            const double alpha_i = Alphas[i];
+			for(int j=active_size;j<N;j++)
 				G[j] += alpha_i * Q_i[j];
 		}
+    }
 }
 
-void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
-		   double *alpha_, double Cp, double Cn, double eps,
-		   SolutionInfo* si, int shrinking)
-{
-	this->l = l;
-	this->Q = &Q;
-	QD=Q.get_QD();
-	clone(p, p_,l);
-	clone(y, y_,l);
-	clone(alpha,alpha_,l);
-	this->Cp = Cp;
-	this->Cn = Cn;
-	this->eps = eps;
+void LIBSVM_Solver::optimise()  {
+    // INITIALISE:
 	unshrinked = false;
 
-	// initialize alpha_status
-	{
-		alpha_status = new char[l];
-		for(int i=0;i<l;i++)
-			update_alpha_status(i);
-	}
-
-	// initialize active set (for shrinking)
-	{
-		active_set = new int[l];
-		for(int i=0;i<l;i++)
-			active_set[i] = i;
-		active_size = l;
-	}
+    for(int i=0;i<N;i++) {
+        update_alpha_status(i);
+        active_set[i] = i;
+    }
+    active_size = N;
 
 	// initialize gradient
-	{
-		G = new double[l];
-		G_bar = new double[l];
-		int i;
-		for(i=0;i<l;i++)
+	G = new double[N];
+	G_bar = new double[N];
+	for(int i=0;i<N;++i) {
+		G[i] = p[i];
+		G_bar[i] = 0;
+	}
+	for(int i=0;i<N;i++) {
+		if(!is_lower_bound(i))
 		{
-			G[i] = p[i];
-			G_bar[i] = 0;
+			const double *Q_i= cache_.get_kline(i);
+			const double alpha_i = Alphas[i];
+			for(int j=0;j<N;j++) G[j] += alpha_i*Q_i[j];
+			if(is_upper_bound(i)) {
+				for(int j=0;j<N;j++) G_bar[j] += get_C(i) * Q_i[j];
+            }
 		}
-		for(i=0;i<l;i++)
-			if(!is_lower_bound(i))
-			{
-				const Qfloat *Q_i = Q.get_Q(i,l);
-				double alpha_i = alpha[i];
-				int j;
-				for(j=0;j<l;j++)
-					G[j] += alpha_i*Q_i[j];
-				if(is_upper_bound(i))
-					for(j=0;j<l;j++)
-						G_bar[j] += get_C(i) * Q_i[j];
-			}
 	}
 
-	// optimization step
-
+    //MAIN LOOP
 	int iter = 0;
-	int counter = min(l,1000)+1;
+	int counter = min(N,1000)+1;
 
-	while(1)
-	{
+	while (true) {
 		// show progress and do shrinking
-
-		if(--counter == 0)
-		{
-			counter = min(l,1000);
+		if(--counter == 0) {
+			counter = min(N,1000);
 			if(shrinking) do_shrinking();
-			info("."); info_flush();
+			//info("."); info_flush();
 		}
 
 		int i,j;
-		if(select_working_set(i,j)!=0)
-		{
+		if(select_working_set(i,j)) {
 			// reconstruct the whole gradient
 			reconstruct_gradient();
 			// reset active set size and check
-			active_size = l;
-			info("*"); info_flush();
-			if(select_working_set(i,j)!=0)
-				break;
-			else
-				counter = 1;	// do shrinking next iteration
+			active_size = N;
+			//info("*"); info_flush();
+			if(select_working_set(i,j)) break;
+			else counter = 1;	// do shrinking next iteration
 		}
 		
 		++iter;
 
 		// update alpha[i] and alpha[j], handle bounds carefully
 		
-		const Qfloat *Q_i = Q.get_Q(i,active_size);
-		const Qfloat *Q_j = Q.get_Q(j,active_size);
+		const double *Q_i = cache_.get_kline(i, active_size);
+		const double *Q_j = cache_.get_kline(j, active_size);
 
-		double C_i = get_C(i);
-		double C_j = get_C(j);
+		const double C_i = get_C(i);
+		const double C_j = get_C(j);
 
-		double old_alpha_i = alpha[i];
-		double old_alpha_j = alpha[j];
+		const double old_alpha_i = Alphas[i];
+		const double old_alpha_j = Alphas[j];
 
-		if(y[i]!=y[j])
-		{
+		if(Y[i]!=Y[j]) {
 			double quad_coef = Q_i[i]+Q_j[j]+2*Q_i[j];
-			if (quad_coef <= 0)
-				quad_coef = TAU;
-			double delta = (-G[i]-G[j])/quad_coef;
-			double diff = alpha[i] - alpha[j];
-			alpha[i] += delta;
-			alpha[j] += delta;
+			if (quad_coef <= 0) quad_coef = tau;
+			const double delta = (-G[i]-G[j])/quad_coef;
+			const double diff = Alphas[i] - Alphas[j];
+			Alphas[i] += delta;
+			Alphas[j] += delta;
 			
-			if(diff > 0)
-			{
-				if(alpha[j] < 0)
-				{
-					alpha[j] = 0;
-					alpha[i] = diff;
+			if(diff > 0) {
+				if(Alphas[j] < 0) {
+					Alphas[j] = 0;
+					Alphas[i] = diff;
+				}
+			} else {
+				if(Alphas[i] < 0) {
+					Alphas[i] = 0;
+					Alphas[j] = -diff;
 				}
 			}
-			else
-			{
-				if(alpha[i] < 0)
-				{
-					alpha[i] = 0;
-					alpha[j] = -diff;
-				}
-			}
-			if(diff > C_i - C_j)
-			{
-				if(alpha[i] > C_i)
-				{
-					alpha[i] = C_i;
-					alpha[j] = C_i - diff;
-				}
-			}
-			else
-			{
-				if(alpha[j] > C_j)
-				{
-					alpha[j] = C_j;
-					alpha[i] = C_j + diff;
-				}
-			}
-		}
-		else
-		{
-			double quad_coef = Q_i[i]+Q_j[j]-2*Q_i[j];
-			if (quad_coef <= 0)
-				quad_coef = TAU;
-			double delta = (G[i]-G[j])/quad_coef;
-			double sum = alpha[i] + alpha[j];
-			alpha[i] -= delta;
-			alpha[j] += delta;
 
-			if(sum > C_i)
-			{
-				if(alpha[i] > C_i)
-				{
-					alpha[i] = C_i;
-					alpha[j] = sum - C_i;
+			if(diff > C_i - C_j) {
+				if(Alphas[i] > C_i) {
+					Alphas[i] = C_i;
+					Alphas[j] = C_i - diff;
+				}
+			} else {
+				if(Alphas[j] > C_j) {
+					Alphas[j] = C_j;
+					Alphas[i] = C_j + diff;
 				}
 			}
-			else
-			{
-				if(alpha[j] < 0)
-				{
-					alpha[j] = 0;
-					alpha[i] = sum;
+		} else {
+			double quad_coef = Q_i[i]+Q_j[j]-2*Q_i[j];
+			if (quad_coef <= 0) quad_coef = tau;
+			const double delta = (G[i]-G[j])/quad_coef;
+			double sum = Alphas[i] + Alphas[j];
+			Alphas[i] -= delta;
+			Alphas[j] += delta;
+
+			if(sum > C_i) {
+				if(Alphas[i] > C_i) {
+					Alphas[i] = C_i;
+					Alphas[j] = sum - C_i;
+				}
+			} else {
+				if(Alphas[j] < 0) {
+					Alphas[j] = 0;
+					Alphas[i] = sum;
 				}
 			}
-			if(sum > C_j)
-			{
-				if(alpha[j] > C_j)
-				{
-					alpha[j] = C_j;
-					alpha[i] = sum - C_j;
+
+			if(sum > C_j) {
+				if(Alphas[j] > C_j) {
+					Alphas[j] = C_j;
+					Alphas[i] = sum - C_j;
 				}
-			}
-			else
-			{
-				if(alpha[i] < 0)
-				{
-					alpha[i] = 0;
-					alpha[j] = sum;
+			} else {
+				if(Alphas[i] < 0) {
+					Alphas[i] = 0;
+					Alphas[j] = sum;
 				}
 			}
 		}
 
 		// update G
 
-		double delta_alpha_i = alpha[i] - old_alpha_i;
-		double delta_alpha_j = alpha[j] - old_alpha_j;
+		double delta_Alphas_i = Alphas[i] - old_alpha_i;
+		double delta_Alphas_j = Alphas[j] - old_alpha_j;
 		
-		for(int k=0;k<active_size;k++)
-		{
-			G[k] += Q_i[k]*delta_alpha_i + Q_j[k]*delta_alpha_j;
+		for(int k=0;k<active_size;k++) {
+			G[k] += Q_i[k]*delta_Alphas_i + Q_j[k]*delta_Alphas_j;
 		}
 
-		// update alpha_status and G_bar
+		// update Alphas_status and G_bar
+		const bool ui = is_upper_bound(i);
+		const bool uj = is_upper_bound(j);
+		update_alpha_status(i);
+		update_alpha_status(j);
+		if(ui != is_upper_bound(i)) {
+			Q_i = cache_.get_kline(i, N);
+			if(ui) {
+				for(int k=0;k<N;k++)
+					G_bar[k] -= C_i * Q_i[k];
+            } else {
+				for(int k=0;k<N;k++)
+					G_bar[k] += C_i * Q_i[k];
+            }
+		}
 
-		{
-			bool ui = is_upper_bound(i);
-			bool uj = is_upper_bound(j);
-			update_alpha_status(i);
-			update_alpha_status(j);
-			int k;
-			if(ui != is_upper_bound(i))
-			{
-				Q_i = Q.get_Q(i,l);
-				if(ui)
-					for(k=0;k<l;k++)
-						G_bar[k] -= C_i * Q_i[k];
-				else
-					for(k=0;k<l;k++)
-						G_bar[k] += C_i * Q_i[k];
-			}
-
-			if(uj != is_upper_bound(j))
-			{
-				Q_j = Q.get_Q(j,l);
-				if(uj)
-					for(k=0;k<l;k++)
-						G_bar[k] -= C_j * Q_j[k];
-				else
-					for(k=0;k<l;k++)
-						G_bar[k] += C_j * Q_j[k];
-			}
+		if(uj != is_upper_bound(j)) {
+			Q_j = cache_.get_kline(j, N);
+			if(uj) {
+				for(int k=0;k<N;k++)
+					G_bar[k] -= C_j * Q_j[k];
+            } else {
+				for(int k=0;k<N;k++)
+					G_bar[k] += C_j * Q_j[k];
+            }
 		}
 	}
+
+
+
+
+
+    // CLEANUP
+
 
 	// calculate rho
 
-	si->rho = calculate_rho();
+	//si->rho = calculate_rho();
 
 	// calculate objective value
-	{
-		double v = 0;
-		int i;
-		for(i=0;i<l;i++)
-			v += alpha[i] * (G[i] + p[i]);
+    double v = 0;
+    for(int i=0;i<N;i++) {
+        v += Alphas[i] * (G[i] + p[i]);
+    }
 
-		si->obj = v/2;
-	}
+    //si->obj = v/2;
 
 	// put back the solution
-	{
-		for(int i=0;i<l;i++)
-			alpha_[active_set[i]] = alpha[i];
-	}
+    for (int i = 0; i != N; ++i) {
+        while (active_set[i] !=  i) {
+            int j = active_set[i];
+            std::swap(Y[i],Y[j]); // It's not polite to clobber Y, so put it back
+            std::swap(Alphas[i],Alphas[j]);
+            std::swap(active_set[i],active_set[j]);
+        }
+    }
 
-	// juggle everything back
-	/*{
-		for(int i=0;i<l;i++)
-			while(active_set[i] != i)
-				swap_index(i,active_set[i]);
-				// or Q.swap_index(i,active_set[i]);
-	}*/
 
-	si->upper_bound_p = Cp;
-	si->upper_bound_n = Cn;
+	//si->upper_bound_p = Cp;
+	//si->upper_bound_n = Cn;
 
-	info("\noptimization finished, #iter = %d\n",iter);
+	//info("\noptimization finished, #iter = %d\n",iter);
 
-	delete[] p;
-	delete[] y;
-	delete[] alpha;
-	delete[] alpha_status;
-	delete[] active_set;
 	delete[] G;
 	delete[] G_bar;
 }
 
-// return 1 if already optimal, return 0 otherwise
-int Solver::select_working_set(int &out_i, int &out_j)
-{
+// return true if already optimal, return false otherwise
+bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
 	// return i,j such that
 	// i: maximizes -y_i * grad(f)_i, i in I_up(\alpha)
 	// j: minimizes the decrease of obj value
@@ -733,74 +730,56 @@ int Solver::select_working_set(int &out_i, int &out_j)
 	double obj_diff_min = INF;
 
 	for(int t=0;t<active_size;t++)
-		if(y[t]==+1)	
-		{
-			if(!is_upper_bound(t))
-				if(-G[t] >= Gmax)
-				{
+		if(Y[t] == +1)	{
+			if(!is_upper_bound(t)) {
+				if(-G[t] >= Gmax) {
 					Gmax = -G[t];
 					Gmax_idx = t;
 				}
-		}
-		else
-		{
-			if(!is_lower_bound(t))
-				if(G[t] >= Gmax)
-				{
+            }
+		} else {
+			if(!is_lower_bound(t)) {
+				if(G[t] >= Gmax) {
 					Gmax = G[t];
 					Gmax_idx = t;
 				}
+            }
 		}
 
 	int i = Gmax_idx;
-	const Qfloat *Q_i = NULL;
+	const double *Q_i = 0;
+    const double *QDiag = cache_.get_diag();
 	if(i != -1) // NULL Q_i not accessed: Gmax=-INF if i=-1
-		Q_i = Q->get_Q(i,active_size);
+		Q_i = cache_.get_kline(i);
 
-	for(int j=0;j<active_size;j++)
-	{
-		if(y[j]==+1)
-		{
-			if (!is_lower_bound(j))
-			{
+	for(int j=0;j<active_size;++j) {
+		if(Y[j]==+1) {
+			if (!is_lower_bound(j)) {
 				double grad_diff=Gmax+G[j];
-				if (G[j] >= Gmax2)
-					Gmax2 = G[j];
-				if (grad_diff > 0)
-				{
+				if (G[j] >= Gmax2) Gmax2 = G[j];
+				if (grad_diff > 0) {
 					double obj_diff; 
-					double quad_coef=Q_i[i]+QD[j]-2*y[i]*Q_i[j];
-					if (quad_coef > 0)
-						obj_diff = -(grad_diff*grad_diff)/quad_coef;
-					else
-						obj_diff = -(grad_diff*grad_diff)/TAU;
+					double quad_coef=Q_i[i]+QDiag[j]-2*Y[i]*Q_i[j];
+					if (quad_coef > 0) obj_diff = -(grad_diff*grad_diff)/quad_coef;
+					else obj_diff = -(grad_diff*grad_diff)/tau;
 
-					if (obj_diff <= obj_diff_min)
-					{
+					if (obj_diff <= obj_diff_min) {
 						Gmin_idx=j;
 						obj_diff_min = obj_diff;
 					}
 				}
 			}
-		}
-		else
-		{
-			if (!is_upper_bound(j))
-			{
+		} else {
+			if (!is_upper_bound(j)) {
 				double grad_diff= Gmax-G[j];
-				if (-G[j] >= Gmax2)
-					Gmax2 = -G[j];
-				if (grad_diff > 0)
-				{
+				if (-G[j] >= Gmax2) Gmax2 = -G[j];
+				if (grad_diff > 0) {
 					double obj_diff; 
-					double quad_coef=Q_i[i]+QD[j]+2*y[i]*Q_i[j];
-					if (quad_coef > 0)
-						obj_diff = -(grad_diff*grad_diff)/quad_coef;
-					else
-						obj_diff = -(grad_diff*grad_diff)/TAU;
+					double quad_coef=Q_i[i]+QDiag[j]+2*Y[i]*Q_i[j];
+					if (quad_coef > 0) obj_diff = -(grad_diff*grad_diff)/quad_coef;
+					else obj_diff = -(grad_diff*grad_diff)/tau;
 
-					if (obj_diff <= obj_diff_min)
-					{
+					if (obj_diff <= obj_diff_min) {
 						Gmin_idx=j;
 						obj_diff_min = obj_diff;
 					}
@@ -809,87 +788,54 @@ int Solver::select_working_set(int &out_i, int &out_j)
 		}
 	}
 
-	if(Gmax+Gmax2 < eps)
-		return 1;
+	if(Gmax+Gmax2 < eps) return true;
 
 	out_i = Gmax_idx;
 	out_j = Gmin_idx;
-	return 0;
+	return false;
 }
 
-bool Solver::be_shrunken(int i, double Gmax1, double Gmax2)
+bool LIBSVM_Solver::be_shrunken(int i, const double Gmax1, const double Gmax2)
 {
-	if(is_upper_bound(i))
-	{
-		if(y[i]==+1)
-			return(-G[i] > Gmax1);
-		else
-			return(-G[i] > Gmax2);
+	if(is_upper_bound(i)) {
+		if(Y[i]==+1) return -G[i] > Gmax1;
+        return -G[i] > Gmax2;
+	} else if(is_lower_bound(i)) {
+		if (Y[i]==+1) return G[i] > Gmax2;
+        return G[i] > Gmax1;
 	}
-	else if(is_lower_bound(i))
-	{
-		if(y[i]==+1)
-			return(G[i] > Gmax2);
-		else	
-			return(G[i] > Gmax1);
-	}
-	else
-		return(false);
+    return false;
 }
 
-void Solver::do_shrinking()
+void LIBSVM_Solver::do_shrinking()
 {
-	int i;
 	double Gmax1 = -INF;		// max { -y_i * grad(f)_i | i in I_up(\alpha) }
 	double Gmax2 = -INF;		// max { y_i * grad(f)_i | i in I_low(\alpha) }
 
 	// find maximal violating pair first
-	for(i=0;i<active_size;i++)
-	{
-		if(y[i]==+1)	
-		{
-			if(!is_upper_bound(i))	
-			{
-				if(-G[i] >= Gmax1)
-					Gmax1 = -G[i];
-			}
-			if(!is_lower_bound(i))	
-			{
-				if(G[i] >= Gmax2)
-					Gmax2 = G[i];
-			}
-		}
-		else	
-		{
-			if(!is_upper_bound(i))	
-			{
-				if(-G[i] >= Gmax2)
-					Gmax2 = -G[i];
-			}
-			if(!is_lower_bound(i))	
-			{
-				if(G[i] >= Gmax1)
-					Gmax1 = G[i];
-			}
+	for(int i=0;i<active_size;i++) {
+		if(Y[i]==+1)	{
+			if(!is_upper_bound(i)) Gmax1 = max(-G[i],Gmax1);
+			if(!is_lower_bound(i)) Gmax2 = max( G[i],Gmax2);
+		} else	{
+			if(!is_upper_bound(i)) Gmax2 = max(-G[i],Gmax2);
+			if(!is_lower_bound(i)) Gmax1 = max( G[i],Gmax1);
 		}
 	}
 
 	// shrink
-
-	for(i=0;i<active_size;i++)
-		if (be_shrunken(i, Gmax1, Gmax2))
-		{
-			active_size--;
-			while (active_size > i)
-			{
-				if (!be_shrunken(active_size, Gmax1, Gmax2))
-				{
+	for(int i=0;i<active_size;++i) {
+		if (be_shrunken(i, Gmax1, Gmax2)) {
+			--active_size;
+			while (active_size > i) {
+				if (!be_shrunken(active_size, Gmax1, Gmax2)) {
 					swap_index(i,active_size);
 					break;
 				}
-				active_size--;
+				--active_size;
 			}
 		}
+    }
 
 	// unshrink, check all variables again before final iterations
 
@@ -898,44 +844,34 @@ void Solver::do_shrinking()
 	unshrinked = true;
 	reconstruct_gradient();
 
-	for(i=l-1;i>=active_size;i--)
-		if (!be_shrunken(i, Gmax1, Gmax2))
-		{
-			while (active_size < i)
-			{
-				if (be_shrunken(active_size, Gmax1, Gmax2))
-				{
+	for(int i= N-1; i >= active_size; --i) {
+		if (!be_shrunken(i, Gmax1, Gmax2)) {
+			while (active_size < i) {
+				if (be_shrunken(active_size, Gmax1, Gmax2)) {
 					swap_index(i,active_size);
 					break;
 				}
-				active_size++;
+				++active_size;
 			}
-			active_size++;
+			++active_size;
 		}
+    }
 }
 
-double Solver::calculate_rho()
-{
-	double r;
+double LIBSVM_Solver::calculate_rho() {
 	int nr_free = 0;
 	double ub = INF, lb = -INF, sum_free = 0;
-	for(int i=0;i<active_size;i++)
-	{
-		double yG = y[i]*G[i];
-
+	for(int i=0;i<active_size;i++) {
+		const double yG = Y[i]*G[i];
 		if(is_upper_bound(i))
 		{
-			if(y[i]==-1)
-				ub = min(ub,yG);
-			else
-				lb = max(lb,yG);
+			if(Y[i]==-1) ub = min(ub,yG);
+			else lb = max(lb,yG);
 		}
 		else if(is_lower_bound(i))
 		{
-			if(y[i]==+1)
-				ub = min(ub,yG);
-			else
-				lb = max(lb,yG);
+			if(Y[i]==+1) ub = min(ub,yG);
+			else lb = max(lb,yG);
 		}
 		else
 		{
@@ -944,12 +880,8 @@ double Solver::calculate_rho()
 		}
 	}
 
-	if(nr_free>0)
-		r = sum_free/nr_free;
-	else
-		r = (ub+lb)/2;
-
-	return r;
+	if(nr_free>0) return sum_free/nr_free;
+	return (ub+lb)/2;
 }
 
 
