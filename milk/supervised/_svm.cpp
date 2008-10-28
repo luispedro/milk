@@ -20,10 +20,12 @@
 //  THE SOFTWARE.
 
 #include <assert.h>
-#include <cmath>
+#include <math.h>
 #include <iostream>
+#include <stdio.h>
 #include <list>
-#include <vector>
+#include <debug/vector>
+using __gnu_debug::vector;
 extern "C" {
     #include <Python.h>
     #include <numpy/ndarrayobject.h>
@@ -31,7 +33,7 @@ extern "C" {
 
 
 namespace { 
-const double INF = 1e200;
+const double INF = HUGE_VAL;
 /// This is a boost function
 template <typename Iter>
 inline Iter prior(Iter it) {
@@ -58,71 +60,72 @@ struct Python_Exception { };
 class KernelCache {
     public:
         KernelCache(PyObject* X, PyObject* kernel, int N, int cache_nr_doubles);
-        ~KernelCache();
+        virtual ~KernelCache();
    
         double* get_kline(int idx, int size = -1);
         double* get_diag();
         double kernel_apply(int i1, int i2) const;
+    protected:
+        virtual double do_kernel(int i1, int i2) const;
+        const int N_;
     private:
-        double do_kernel(int i1, int i2) const;
-
         PyObject* const X_;
         PyObject* const pykernel_;
-        const int N_;
-        double ** cache;
+        double ** cache_;
         double * dcache_;
         int cache_free_;
         std::list<int> cache_lru;
         std::vector<std::list<int>::iterator> cache_iter;
 };
 
+
 KernelCache::KernelCache(PyObject* X, PyObject* kernel, int N, int cache_nr_floats):
+    N_(N),
     X_(X),
     pykernel_(kernel),
-    N_(N),
     dcache_(0) {
-    cache = new double*[N_];
-    for (int i = 0; i != N_; ++i) cache[i] = 0;
+    cache_ = new double*[N_];
+    for (int i = 0; i != N_; ++i) cache_[i] = 0;
     cache_free_ = (cache_nr_floats/N_);
     cache_iter.resize(N_,cache_lru.end());
 }
 
 KernelCache::~KernelCache() {
-    for (int i = 0; i != N_; ++i) delete [] cache[i];
-    delete [] cache;
+    for (int i = 0; i != N_; ++i) delete [] cache_[i];
+    delete [] cache_;
     delete [] dcache_;
 }
 
 double* KernelCache::get_kline(int idx, int s) {
     assert (s == N_);
-    if (!cache[idx]) {
+    if (!cache_[idx]) {
         if (!cache_free_) {
             int to_remove = cache_lru.front();
             cache_lru.pop_front();
-            cache[idx] = cache[to_remove];
-            cache[to_remove] = 0;
+            cache_[idx] = cache_[to_remove];
+            cache_[to_remove] = 0;
         } else {
-            cache[idx] = new double[N_];
+            cache_[idx] = new double[N_];
             --cache_free_;
         }
         for (int i = 0; i != N_; ++i) {
-            if (i == idx && dcache_) cache[i][i] = dcache_[i];
-            else if(i != idx && cache[i]) cache[idx][i] = cache[i][idx];
-            else cache[idx][i] = do_kernel(idx,i);
+            if (i == idx && dcache_) cache_[i][i] = dcache_[i];
+            else if(i != idx && cache_[i]) cache_[idx][i] = cache_[i][idx];
+            else cache_[idx][i] = do_kernel(idx,i);
         }
     } else {
         cache_lru.erase(cache_iter[idx]);
     }
     cache_lru.push_back(idx);
     cache_iter[idx]=prior(cache_lru.end());
-    return cache[idx];
+    return cache_[idx];
 }
 
 double* KernelCache::get_diag() {
     if (!dcache_) {
         dcache_ = new double[N_];
         for (int i = 0; i != N_; ++i) {
-            if (cache[i]) dcache_[i] = cache[i][i];
+            if (cache_[i]) dcache_[i] = cache_[i][i];
             else dcache_[i] = do_kernel(i,i);
         }
     }
@@ -135,18 +138,24 @@ double* KernelCache::get_diag() {
  * Uses the cache if possible, but does not update it.
  */
 double KernelCache::kernel_apply(int i1, int i2) const {
-    if (cache[i1]) {
-        assert(do_kernel(i1,i2) == cache[i1][i2]);
-        return cache[i1][i2];
+    if (cache_[i1]) {
+        assert(do_kernel(i1,i2) == cache_[i1][i2]);
+        return cache_[i1][i2];
     }
-    if (cache[i2]) {
-        assert(do_kernel(i1,i2) == cache[i2][i1]);
-        return cache[i2][i1];
+    if (cache_[i2]) {
+        assert(do_kernel(i1,i2) == cache_[i2][i1]);
+        return cache_[i2][i1];
+    }
+    if (i1 == i2 && dcache_) {
+        assert(do_kernel(i1,i2) == dcache_[i1]);
+        return dcache_[i1];
     }
     return do_kernel(i1,i2);
 }
 
 double KernelCache::do_kernel(int i1, int i2) const {
+    assert(i1 < N_);
+    assert(i2 < N_);
     PyObject* obj1 = PySequence_GetItem(X_,i1);
     PyObject* obj2 = PySequence_GetItem(X_,i2);
 
@@ -170,6 +179,20 @@ double KernelCache::do_kernel(int i1, int i2) const {
     Py_DECREF(result);
     return val;
 }
+
+class LIBSVM_KernelCache : public KernelCache {
+    public:
+        LIBSVM_KernelCache(PyObject* X, const int* Y, PyObject* kernel, int N, int cache_nr_doubles)
+            :KernelCache(X,kernel,N,cache_nr_doubles),
+             Y_(Y)
+             {  }
+    private:
+        double do_kernel(int i, int j) const {
+            double res = KernelCache::do_kernel(i,j);
+            return res * Y_[i] * Y_[j];
+        }
+        const int* Y_;
+};
 
 class SMO {
     public:
@@ -358,6 +381,8 @@ PyObject* eval_SMO(PyObject* self, PyObject* args) {
         assert_type_contiguous(Y,NPY_INT);
         assert_type_contiguous(Alphas0,NPY_DOUBLE);
         assert_type_contiguous(params,NPY_DOUBLE);
+        if (PyArray_DIM(params,0) < 4) throw SMO_Exception("eval_SMO: Too few parameters");
+
         int * Yv = static_cast<int*>(PyArray_DATA(Y));
         double* Alphas = static_cast<double*>(PyArray_DATA(Alphas0));
         unsigned N = PyArray_DIM(Y,0);
@@ -382,7 +407,7 @@ PyObject* eval_SMO(PyObject* self, PyObject* args) {
 }
 
 
-// The code for LIBSVM_Solver is taken from LIBSVM
+// The code for LIBSVM_Solver is taken from LIBSVM and adapted to work well in milk
 // Copyright (c) 2000-2008 Chih-Chung Chang and Chih-Jen Lin
 // Changes were made to make it more similar to our formulation.
 
@@ -405,25 +430,28 @@ PyObject* eval_SMO(PyObject* self, PyObject* args) {
 // solution will be put in \alpha, objective value will be put in obj
 //
 
-
-
+#define info printf
+void info_flush() { }
 
 class LIBSVM_Solver {
     public:
-        LIBSVM_Solver(PyObject* X, int* Y, double* Alphas, double& b, double C, int N, PyObject* kernel, double eps, double tol, int cache_size, bool shrinking):
+        LIBSVM_Solver(PyObject* X, int* Y, double* Alphas, double* p, double& b, double C, int N, PyObject* kernel, double eps, double tol, int cache_size, bool shrinking):
             Alphas(Alphas),
             Y(Y),
             b(b),
             C(C),
             N(N),
-            cache_(X,kernel,N,cache_size),
+            cache_(X,Y,kernel,N,cache_size),
             eps(eps),
             tol(tol),
             alpha_status(N),
             active_size(N),
+            active_set(N),
+            p(p),
             shrinking(shrinking),
-            tau(eps) {}
-        virtual ~LIBSVM_Solver();
+            tau(eps)
+            {  }
+        virtual ~LIBSVM_Solver() { }
 
         struct SolutionInfo {
             double obj;
@@ -437,25 +465,24 @@ class LIBSVM_Solver {
     protected:
         double* Alphas;
         int* Y;
-        double b;
+        double& b;
         double C;
         const int N;
-        KernelCache cache_;
+        LIBSVM_KernelCache cache_;
         const double eps;
         const double tol;
-        double *G;		// gradient of objective function
+        vector<double> G;		// gradient of objective function
         enum alpha_status_e { lower_bound, upper_bound, free};
-        std::vector<alpha_status_e> alpha_status;
+        vector<alpha_status_e> alpha_status;
         int active_size;
-        std::vector<int> active_set;
+        vector<int> active_set;
         double *p;
-        double *G_bar;		// gradient, if we treat free variables as 0
+        vector<double> G_bar;		// gradient, if we treat free variables as 0
         bool unshrinked;	// XXX
         bool shrinking;
         double tau;
 
-        double get_C(int i) const
-        {
+        double get_C(int i) const {
             return C;
             //return (Y[i] > 0)? Cp : Cn;
         }
@@ -476,7 +503,8 @@ class LIBSVM_Solver {
         virtual double calculate_rho();
         virtual void do_shrinking();
     private:
-        bool be_shrunken(int i, double Gmax1, double Gmax2);	
+        bool be_shrunken(int i, double Gmax1, double Gmax2);
+        void print_status() const;	
 };
 
 void LIBSVM_Solver::swap_index(int i, int j)
@@ -502,10 +530,10 @@ void LIBSVM_Solver::reconstruct_gradient()
 	for(int i=0;i<active_size;++i) {
 		if(is_free(i))
 		{
-			const double *Q_i = cache_.get_kline(i,N);
+			const double *Q_i = cache_.get_kline(active_set[i],N);
             const double alpha_i = Alphas[i];
 			for(int j=active_size;j<N;j++)
-				G[j] += alpha_i * Q_i[j];
+				G[j] += alpha_i * Q_i[active_set[j]];
 		}
     }
 }
@@ -521,8 +549,8 @@ void LIBSVM_Solver::optimise()  {
     active_size = N;
 
 	// initialize gradient
-	G = new double[N];
-	G_bar = new double[N];
+	G.resize(N);
+	G_bar.resize(N);
 	for(int i=0;i<N;++i) {
 		G[i] = p[i];
 		G_bar[i] = 0;
@@ -530,7 +558,7 @@ void LIBSVM_Solver::optimise()  {
 	for(int i=0;i<N;i++) {
 		if(!is_lower_bound(i))
 		{
-			const double *Q_i= cache_.get_kline(i);
+			const double *Q_i= cache_.get_kline(active_set[i]);
 			const double alpha_i = Alphas[i];
 			for(int j=0;j<N;j++) G[j] += alpha_i*Q_i[j];
 			if(is_upper_bound(i)) {
@@ -540,10 +568,11 @@ void LIBSVM_Solver::optimise()  {
 	}
 
     //MAIN LOOP
-	int iter = 0;
 	int counter = min(N,1000)+1;
+    const int max_iters = 10*1000;
 
-	while (true) {
+    int iter;
+    for (iter = 0; iter != max_iters; ++iter) {
 		// show progress and do shrinking
 		if(--counter == 0) {
 			counter = min(N,1000);
@@ -558,16 +587,20 @@ void LIBSVM_Solver::optimise()  {
 			// reset active set size and check
 			active_size = N;
 			//info("*"); info_flush();
-			if(select_working_set(i,j)) break;
+			if(select_working_set(i,j)) {
+                break;
+            }
 			else counter = 1;	// do shrinking next iteration
 		}
 		
-		++iter;
+		assert((i >= 0) && (i < active_size));
+		assert((j >= 0) && (j < active_size));
+        if (!(iter % 16) && PyErr_Occurred()) throw Python_Exception();
 
 		// update alpha[i] and alpha[j], handle bounds carefully
 		
-		const double *Q_i = cache_.get_kline(i, active_size);
-		const double *Q_j = cache_.get_kline(j, active_size);
+		const double *Q_i = cache_.get_kline(active_set[i], active_size);
+		const double *Q_j = cache_.get_kline(active_set[j], active_size);
 
 		const double C_i = get_C(i);
 		const double C_j = get_C(j);
@@ -576,7 +609,7 @@ void LIBSVM_Solver::optimise()  {
 		const double old_alpha_j = Alphas[j];
 
 		if(Y[i]!=Y[j]) {
-			double quad_coef = Q_i[i]+Q_j[j]+2*Q_i[j];
+			double quad_coef = Q_i[active_set[i]]+Q_j[active_set[j]]+2*Q_i[active_set[j]];
 			if (quad_coef <= 0) quad_coef = tau;
 			const double delta = (-G[i]-G[j])/quad_coef;
 			const double diff = Alphas[i] - Alphas[j];
@@ -606,8 +639,9 @@ void LIBSVM_Solver::optimise()  {
 					Alphas[i] = C_j + diff;
 				}
 			}
+            //print_status();
 		} else {
-			double quad_coef = Q_i[i]+Q_j[j]-2*Q_i[j];
+			double quad_coef = Q_i[active_set[i]]+Q_j[active_set[j]]-2*Q_i[active_set[j]];
 			if (quad_coef <= 0) quad_coef = tau;
 			const double delta = (G[i]-G[j])/quad_coef;
 			double sum = Alphas[i] + Alphas[j];
@@ -641,11 +675,12 @@ void LIBSVM_Solver::optimise()  {
 
 		// update G
 
-		double delta_Alphas_i = Alphas[i] - old_alpha_i;
-		double delta_Alphas_j = Alphas[j] - old_alpha_j;
+		const double delta_Alphas_i = Alphas[i] - old_alpha_i;
+		const double delta_Alphas_j = Alphas[j] - old_alpha_j;
 		
-		for(int k=0;k<active_size;k++) {
-			G[k] += Q_i[k]*delta_Alphas_i + Q_j[k]*delta_Alphas_j;
+        // print_status();
+		for(int k=0;k<active_size;++k) {
+			G[k] += Q_i[active_set[k]]*delta_Alphas_i + Q_j[active_set[k]]*delta_Alphas_j;
 		}
 
 		// update Alphas_status and G_bar
@@ -654,24 +689,24 @@ void LIBSVM_Solver::optimise()  {
 		update_alpha_status(i);
 		update_alpha_status(j);
 		if(ui != is_upper_bound(i)) {
-			Q_i = cache_.get_kline(i, N);
+			Q_i = cache_.get_kline(active_set[i], N);
 			if(ui) {
 				for(int k=0;k<N;k++)
-					G_bar[k] -= C_i * Q_i[k];
+					G_bar[k] -= C_i * Q_i[active_set[k]];
             } else {
 				for(int k=0;k<N;k++)
-					G_bar[k] += C_i * Q_i[k];
+					G_bar[k] += C_i * Q_i[active_set[k]];
             }
 		}
 
 		if(uj != is_upper_bound(j)) {
-			Q_j = cache_.get_kline(j, N);
+			Q_j = cache_.get_kline(active_set[j], N);
 			if(uj) {
 				for(int k=0;k<N;k++)
-					G_bar[k] -= C_j * Q_j[k];
+					G_bar[k] -= C_j * Q_j[active_set[k]];
             } else {
 				for(int k=0;k<N;k++)
-					G_bar[k] += C_j * Q_j[k];
+					G_bar[k] += C_j * Q_j[active_set[k]];
             }
 		}
 	}
@@ -686,6 +721,7 @@ void LIBSVM_Solver::optimise()  {
 	// calculate rho
 
 	//si->rho = calculate_rho();
+	b = calculate_rho();
 
 	// calculate objective value
     double v = 0;
@@ -709,12 +745,21 @@ void LIBSVM_Solver::optimise()  {
 	//si->upper_bound_p = Cp;
 	//si->upper_bound_n = Cn;
 
-	//info("\noptimization finished, #iter = %d\n",iter);
-
-	delete[] G;
-	delete[] G_bar;
 }
 
+void LIBSVM_Solver::print_status() const {
+    std::cout << "    active_set_size: " <<  active_size << "\n";
+    for (int i = 0; i != N; ++i) {
+        std::cout << "    active_set[i]: " << active_set[i] << "\n";
+        std::cout << "    p[i]: " << p[i] << "\n";
+        std::cout << "    G[i]: " << G[i] << "\n";
+        std::cout << "    G_bar[i]: " << G_bar[i] << "\n";
+        std::cout << "    alpha_status[i]: " << alpha_status[i] << "\n";
+        std::cout << "    Y[i]: " << Y[i] << "\n";
+        std::cout << "    Alphas[i]: " << Alphas[i] << "\n";
+        std::cout << "\n";
+    }
+}
 // return true if already optimal, return false otherwise
 bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
 	// return i,j such that
@@ -722,6 +767,8 @@ bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
 	// j: minimizes the decrease of obj value
 	//    (if quadratic coefficeint <= 0, replace it with tau)
 	//    -y_j*grad(f)_j < -y_i*grad(f)_i, j in I_low(\alpha)
+
+    //print_status();
 	
 	double Gmax = -INF;
 	double Gmax2 = -INF;
@@ -729,7 +776,7 @@ bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
 	int Gmin_idx = -1;
 	double obj_diff_min = INF;
 
-	for(int t=0;t<active_size;t++)
+	for(int t=0;t<active_size;t++) {
 		if(Y[t] == +1)	{
 			if(!is_upper_bound(t)) {
 				if(-G[t] >= Gmax) {
@@ -745,21 +792,24 @@ bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
 				}
             }
 		}
+    }
 
-	int i = Gmax_idx;
+	const int i = Gmax_idx;
 	const double *Q_i = 0;
     const double *QDiag = cache_.get_diag();
-	if(i != -1) // NULL Q_i not accessed: Gmax=-INF if i=-1
-		Q_i = cache_.get_kline(i);
+	if(i != -1) { // NULL Q_i not accessed: Gmax=-INF if i=-1
+		Q_i = cache_.get_kline(active_set[i],N);
+    }
 
 	for(int j=0;j<active_size;++j) {
 		if(Y[j]==+1) {
+            // TODO: Refactor this into a single loop
 			if (!is_lower_bound(j)) {
-				double grad_diff=Gmax+G[j];
+				const double grad_diff=Gmax+G[j];
 				if (G[j] >= Gmax2) Gmax2 = G[j];
 				if (grad_diff > 0) {
 					double obj_diff; 
-					double quad_coef=Q_i[i]+QDiag[j]-2*Y[i]*Q_i[j];
+					double quad_coef=Q_i[active_set[i]]+QDiag[active_set[j]]-2*Y[i]*Q_i[active_set[j]];
 					if (quad_coef > 0) obj_diff = -(grad_diff*grad_diff)/quad_coef;
 					else obj_diff = -(grad_diff*grad_diff)/tau;
 
@@ -771,11 +821,11 @@ bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
 			}
 		} else {
 			if (!is_upper_bound(j)) {
-				double grad_diff= Gmax-G[j];
+				const double grad_diff= Gmax-G[j];
 				if (-G[j] >= Gmax2) Gmax2 = -G[j];
 				if (grad_diff > 0) {
 					double obj_diff; 
-					double quad_coef=Q_i[i]+QDiag[j]+2*Y[i]*Q_i[j];
+					double quad_coef=Q_i[active_set[i]]+QDiag[active_set[j]]+2*Y[i]*Q_i[active_set[j]];
 					if (quad_coef > 0) obj_diff = -(grad_diff*grad_diff)/quad_coef;
 					else obj_diff = -(grad_diff*grad_diff)/tau;
 
@@ -787,6 +837,7 @@ bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
 			}
 		}
 	}
+
 
 	if(Gmax+Gmax2 < eps) return true;
 
@@ -885,9 +936,52 @@ double LIBSVM_Solver::calculate_rho() {
 }
 
 
+PyObject* eval_LIBSVM(PyObject* self, PyObject* args) {
+    try {
+        PyObject* X;
+        PyArrayObject* Y; 
+        PyArrayObject* Alphas0;
+        PyArrayObject* p; 
+        PyArrayObject* params; 
+        PyObject* kernel;
+        int cache_size;
+        if (!PyArg_ParseTuple(args, "OOOOOOi", &X, &Y, &Alphas0, &p, &params,&kernel,&cache_size)) {
+            const char* errmsg = "Arguments were not what was expected for eval_LIBSVM.\n" 
+                                "This is an internal function: Do not call directly unless you know exactly what you're doing.\n";
+            PyErr_SetString(PyExc_RuntimeError,errmsg);
+            return 0;
+        }
+        assert_type_contiguous(Y,NPY_INT);
+        assert_type_contiguous(Alphas0,NPY_DOUBLE);
+        assert_type_contiguous(p,NPY_DOUBLE);
+        assert_type_contiguous(params,NPY_DOUBLE);
+        if (PyArray_DIM(params,0) < 4) throw SMO_Exception("eval_LIBSVM: Too few parameters");
+        int * Yv = static_cast<int*>(PyArray_DATA(Y));
+        double* Alphas = static_cast<double*>(PyArray_DATA(Alphas0));
+        double* pv = static_cast<double*>(PyArray_DATA(p));
+        unsigned N = PyArray_DIM(Y,0);
+        double& b = *static_cast<double*>(PyArray_GETPTR1(params,0));
+        double C = *static_cast<double*>(PyArray_GETPTR1(params,1));
+        double eps = *static_cast<double*>(PyArray_GETPTR1(params,2));
+        double tol = *static_cast<double*>(PyArray_GETPTR1(params,3));
+        LIBSVM_Solver optimiser(X,Yv,Alphas,pv,b,C,N,kernel,eps,tol,cache_size, false);
+        optimiser.optimise();
+        Py_RETURN_NONE;
+    } catch (const Python_Exception&) {
+        // if Python_Exception was thrown, then PyErr is already set.
+        return 0;
+    } catch (const SMO_Exception& exc) {
+        PyErr_SetString(PyExc_RuntimeError,exc.msg);
+        return 0;
+    } catch (...) {
+        PyErr_SetString(PyExc_RuntimeError,"Some sort of exception in eval_LIBSVM.");
+        return 0;
+    }
+}
 
 PyMethodDef methods[] = {
   {"eval_SMO",eval_SMO, METH_VARARGS , "Do NOT call directly.\n" },
+  {"eval_LIBSVM",eval_LIBSVM, METH_VARARGS , "Do NOT call directly.\n" },
   {NULL, NULL,0,NULL},
 };
 
