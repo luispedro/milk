@@ -1,5 +1,5 @@
 import milk.supervised.svm
-from milk.supervised.svm import svm_learn, _svm_apply, _svm_size, _randomize, learn_sigmoid_constants, svm_sigmoidal_correction
+from milk.supervised.svm import svm_learn_smo, svm_learn_libsvm, _svm_apply, _svm_size, _randomize, learn_sigmoid_constants, svm_sigmoidal_correction
 import numpy
 import random
 eps=1e-3
@@ -39,14 +39,17 @@ def test_simplest():
     Y=numpy.array([1,-1])
     C=4.
     kernel=numpy.dot
-    Alphas,b=svm_learn(X,Y,kernel,C)
+    Alphas,b=svm_learn_smo(X,Y,kernel,C)
     SVM=(X,Y,Alphas,b,C,kernel)
+    Alphas_,b_=svm_learn_libsvm(X,Y,kernel,C)
+    assert approximate(Alphas,Alphas_)
+    assert approximate(b,b_)
     assert approximate(Alphas,[2.,2.])
     assert approximate(b,-3)
     assert_kkt(SVM)
     assert_all_correctly_classified(SVM,X,Y)
 
-def test_more_complex():
+def test_more_complex_smo():
     X=numpy.array([
         [1,0],
         [2,1],
@@ -59,17 +62,22 @@ def test_more_complex():
     Y=numpy.array([1,1,1,1,-1,-1,-1,-1])
     C=4.
     kernel=numpy.dot
-    Alphas,b=svm_learn(X,Y,kernel,C)
-    SVM=(X,Y,Alphas,b,C,kernel)
+    Alphas,b=svm_learn_smo(X,Y,kernel,C)
 
-    sv=numpy.array([1,1,0,0,1,0,1,0])
-    nsv=~sv
-    computed_sv = (Alphas > 0) & (Alphas < C)
-    computed_nsv = ~computed_sv
-    assert_kkt(SVM)
-    assert numpy.all((sv-computed_sv) >= 0) # computed_sv in sv
-    assert numpy.all((computed_nsv-nsv) >= 0) # nsv in computed_nsv
-    assert_all_correctly_classified(SVM,X,Y)
+    def verify():
+        SVM=(X,Y,Alphas,b,C,kernel)
+        sv=numpy.array([1,1,0,0,1,0,1,0])
+        nsv=~sv
+        computed_sv = (Alphas > 0) & (Alphas < C)
+        computed_nsv = ~computed_sv
+        assert_kkt(SVM)
+        assert numpy.all((sv-computed_sv) >= 0) # computed_sv in sv
+        assert numpy.all((computed_nsv-nsv) >= 0) # nsv in computed_nsv
+        assert_all_correctly_classified(SVM,X,Y)
+
+    verify()
+    Alphas,b=svm_learn_libsvm(X,Y,kernel,C)
+    verify()
 
 def rbf(xi,xj):
     return numpy.exp(-((xi-xj)**2).sum())
@@ -81,7 +89,11 @@ def test_rbf():
         ])
     Y=numpy.array([ 1, -1 ])
     C=10
-    Alphas,b=svm_learn(X,Y,rbf,C)
+    Alphas,b=svm_learn_smo(X,Y,rbf,C)
+    SVM=(X,Y,Alphas,b,C,rbf)
+    assert_all_correctly_classified(SVM,X,Y)
+
+    Alphas,b=svm_learn_libsvm(X,Y,rbf,C)
     SVM=(X,Y,Alphas,b,C,rbf)
     assert_all_correctly_classified(SVM,X,Y)
 
@@ -92,13 +104,17 @@ def test_random():
     C=2
     Y=numpy.ones(10)
     Y[5:] *= -1
-    Alphas,b=svm_learn(X,Y,rbf,C)
+    Alphas,b=svm_learn_smo(X,Y,rbf,C)
+    SVM=(X,Y,Alphas,b,C,rbf)
+    assert_more_than_50(SVM,X,Y)
+
+    Alphas,b=svm_learn_libsvm(X,Y,rbf,C)
     SVM=(X,Y,Alphas,b,C,rbf)
     assert_more_than_50(SVM,X,Y)
 
 def test_randomize():
     assert len(_randomize(xrange(10))) == 10
-    assert len(_randomize(xrange(11))) == 11
+
     assert len(_randomize(xrange(0))) == 0
     assert sum(_randomize(xrange(10))) == sum(range(10))
 

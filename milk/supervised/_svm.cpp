@@ -358,9 +358,9 @@ void SMO::optimise() {
 }
 
 void assert_type_contiguous(PyArrayObject* array,int type) { 
-    if (!PyArray_TYPE(array) == type ||
+    if (PyArray_TYPE(array) != type ||
         !PyArray_ISCONTIGUOUS(array)) {
-        throw SMO_Exception("Arguments to eval_SMO don't conform.");
+        throw SMO_Exception("Arguments to eval_(SMO|LIBSVM) don't conform to expectation. Are you calling this directly? This is an internal function!");
     }
 }
 
@@ -378,7 +378,7 @@ PyObject* eval_SMO(PyObject* self, PyObject* args) {
             PyErr_SetString(PyExc_RuntimeError,errmsg);
             return 0;
         }
-        assert_type_contiguous(Y,NPY_INT);
+        assert_type_contiguous(Y,NPY_INT32);
         assert_type_contiguous(Alphas0,NPY_DOUBLE);
         assert_type_contiguous(params,NPY_DOUBLE);
         if (PyArray_DIM(params,0) < 4) throw SMO_Exception("eval_SMO: Too few parameters");
@@ -951,7 +951,7 @@ PyObject* eval_LIBSVM(PyObject* self, PyObject* args) {
             PyErr_SetString(PyExc_RuntimeError,errmsg);
             return 0;
         }
-        assert_type_contiguous(Y,NPY_INT);
+        assert_type_contiguous(Y,NPY_INT32);
         assert_type_contiguous(Alphas0,NPY_DOUBLE);
         assert_type_contiguous(p,NPY_DOUBLE);
         assert_type_contiguous(params,NPY_DOUBLE);

@@ -55,29 +55,7 @@ def _svm_apply(SVM,q):
             res += Y[i]*Alphas[i]*kernel(X[i],q)
     return res
 
-def _svm_apply_precomputed(j,Y,Alphas,b,Kernel_Line,C):
-    try:
-        from scipy import weave
-        from scipy.weave import converters
-        sum = -b
-        N = len(Y)
-        code = '''
-        for (int i = 0; i != N; ++i) {
-            if (Alphas(i) != C) {
-                sum += Y(i) * Alphas(i) * Kernel_Line(i);
-            }
-        }
-        return_val = sum;
-        '''
-        return weave.inline(code,
-            ['j','N','Alphas','C','Y','Kernel_Line','sum'],
-        type_converters=converters.blitz)
-    except:
-        import warnings
-        warnings.warn('scipy.weave failed! Resorting to (slow) Python code')
-        return (Y*Alphas*(Alphas != C)*Kernel_Line).sum() - b
-
-def svm_learn(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
+def svm_learn_smo(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
     '''
     Learn a svm classifier
 
@@ -98,10 +76,32 @@ def svm_learn(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
     assert numpy.all(numpy.abs(Y) == 1)
     assert len(X) == len(Y)
     N = len(Y)
-    Y = Y.astype(numpy.int)
+    Y = Y.astype(numpy.int32)
     params = numpy.array([0,C,1e-3,1e-5],numpy.double)
     Alphas0 = numpy.zeros(N, numpy.double)
     _svm.eval_SMO(X,Y,Alphas0,params,kernel,cache_size)
+    return Alphas0, params[0]
+
+def svm_learn_libsvm(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
+    '''
+    Learn a svm classifier using LIBSVM optimiser
+
+    X: data
+    Y: labels in SVM format (ie Y[i] in (1,-1))
+
+    This is a very raw interface. In general, you should use a class
+        like svm_classifier.
+
+    This uses the LIBSVM optimisation algorithm
+    '''
+    assert numpy.all(numpy.abs(Y) == 1)
+    assert len(X) == len(Y)
+    N = len(Y)
+    Y = Y.astype(numpy.int32)
+    p = -numpy.ones(N,numpy.double)
+    params = numpy.array([0,C,1e-2,1e-5],numpy.double)
+    Alphas0 = numpy.zeros(N, numpy.double)
+    _svm.eval_LIBSVM(X,Y,Alphas0,p,params,kernel,cache_size)
     return Alphas0, params[0]
 
 
@@ -158,7 +158,7 @@ class svm_raw(object):
         self.Y, self.classnames = normaliselabels(labels)
         self.Y *= 2
         self.Y -= 1
-        alphas,self.b = svm_learn(features,self.Y,self.kernel,self.C,self.eps,self.tol)
+        alphas,self.b = svm_learn_smo(features,self.Y,self.kernel,self.C,self.eps,self.tol)
         svs = (alphas != 0) & (alphas != self.C)
         self.svs = features[svs]
         self.w = alphas[svs]
