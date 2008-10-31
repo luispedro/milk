@@ -42,5 +42,7 @@ def waccuracy(cmatrix):
     cmatrix = numpy.asanyarray(cmatrix)
     return (cmatrix.diagonal() / cmatrix.sum(1)).mean()
 
+## TODO: Implement http://en.wikipedia.org/wiki/Matthews_Correlation_Coefficient
+
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 
