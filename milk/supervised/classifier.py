@@ -56,7 +56,7 @@ class ctransforms(object):
             T.train(features,labels) 
             features = numpy.array([T(f) for f in features])
 
-    def __call__(self,features):
+    def apply(self,features):
         for T in self.transforms:
             features = numpy.array([T(f) for f in features])
         return features

@@ -137,8 +137,8 @@ def test_platt_correction_class():
     corrector.train(F,L)
     assert corrector.A == A
     assert corrector.B == B
-    assert corrector(10) > .99
-    assert corrector(-10) < .01
+    assert corrector.apply(10) > .99
+    assert corrector.apply(-10) < .01
 
 def test_perfect():
     data = numpy.zeros((10,2))
@@ -147,5 +147,5 @@ def test_perfect():
     labels[5:] = 1
     classifier=milk.supervised.svm.svm_raw(kernel=milk.supervised.svm.rbf_kernel(1),C=4)
     classifier.train(data,labels)
-    assert numpy.all( (numpy.array([classifier(data[i]) for i in xrange(10)]) > 0) == labels )
+    assert numpy.all( (numpy.array([classifier.apply(data[i]) for i in xrange(10)]) > 0) == labels )
 

@@ -171,7 +171,7 @@ class svm_raw(object):
     def set_params(self,params):
         self.C,self.eps,self.tol = params
 
-    def __call__(self,x):
+    def apply(self,x):
         assert self.trained
         return _svm_apply((self.svs,self.Y,self.w,self.b,self.C,self.kernel),x)
 
@@ -296,7 +296,7 @@ class svm_binary(object):
         c1 = labels[i]
         self.classes = [c0,c1]
 
-    def __call__(self,f):
+    def apply(self,f):
         return self.classes[f >= 0.]
 
 class svm_sigmoidal_correction(object):
@@ -318,7 +318,7 @@ class svm_sigmoidal_correction(object):
     def set_params(self,params):
         self.max_iters = params
 
-    def __call__(self,features):
+    def apply(self,features):
         return 1./(1.+numpy.exp(features*self.A+self.B))
 
 
