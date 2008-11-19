@@ -35,8 +35,8 @@ class NNClassifier(object):
         pass
     
     def train(self,features,labels):
-        self.training=features.copy()
-        self.labels=labels.copy()
+        self.training = numpy.array(features)
+        self.labels = numpy.array(labels)
 
     def apply(self,feats):
         dists = ((self.training-feats)**2).sum(1)
