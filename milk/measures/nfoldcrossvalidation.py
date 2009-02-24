@@ -20,12 +20,48 @@
 #  THE SOFTWARE.
 
 from __future__ import division
-import numpy
-from numpy import *
-from ..classify import defaultclassifier
-from ..classifier import normaliselabels
+from collections import defaultdict
+import numpy as np
 
 __all__=['nfoldcrossvalidation']
+def foldgenerator(labels,nfolds=None):
+    '''
+    for test,train in foldgenerator(labels,nfolds=None)
+        ...
+
+    This generator breaks up the data into nfolds (default 10).
+
+    Params
+    ------
+        * labels: the labels
+        * nfolds: nr of folds (default 10)
+    '''
+    classcounts = defaultdict(int)
+    for L in labels:
+        classcounts[L] += 1
+
+    min_class_count = min(classcounts.values())
+    if nfolds is None:
+        nfolds = min(10,min_class_count)
+    elif min_class_count < nfolds:
+        from warnings import warn
+        warn('milk.measures.nfoldcrossvalidation: Reducing the nr. of folds to %s (minimum class size).' % min_class_count)
+        nfolds = min_class_count
+    
+    testingset = np.empty(len(labels),bool)
+    for fold in xrange(nfolds):
+        testingset.fill(False)
+        for L,C in classcounts.items():
+            idxs, = np.where(labels==L)
+            N = len(idxs)
+            perfold = N/nfolds
+            start = np.floor(perfold*fold)
+            end = np.floor(perfold*(fold+1))
+            idxs = idxs[start:end]
+            testingset[idxs]=True
+        trainingset = ~testingset
+        yield trainingset,testingset
+
 def nfoldcrossvalidation(features,labels,nfolds=None,classifier=None, return_predictions=False):
     '''
     Perform n-fold cross validation
@@ -55,36 +91,12 @@ def nfoldcrossvalidation(features,labels,nfolds=None,classifier=None, return_pre
 
     features = numpy.asanyarray(features)
 
-    classcounts={}
-    for L in labels:
-        classcounts[L] = classcounts.get(L,0) + 1
-
-    min_class_count = min(classcounts.values())
-    if nfolds is None:
-        nfolds = min(10,min_class_count)
-    elif min_class_count < nfolds:
-        from warnings import warn
-        warn('milk.measures.nfoldcrossvalidation: Reducing the nr. of folds to %s (minimum class size).' % min_class_count)
-        nfolds=min_class_count
-    
-    nclasses=len(classcounts)
-    cmatrix=zeros((nclasses,nclasses))
-    for fold in xrange(nfolds):
-        testingset=zeros(len(labels),bool)
-
-        for L,C in classcounts.items():
-            idxs,=where(labels==L)
-            N=len(idxs)
-            perfold=N/nfolds
-            start=floor(perfold*fold)
-            end=floor(perfold*(fold+1))
-            idxs=idxs[start:end]
-            testingset[idxs]=True
-        trainingset= ~testingset
-        
-        classifier.train(features[trainingset],labels[trainingset])
-        prediction=classifier.apply(features[testingset])
-        predictions[testingset]=prediction
+    nclasses = len(classcounts)
+    cmatrix = zeros((nclasses,nclasses))
+    for trainingset,testingset in foldgenerator(labels, nfolds):
+        classifier.train(features[trainingset], labels[trainingset])
+        prediction = classifier.apply(features[testingset])
+        predictions[testingset] = prediction
         for p, r in zip(prediction,labels[testingset]):
             cmatrix[r,p] += 1
 
