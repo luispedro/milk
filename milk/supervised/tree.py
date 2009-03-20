@@ -18,6 +18,15 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
+'''
+================
+Tree Classifier
+================
+
+Decision tree based classifier
+------------------------------
+
+'''
 
 from __future__ import division
 import numpy as np
