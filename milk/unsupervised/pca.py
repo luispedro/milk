@@ -21,17 +21,29 @@
 
 from __future__ import division
 import numpy as np
-__all__ = ['zscore']
+from numpy import linalg
+from . import normalise
+    
+def pca(X, zscore=True):
+    '''
+    Y,V = pca(X, zscore=True)
 
-def zscore(features):
-    """
-    features = zscore(features)
+    Principal Component Analysis
 
-    Returns a copy of features which has been normalised to zscores 
-    """
-    mu = features.mean(0)
-    sigma = np.std(features,0)
-    sigma[sigma == 0] = 1
-    return (features - mu) / sigma
+    Performs principal component analysis. Returns transformed
+    matrix and principal components
+
+    Parameters
+    ----------
+
+        * X: data matrix
+        * zscore: whether to normalise to zscores (default: True)
+    '''
+    if zscore:
+        X = normalise.zscore(X)
+    C = np.cov(X.T)
+    w,v = linalg.eig(C)
+    Y = np.dot(v,X.T).T
+    return Y,v
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
