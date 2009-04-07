@@ -21,3 +21,4 @@
 
 from kmeans import kmeans,repeated_kmeans
 from gaussianmixture import *
+from pca import pca
