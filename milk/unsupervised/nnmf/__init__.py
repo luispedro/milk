@@ -19,7 +19,11 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from kmeans import kmeans,repeated_kmeans
-from gaussianmixture import *
-from pca import pca
-from nnmf import *
+import lee_seung as ls
+from hoyer import sparse_nnmf
+import hoyer
+lee_seung = ls.nnmf
+
+__all__ = ['lee_seung','sparse_nnmf']
+
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
