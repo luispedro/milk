@@ -21,6 +21,8 @@
 
 from __future__ import division
 from collections import defaultdict
+from ..supervised.classifier import normaliselabels
+import numpy
 import numpy as np
 
 __all__=['nfoldcrossvalidation']
@@ -86,16 +88,16 @@ def nfoldcrossvalidation(features,labels,nfolds=None,classifier=None, return_pre
     assert len(features) == len(labels), 'milk.measures.nfoldcrossvalidation: len(features) should match len(labels)'
     if classifier is None:
         classifier = defaultclassifier()
-    labels,labelnames=normaliselabels(labels)
-    predictions=labels*0-1
+    labels,labelnames = normaliselabels(labels)
+    predictions = np.zeros_like(labels)-1
 
     features = numpy.asanyarray(features)
 
-    nclasses = len(classcounts)
-    cmatrix = zeros((nclasses,nclasses))
+    nclasses = labels.max() + 1
+    cmatrix = np.zeros((nclasses,nclasses))
     for trainingset,testingset in foldgenerator(labels, nfolds):
         classifier.train(features[trainingset], labels[trainingset])
-        prediction = classifier.apply(features[testingset])
+        prediction = np.array([classifier.apply(f) for f in features[testingset]])
         predictions[testingset] = prediction
         for p, r in zip(prediction,labels[testingset]):
             cmatrix[r,p] += 1

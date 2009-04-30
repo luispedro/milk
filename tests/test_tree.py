@@ -8,5 +8,5 @@ def test_tree():
     labels = data['label']
     C = milk.supervised.tree.tree_classifier()
     C.train(features,labels)
-    assert ((np.array([C.apply(f) for f in features]) > .5) == labels).mean() > .5
+    assert (np.array([C.apply(f) for f in features]) == labels).mean() > .5
 

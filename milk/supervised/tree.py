@@ -143,15 +143,19 @@ class tree_classifier(object):
             (default: information_gain).
         * min_split: minimum size to split on (default: 4).
     '''
-    def __init__(self, criterion=information_gain, min_split=4):
+    def __init__(self, criterion=information_gain, min_split=4, return_label=True):
         self.criterion = criterion
         self.min_split = 4
+        self.return_label = return_label
 
     def train(self,features,labels):
         self.tree  = build_tree(features, labels, self.criterion, self.min_split)
 
     def apply(self,feats):
         assert self.tree, 'tree_classifier.apply(): Tree not trained'
-        return apply_tree(self.tree, feats)
+        value = apply_tree(self.tree, feats)
+        if self.return_label:
+            return value > .5
+        return value
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
