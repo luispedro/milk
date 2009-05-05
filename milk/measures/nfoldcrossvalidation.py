@@ -98,7 +98,7 @@ def nfoldcrossvalidation(features,labels,nfolds=None,classifier=None, return_pre
     for trainingset,testingset in foldgenerator(labels, nfolds):
         classifier.train(features[trainingset], labels[trainingset])
         prediction = np.array([classifier.apply(f) for f in features[testingset]])
-        predictions[testingset] = prediction
+        predictions[testingset] = prediction.astype(predictions.dtype)
         for p, r in zip(prediction,labels[testingset]):
             cmatrix[r,p] += 1
 

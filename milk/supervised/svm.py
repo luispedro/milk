@@ -146,7 +146,7 @@ class svm_raw(object):
     * eps: the precision to which to solve the problem (default 1e-3)
     * tol: (|x| < tol) is considered zero
     '''
-    def __init__(self,kernel,C,eps=1e-3,tol=1e-8):
+    def __init__(self, kernel=None, C=None, eps=1e-3, tol=1e-8):
         self.C = C
         self.kernel = kernel
         self.eps = eps
@@ -170,6 +170,9 @@ class svm_raw(object):
 
     def set_params(self,params):
         self.C,self.eps,self.tol = params
+
+    def set_option(self, optname, value):
+        setattr(self, optname, value)
 
     def apply(self,x):
         assert self.trained
