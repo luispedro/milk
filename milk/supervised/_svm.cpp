@@ -34,7 +34,8 @@ extern "C" {
 
 namespace { 
 const double INF = HUGE_VAL;
-/// This is a boost function
+// This is a boost function
+// Copied here for convenience.
 template <typename Iter>
 inline Iter prior(Iter it) {
     --it;
@@ -57,6 +58,14 @@ struct SMO_Exception {
 };
 
 struct Python_Exception { };
+void check_for_interrupts() {
+    if (!PyErr_CheckSignals()) {
+        throw Python_Exception();
+    }
+    if (PyErr_Occurred()) {
+        throw Python_Exception();
+    }
+}
 class KernelCache {
     public:
         KernelCache(PyObject* X, PyObject* kernel, int N, int cache_nr_doubles);
@@ -170,9 +179,7 @@ double KernelCache::do_kernel(int i1, int i2) const {
     Py_XDECREF(obj2);
     Py_DECREF(arglist);
     if (!result) { 
-        if (PyErr_Occurred()) {
-            throw Python_Exception();
-        }
+        check_for_interrupts();
         throw SMO_Exception("svm.eval_SMO: Unable to call kernel");
     }
     double val = PyFloat_AsDouble(result);
@@ -344,8 +351,10 @@ void SMO::optimise() {
     for (int i = 0; i != N; ++i) Alphas[i] = 0;
     int changed = 0;
     bool examineAll = true;
+    int iter = 0;
     while (changed || examineAll) {
-        if (PyErr_Occurred()) throw Python_Exception();
+        //std::cout << "SMO::optimize loop: " << iter++ << "\n";
+        check_for_interrupts();
         changed = 0;
         for (int i = 0; i != N; ++i) {
             if (examineAll || Alphas[i] != 0 && Alphas[i] != C) {
@@ -595,7 +604,7 @@ void LIBSVM_Solver::optimise()  {
 		
 		assert((i >= 0) && (i < active_size));
 		assert((j >= 0) && (j < active_size));
-        if (!(iter % 16) && PyErr_Occurred()) throw Python_Exception();
+        if (!(iter % 16)) check_for_interrupts();
 
 		// update alpha[i] and alpha[j], handle bounds carefully
 		
