@@ -1,5 +1,5 @@
 import milk.supervised.svm
-from milk.supervised.svm import svm_learn_smo, svm_learn_libsvm, _svm_apply, _svm_size, _randomize, learn_sigmoid_constants, svm_sigmoidal_correction
+from milk.supervised.svm import svm_learn_smo, svm_learn_libsvm, _svm_apply, _svm_size, learn_sigmoid_constants, svm_sigmoidal_correction
 import numpy
 import random
 eps=1e-3
@@ -111,12 +111,6 @@ def test_random():
     Alphas,b=svm_learn_libsvm(X,Y,rbf,C)
     SVM=(X,Y,Alphas,b,C,rbf)
     assert_more_than_50(SVM,X,Y)
-
-def test_randomize():
-    assert len(_randomize(xrange(10))) == 10
-
-    assert len(_randomize(xrange(0))) == 0
-    assert sum(_randomize(xrange(10))) == sum(range(10))
 
 def test_platt_correction():
     F=numpy.ones(10)

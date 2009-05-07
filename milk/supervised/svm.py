@@ -23,13 +23,9 @@ from __future__ import division
 from .classifier import normaliselabels
 from collections import deque
 import numpy
+import numpy as np
 import random
-import _svm
-
-def _randomize(L):
-    L = list(L)
-    random.shuffle(L)
-    return L
+from . import _svm
 
 def _svm_size(SVM):
     '''
@@ -99,7 +95,7 @@ def svm_learn_libsvm(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
     N = len(Y)
     Y = Y.astype(numpy.int32)
     p = -numpy.ones(N,numpy.double)
-    params = numpy.array([0,C,1e-2,1e-5],numpy.double)
+    params = numpy.array([0,C,eps,tol],numpy.double)
     Alphas0 = numpy.zeros(N, numpy.double)
     _svm.eval_LIBSVM(X,Y,Alphas0,p,params,kernel,cache_size)
     return Alphas0, params[0]
@@ -116,7 +112,10 @@ def rbf_kernel(sigma,beta=1):
     '''
     def k(x1,x2):
         d2=((x1-x2)**2).sum()
-        return beta*numpy.exp(-d2/sigma)
+        res = beta*numpy.exp(-d2/sigma)
+        return res
+    k.kernel_nr_ = 0
+    k.kernel_arg_ = float(sigma)
     return k
 
 def polynomial_kernel(d,c=1):
@@ -146,19 +145,31 @@ class svm_raw(object):
     * eps: the precision to which to solve the problem (default 1e-3)
     * tol: (|x| < tol) is considered zero
     '''
-    def __init__(self, kernel=None, C=None, eps=1e-3, tol=1e-8):
+    def __init__(self, kernel=None, C=1., eps=1e-3, tol=1e-8):
         self.C = C
         self.kernel = kernel
         self.eps = eps
         self.tol = tol
         self.trained = False
+        self.algorithm = 'libsvm'
 
     def train(self,features,labels):
         assert numpy.all( (labels == 0) | (labels == 1) ), 'milk.supervised.svm_raw can only handle binary problems'
+        assert self.kernel is not None, 'milk.supervised.svm_raw.train: kernel not set!'
+        assert self.algorithm in ('libsvm','smo'), 'milk.supervised.svm_raw: unknown algorithm (%s)' % self.algorithm
         self.Y, self.classnames = normaliselabels(labels)
         self.Y *= 2
         self.Y -= 1
-        alphas,self.b = svm_learn_smo(features,self.Y,self.kernel,self.C,self.eps,self.tol)
+        kernel = self.kernel
+        try:
+            kernel = (self.kernel.kernel_nr_, self.kernel.kernel_arg_)
+            features = np.ascontiguousarray(features, np.double)
+        except:
+            pass
+        if self.algorithm == 'smo':
+            alphas,self.b = svm_learn_smo(features,self.Y,kernel,self.C,self.eps,self.tol)
+        else:
+            alphas,self.b = svm_learn_libsvm(features,self.Y,kernel,self.C,self.eps,self.tol)
         svs = (alphas != 0) & (alphas != self.C)
         self.svs = features[svs]
         self.w = alphas[svs]

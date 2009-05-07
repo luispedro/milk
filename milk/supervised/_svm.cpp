@@ -24,8 +24,12 @@
 #include <iostream>
 #include <stdio.h>
 #include <list>
+#include <memory>
+#include <cmath>
+#include <vector>
 #include <debug/vector>
-using __gnu_debug::vector;
+//using __gnu_debug::vector;
+using std::vector;
 extern "C" {
     #include <Python.h>
     #include <numpy/ndarrayobject.h>
@@ -59,39 +63,43 @@ struct SMO_Exception {
 
 struct Python_Exception { };
 void check_for_interrupts() {
-    if (!PyErr_CheckSignals()) {
-        throw Python_Exception();
-    }
+    PyErr_CheckSignals();
     if (PyErr_Occurred()) {
         throw Python_Exception();
     }
 }
+
+class KernelComputation {
+    public:
+        virtual ~KernelComputation() { }
+        virtual double do_kernel(int i1, int i2) const = 0;
+};
+
 class KernelCache {
     public:
-        KernelCache(PyObject* X, PyObject* kernel, int N, int cache_nr_doubles);
+        KernelCache(std::auto_ptr<KernelComputation> computation_, int N, int cache_nr_doubles);
         virtual ~KernelCache();
    
         double* get_kline(int idx, int size = -1);
         double* get_diag();
         double kernel_apply(int i1, int i2) const;
     protected:
-        virtual double do_kernel(int i1, int i2) const;
+        virtual double do_kernel(int i1, int i2) const {
+            return computation_->do_kernel(i1,i2);
+        }
         const int N_;
     private:
-        PyObject* const X_;
-        PyObject* const pykernel_;
+        std::auto_ptr<KernelComputation> computation_;
         double ** cache_;
         double * dcache_;
         int cache_free_;
         std::list<int> cache_lru;
-        std::vector<std::list<int>::iterator> cache_iter;
+        vector<std::list<int>::iterator> cache_iter;
 };
 
-
-KernelCache::KernelCache(PyObject* X, PyObject* kernel, int N, int cache_nr_floats):
+KernelCache::KernelCache(std::auto_ptr<KernelComputation> computation, int N, int cache_nr_floats):
     N_(N),
-    X_(X),
-    pykernel_(kernel),
+    computation_(computation),
     dcache_(0) {
     cache_ = new double*[N_];
     for (int i = 0; i != N_; ++i) cache_[i] = 0;
@@ -162,7 +170,34 @@ double KernelCache::kernel_apply(int i1, int i2) const {
     return do_kernel(i1,i2);
 }
 
-double KernelCache::do_kernel(int i1, int i2) const {
+class PyKernel : public KernelComputation {
+        PyKernel(const PyKernel&);
+    public:
+        PyKernel(PyObject* X, PyObject* kernel, int N);
+        ~PyKernel();
+    protected:
+        virtual double do_kernel(int i1, int i2) const;
+    private:
+        PyObject* const X_;
+        PyObject* const pykernel_;
+        const int N_;
+};
+
+PyKernel::PyKernel(PyObject* X, PyObject* kernel, int N):
+    X_(X),
+    pykernel_(kernel),
+    N_(N)
+    {
+        Py_INCREF(X);
+        Py_INCREF(kernel);
+    }
+
+PyKernel::~PyKernel() {
+    Py_DECREF(X_);
+    Py_DECREF(pykernel_);
+}
+
+double PyKernel::do_kernel(int i1, int i2) const {
     assert(i1 < N_);
     assert(i2 < N_);
     PyObject* obj1 = PySequence_GetItem(X_,i1);
@@ -187,10 +222,73 @@ double KernelCache::do_kernel(int i1, int i2) const {
     return val;
 }
 
+class RBFKernel : public KernelComputation { 
+    public:
+        RBFKernel(PyArrayObject* X, double gamma);
+        ~RBFKernel();
+    protected:
+        virtual double do_kernel(int i1, int i2) const;
+    private:
+        PyArrayObject* X_;
+        double ngamma_;
+        const int N_;
+        const int N1_;
+};
+
+RBFKernel::RBFKernel(PyArrayObject* X, double gamma):
+    X_(reinterpret_cast<PyArrayObject*>(X)),
+    ngamma_(-1./gamma),
+    N_(PyArray_DIM(X,0)),
+    N1_(PyArray_DIM(X,1))
+    {
+        if (!PyArray_Check(X)) {
+            throw SMO_Exception("RBF Kernel used, but not with numpy array.");
+        }
+        if (!PyArray_ISCARRAY(X)) {
+            throw SMO_Exception("RBF Kernel used but not with CARRAY.");
+        }
+        Py_INCREF(X);
+    }
+
+RBFKernel::~RBFKernel() {
+    Py_DECREF(X_);
+}
+
+double RBFKernel::do_kernel(int i1, int i2) const {
+    assert(i1 < N_);
+    assert(i2 < N_);
+    const double* data1 = static_cast<const double*>(PyArray_GETPTR1(X_,i1));
+    const double* data2 = static_cast<const double*>(PyArray_GETPTR1(X_,i2));
+    double sumdiff = 0.;
+    for (int i = 0; i != N1_; ++i) {
+        double diff = data1[i]-data2[i];
+        sumdiff += diff * diff;
+    }
+    sumdiff *= ngamma_;
+    double res = std::exp(sumdiff);
+    return res;
+}
+
+std::auto_ptr<KernelComputation> get_kernel(PyObject* X, PyObject* kernel) {
+    typedef std::auto_ptr<KernelComputation> res_type;
+    if (PyCallable_Check(kernel)) return res_type(new PyKernel(X, kernel, PySequence_Length(X)));
+    if (!PyTuple_Check(kernel) || PyTuple_Size(kernel) != 2) throw SMO_Exception("Cannot parse kernel.");
+    PyObject* type = PyTuple_GET_ITEM(kernel,0);
+    PyObject* arg = PyTuple_GET_ITEM(kernel,1);
+    if (!PyInt_Check(type) || !PyFloat_Check(arg)) throw SMO_Exception("Cannot parse kernel (wrong types)");
+    long type_nr = PyInt_AsLong(type);
+    if (type_nr != 0) {
+        throw SMO_Exception("Unknown kernel code!");
+    }
+    double arg_value = PyFloat_AsDouble(arg);
+    return res_type(new RBFKernel(reinterpret_cast<PyArrayObject*>(X), arg_value));
+}
+
+
 class LIBSVM_KernelCache : public KernelCache {
     public:
-        LIBSVM_KernelCache(PyObject* X, const int* Y, PyObject* kernel, int N, int cache_nr_doubles)
-            :KernelCache(X,kernel,N,cache_nr_doubles),
+        LIBSVM_KernelCache(const int* Y, std::auto_ptr<KernelComputation> kernel, int N, int cache_nr_doubles)
+            :KernelCache(kernel,N,cache_nr_doubles),
              Y_(Y)
              {  }
     private:
@@ -209,7 +307,7 @@ class SMO {
             b(b),
             C(C),
             N(N),
-            cache_(X,kernel,N,cache_size),
+            cache_(get_kernel(X,kernel),N,cache_size),
             eps(eps),
             tol(tol) { }
         void optimise();
@@ -450,7 +548,7 @@ class LIBSVM_Solver {
             b(b),
             C(C),
             N(N),
-            cache_(X,Y,kernel,N,cache_size),
+            cache_(Y,get_kernel(X,kernel),N,cache_size),
             eps(eps),
             tol(tol),
             alpha_status(N),
@@ -973,7 +1071,7 @@ PyObject* eval_LIBSVM(PyObject* self, PyObject* args) {
         double C = *static_cast<double*>(PyArray_GETPTR1(params,1));
         double eps = *static_cast<double*>(PyArray_GETPTR1(params,2));
         double tol = *static_cast<double*>(PyArray_GETPTR1(params,3));
-        LIBSVM_Solver optimiser(X,Yv,Alphas,pv,b,C,N,kernel,eps,tol,cache_size, false);
+        LIBSVM_Solver optimiser(X,Yv,Alphas,pv,b,C,N,kernel,eps,tol,cache_size, true);
         optimiser.optimise();
         Py_RETURN_NONE;
     } catch (const Python_Exception&) {
