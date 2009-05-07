@@ -27,7 +27,7 @@ class test_classifier(object):
         self.tested = np.zeros(N,bool)
         self.N = N
     def apply(self, features):
-        cur = np.zeros(N,bool)
+        cur = np.zeros(self.N,bool)
         cur[features] = True
         assert not np.any(cur & self.tested)
         self.tested |= cur
