@@ -178,3 +178,46 @@ def sda(features,labels):
     output.sort(reverse=True)
     return np.array([x[1] for x in output])
 
+def _rank(A,tol=1e-8):
+    s = np.linalg.svd(A,compute_uv=0)
+    return (s > tol).sum()
+
+def linear_independent_features(featmatrix, labels = None):
+    '''
+    Returns the indices of a set of linearly independent features (columns).
+
+    indices = linear_independent_features(features)
+    '''
+    independent = []
+    R = _rank(featmatrix)
+    i = 0
+    offset = 0
+    while i < featmatrix.shape[1]:
+        R_ = _rank(np.delete(featmatrix,i,1))
+        if R_ == R:
+            featmatrix = np.delete(featmatrix,i,1)
+            offset += 1
+        else:
+            independent.append(i+offset)
+            i += 1
+    return np.array(independent)
+
+class featureselector(object):
+    '''
+    selector = featureselector(function)
+
+    Returns a transformer which selects features according to
+        selected_idxs = function(features,labels)
+    '''
+    def __init__(self, selector):
+        self.selector = selector
+
+    def train(self, features, labels):
+        self.idxs = self.selector(features, labels)
+
+    def apply(self, features):
+        return features[self.idxs]
+
+def sda_filter():
+    return featureselector(sda)
+
