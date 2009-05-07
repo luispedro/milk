@@ -21,6 +21,7 @@
 
 from __future__ import division
 import numpy
+import numpy as np
 try:
     import ncreduce
     _std=ncreduce.std
@@ -44,7 +45,7 @@ class subtract_divide(object):
     def __init__(self,features=None):
         if features:
             self.train(features)
-    def __call__(self,features):
+    def apply(self, features):
         return (features - self.shift)/self.factor
 
 class zscore_normalise(subtract_divide):
@@ -81,7 +82,6 @@ class chkfinite(object):
 
     Replaces NaN & Inf values with zeros.
     '''
-    __slots__ = []
     def __init__(self):
         pass
 
@@ -89,10 +89,11 @@ class chkfinite(object):
         pass
 
     def apply(self,features):
-        nans=isnan(features)+isinf(features)
+        nans = np.isnan(features) + np.isinf(features)
         if nans.any():
-            features=features.copy()
-            features[nans]=0
+            features = features.copy()
+            features[nans] = 0
         return features
+
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:

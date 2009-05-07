@@ -54,11 +54,15 @@ class ctransforms(object):
     def train(self,features,labels):
         for T in self.transforms:
             T.train(features,labels) 
-            features = numpy.array([T(f) for f in features])
+            features = numpy.array([T.apply(f) for f in features])
 
     def apply(self,features):
         for T in self.transforms:
-            features = numpy.array([T(f) for f in features])
+            features = numpy.array([T.apply(f) for f in features])
         return features
+
+    def set_option(self, opt, val):
+        idx, opt = opt
+        self.transforms[idx].set_option(opt,val)
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
