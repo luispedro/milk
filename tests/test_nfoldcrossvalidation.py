@@ -40,5 +40,5 @@ def test_nfoldcrossvalidation_testall():
     C = test_classifier(N)
     features = np.arange(N)
     labels = np.zeros(N)
-    cmat,clabels = nfoldcrossvalidation(feats, labels, classifier=C)
+    cmat,clabels = nfoldcrossvalidation(features, labels, classifier=C)
     assert np.all(C.tested)

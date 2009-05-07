@@ -21,7 +21,6 @@
 
 from __future__ import division
 import numpy
-
 import milk.supervised.normalise
 
 def test_interval_normalise():
@@ -30,7 +29,7 @@ def test_interval_normalise():
     features=numpy.random.rand(20,100)
     L=numpy.zeros(100)
     I.train(features,L)
-    assert numpy.all(numpy.abs( ( I(features).max(0)-I(features).min(0) ) - 2) < 1e-4)
+    assert numpy.all(numpy.abs( ( I.apply(features).max(0)-I.apply(features).min(0) ) - 2) < 1e-4)
 
 def test_zscore_normalise():
     I=milk.supervised.normalise.zscore_normalise()
@@ -38,7 +37,7 @@ def test_zscore_normalise():
     features=numpy.random.rand(20,100)
     L=numpy.zeros(100)
     I.train(features,L)
-    assert numpy.all( I(features).mean(0)**2 < 1e-7 )
-    assert numpy.all( I(features).std(0) - 1 < 1e-3 )
+    assert numpy.all( I.apply(features).mean(0)**2 < 1e-7 )
+    assert numpy.all( I.apply(features).std(0) - 1 < 1e-3 )
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
