@@ -58,7 +58,7 @@ class ctransforms(object):
 
     def apply(self,features):
         for T in self.transforms:
-            features = numpy.array([T.apply(f) for f in features])
+            features = T.apply(features)
         return features
 
     def set_option(self, opt, val):
