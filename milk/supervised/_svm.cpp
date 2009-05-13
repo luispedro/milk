@@ -269,6 +269,37 @@ double RBFKernel::do_kernel(int i1, int i2) const {
     return res;
 }
 
+class PrecomputedKernel : public KernelComputation { 
+    public:
+        PrecomputedKernel(PyArrayObject* X);
+        ~PrecomputedKernel();
+    protected:
+        virtual double do_kernel(int i1, int i2) const;
+    private:
+        PyArrayObject* X_;
+};
+
+PrecomputedKernel::PrecomputedKernel(PyArrayObject* X):
+    X_(X)
+    {
+        if (!PyArray_Check(X)) {
+            throw SMO_Exception("PrecomputedKernel used, but not with numpy array.");
+        }
+        if (!PyArray_ISCARRAY(X)) {
+            throw SMO_Exception("Precomputed used but not with CARRAY.");
+        }
+        Py_INCREF(X);
+    }
+
+PrecomputedKernel::~PrecomputedKernel() {
+    Py_DECREF(X_);
+}
+
+double PrecomputedKernel::do_kernel(int i1, int i2) const {
+    const double* data = static_cast<const double*>(PyArray_GETPTR2(X_,i1,i2));
+    return *data;
+}
+
 std::auto_ptr<KernelComputation> get_kernel(PyObject* X, PyObject* kernel) {
     typedef std::auto_ptr<KernelComputation> res_type;
     if (PyCallable_Check(kernel)) return res_type(new PyKernel(X, kernel, PySequence_Length(X)));
@@ -277,11 +308,15 @@ std::auto_ptr<KernelComputation> get_kernel(PyObject* X, PyObject* kernel) {
     PyObject* arg = PyTuple_GET_ITEM(kernel,1);
     if (!PyInt_Check(type) || !PyFloat_Check(arg)) throw SMO_Exception("Cannot parse kernel (wrong types)");
     long type_nr = PyInt_AsLong(type);
-    if (type_nr != 0) {
-        throw SMO_Exception("Unknown kernel code!");
-    }
     double arg_value = PyFloat_AsDouble(arg);
-    return res_type(new RBFKernel(reinterpret_cast<PyArrayObject*>(X), arg_value));
+    switch (type_nr) {
+        case 0:
+            return res_type(new RBFKernel(reinterpret_cast<PyArrayObject*>(X), arg_value));
+        case 1:
+            return res_type(new PrecomputedKernel(reinterpret_cast<PyArrayObject*>(X)));
+        default:
+            throw SMO_Exception("Unknown kernel type!");
+    }
 }
 
 

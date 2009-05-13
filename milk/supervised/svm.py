@@ -129,6 +129,19 @@ def polynomial_kernel(d,c=1):
         return (numpy.dot(x1,x2)+c)**d
     return k
 
+def precomputed_kernel(kmatrix):
+    '''
+    kernel = precomputed_kernel(kmatrix)
+
+    A "fake" kernel which is precomputed.
+    '''
+    kmatrix = np.ascontiguousarray(kmatrix,np.double)
+    def k(x1,x2):
+        return kmatrix[x1,x2]
+    k.kernel_nr_ = 1
+    k.kernel_arg_ = 0.
+    return k
+
 class svm_raw(object):
     '''
     svm_raw: classifier
@@ -154,10 +167,10 @@ class svm_raw(object):
         self.algorithm = 'libsvm'
 
     def train(self,features,labels):
-        assert numpy.all( (labels == 0) | (labels == 1) ), 'milk.supervised.svm_raw can only handle binary problems'
         assert self.kernel is not None, 'milk.supervised.svm_raw.train: kernel not set!'
         assert self.algorithm in ('libsvm','smo'), 'milk.supervised.svm_raw: unknown algorithm (%s)' % self.algorithm
-        self.Y, self.classnames = normaliselabels(labels)
+        self.Y,_ = normaliselabels(labels)
+        assert numpy.all( (self.Y == 0) | (self.Y  == 1) ), 'milk.supervised.svm_raw can only handle binary problems'
         self.Y *= 2
         self.Y -= 1
         kernel = self.kernel
@@ -335,5 +348,105 @@ class svm_sigmoidal_correction(object):
     def apply(self,features):
         return 1./(1.+numpy.exp(features*self.A+self.B))
 
+def sigma_value_fisher(features,labels):
+    '''
+    f = sigma_value_fisher(features,labels)
+    value_s = f(s)
+
+    Computes a function which computes how good the value of sigma
+    is for the features. This function should be *minimised* for a 
+    good value of sigma.
+
+    Parameters
+    -----------
+        * features: the feature matrix.
+
+    Reference
+    ----------
+
+    Implements the measure in
+
+        "Determination of the spread parameter in the
+        Gaussian kernel for classiÿcation and regression"
+    by Wenjian Wanga, Zongben Xua, Weizhen Luc, and Xiaoyun Zhanga
+    '''
+    features = np.asanyarray(features)
+    xij = np.dot(features,features.T)
+    f2 = np.sum(features**2,1)
+    d = f2-2*xij
+    d = d.T + f2
+    N1 = (labels==0).sum()
+    N2 = (labels==1).sum()
+
+    C1 = -d[labels == 0][:,labels == 0]
+    C2 = -d[labels == 1][:,labels == 1]
+    C12 = -d[labels == 0][:,labels == 1]
+    C1 = C1.copy()
+    C2 = C2.copy()
+    C12 = C12.copy()
+    def f(sigma):
+        sigma = float(sigma)
+        N1 = C1.shape[0]
+        N2 = C2.shape[0]
+        if C12.shape != (N1,N2):
+            raise ValueError
+        N1 = int(N1)
+        N2 = int(N2)
+        try:
+            from scipy import weave
+            from scipy.weave import converters
+            res = np.empty(3,np.double)
+            code = '''
+#line 400 "svm.py"
+            double C1v = 0.;
+            double C2v = 0.;
+            double C12v = 0.;
+            for (int i = 0; i != N1; ++i)
+                for (int j = 0; j != N1; ++j) 
+                    C1v += std::exp(C1(i,j)/sigma);
+            for (int i = 0; i != N2; ++i)
+                for (int j = 0; j != N2; ++j)
+                    C2v += std::exp(C2(i,j)/sigma);
+            for (int i = 0; i != N1; ++i)
+                for (int j = 0; j != N2; ++j)
+                    C12v += std::exp(C12(i,j)/sigma);
+            res(0) = C1v/N1;
+            res(1) = C2v/N2;
+            res(2) = C12v/N1/N2;
+            '''
+            weave.inline(code, ['C1','C2','C12','N1','N2','res','sigma'],type_converters = converters.blitz)
+            C1v = res[0]
+            C2v = res[1]
+            C12v = res[2]
+        except Exception, e:
+            C1v = np.sum(np.exp(C1/sigma))/N1
+            C2v = np.sum(np.exp(C2/sigma))/N2
+            C12v = np.sum(np.exp(C12/sigma))/N1/N2
+        return (N1 + N2 - C1v - C2v)/(C1v/N1+C2v/N2 - 2.*C12v)
+    return f
+
+class fisher_tuned_rbf_svm(object):
+    '''
+    F = fisher_tuned_rbf_svm(sigmas, base)
+
+    Returns a wrapper classifier that uses RBF kernels automatically
+    tuned using sigma_value_fisher.
+
+    '''
+    def __init__(self, sigmas, base):
+        self.sigmas = sigmas
+        self.base = base
+        self.trained = False
+
+    def train(self, features, labels):
+        f = sigma_value_fisher(features, labels)
+        fs = [f(s) for s in self.sigmas]
+        self.sigma = self.sigmas[np.argmin(fs)]
+        self.base.set_option('kernel',rbf_kernel(self.sigma))
+        self.base.train(features,labels)
+        self.trained = True
+
+    def apply(self,features):
+        return self.base.apply(features)
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
