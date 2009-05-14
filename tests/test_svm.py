@@ -143,3 +143,18 @@ def test_perfect():
     classifier.train(data,labels)
     assert numpy.all( (numpy.array([classifier.apply(data[i]) for i in xrange(10)]) > 0) == labels )
 
+def test_smart_rbf():
+    import milksets.wine
+    features,labels = milksets.wine.load()
+    labels = (labels == 1)
+    kernel = milk.supervised.svm.rbf_kernel(2.**-4)
+    C = milk.supervised.svm.svm_raw(C=2.,kernel=kernel)
+    C.train(features,labels)
+    smartkernel = [C.apply(f) for f in features]
+    del kernel.kernel_nr_
+    del kernel.kernel_arg_
+    C = milk.supervised.svm.svm_raw(C=2.,kernel=kernel)
+    C.train(features,labels)
+    dumbkernel = [C.apply(f) for f in features]
+    smartkernel == dumbkernel
+    assert smartkernel == dumbkernel
