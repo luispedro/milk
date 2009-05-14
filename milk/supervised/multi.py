@@ -20,7 +20,8 @@
 #  THE SOFTWARE.
 
 from __future__ import division
-import numpy
+from .classifier import normaliselabels
+import numpy as np
 import random
 
 class one_against_rest(object):
@@ -53,29 +54,26 @@ class one_against_rest(object):
         self.classifiers = None
         self.base = base
         self.is_multi_class = True
-        self.trained
+        self.trained = False
 
     def train(self,features,labels):
         labels, self.names = normaliselabels(labels)
         self.nclasses = labels.max() + 1
-        self.classifiers=[]
-        for i in xrange(self._nclasses):
+        self.classifiers = []
+        for i in xrange(self.nclasses):
             s = self.base()
             s.train(features, labels == i)
             self.classifiers.append(s)
         self.trained = True
 
     def apply(self,feats):
-        return [self.apply_one(f) for f in feats]
-
-    def apply_one(self,feats):
         assert self.trained
-        vals = numpy.array([c.apply_one(feats) for c in self.classifiers])
-        idxs, = numpy.where(vals == 1)
+        vals = np.array([c.apply(feats) for c in self.classifiers])
+        idxs, = np.where(vals == 1)
         if len(idxs) == 1:
             label = idxs[0]
         elif len(idxs) == 0:
-            label = random.randint(0, self.nclasses)
+            label = random.randint(0, self.nclasses - 1)
         else:
             label = random.choice(idxs)
         return self.names[label]
@@ -106,23 +104,25 @@ class one_against_one(object):
     one_against_rest
 
     '''
-    def __init__(self,base):
-        self._classifiers = None
-        self._base = base
+    def __init__(self, base):
+        self.classifiers = None
+        self.base = base
         self.is_multi_class = True
         self.trained = False
 
-    def train(self,features,labels):
+    def train(self, features, labels):
         '''
         one_against_one.train(objs,labels)
         '''
         labels, self.names = normaliselabels(labels)
         self.nclasses = labels.max() + 1
-        self.classifiers=[[None for i in xrange(self.nclasses)] for j in xrange(self.nclasses)]
+        self.classifiers = [ [None for i in xrange(self.nclasses)] for j in xrange(self.nclasses)]
         for i in xrange(self.nclasses):
-            for j in xrange(i+1,self.nclasse):
+            for j in xrange(i+1,self.nclasses):
                 s = self.base()
                 idxs = (labels == i) | (labels == j)
+                assert len(idxs) > 0, 'milk.multi.one_against_one: Pair-wise classifier has no data'
+                # Fixme: here I could add a Null classifier or something
                 s.train(features[idxs],labels[idxs]==i)
                 self.classifiers[i][j] = s
         self.trained = True
@@ -131,30 +131,14 @@ class one_against_one(object):
         '''
         one_against_one.apply(objs)
 
-        Apply the learned classifier to a sequence of objects.
-
-        See also
-        --------
-        apply_one
-        '''
-        return [self.apply_one(f) for f in feats]
-
-    def apply_one(self,feats):
-        '''
-        one_against_one.apply_one(obj)
-
         Classify one single object.
-
-        See also
-        --------
-        apply
         '''
         assert self.trained
         nc = self.nclasses
-        votes = zeros(nc)
+        votes = np.zeros(nc)
         for i in xrange(nc):
             for j in xrange(i+1,nc):
-                c=self.classifiers[i][j].apply(feats)
+                c = self.classifiers[i][j].apply(feats)
                 if c:
                     votes[i] += 1
                 else:
