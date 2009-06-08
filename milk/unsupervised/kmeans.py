@@ -68,7 +68,7 @@ def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kw
 
 def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
     '''
-    assignmens, centroids = kmean(fmatrix, K, distance='euclidean', icov=None, covmat=None)
+    assignmens, centroids = kmean(fmatrix, K, distance='euclidean', R=None, icov=None, covmat=None)
 
     K-Means Clustering
 
@@ -102,12 +102,18 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
 
     N,q = fmatrix.shape
     centroids = np.array(R.sample(fmatrix,K))
-    prev = zeros(N)
-    dists = empty((K,N))
+    prev = np.zeros(N,np.int32)
+    assignments = np.zeros(N,np.int32)
+    dists = np.zeros(N, fmatrix.dtype)
+    ndists = np.zeros(N, fmatrix.dtype)
     for i in xrange(max_iter):
+        assignments[:] = 0
+        dists[:] = np.inf
         for ci,C in enumerate(centroids):
-            dists[ci,:] = distfunction(fmatrix,C)
-        assignments = dists.argmin(0)
+            ndists[:] = distfunction(fmatrix,C)
+            better = (ndists < dists)
+            assignments[better] = ci
+            dists[better] = ndists[better]
         if (assignments == prev).all():
             break
         try:
@@ -136,7 +142,7 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
         except Exception, e:
             print 'scipy.weave.inline failed. Resorting to Python code (Exception was "%s")' % e
             centroids = array([fmatrix[assignments == C].mean(0) for C in xrange(K)])
-        prev = assignments
+        prev[:] = assignments
     return assignments, centroids
         
 def repeated_kmeans(fmatrix,k,iterations,distance='euclidean',max_iter=1000,R=None,**kwargs):
