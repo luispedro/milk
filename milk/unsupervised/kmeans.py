@@ -28,28 +28,31 @@ from .normalise import zscore
 
 __all__ = ['kmeans','repeated_kmeans']
 
-def _euclidean2(fmatrix,x):
+def _euclidean2(fmatrix, x, output=None):
+    if output is None:
+        output = np.zeros(N)
     try:
         from scipy import weave
         from scipy.weave import converters
         N,q = fmatrix.shape
-        D = zeros(N)
+        output[:] = 0
         code = '''
         for (int i = 0; i != N; ++i) {
             for (int j = 0; j != q; ++j) {
-                D(i) += (fmatrix(i,j) - x(j))*(fmatrix(i,j)-x(j));
+                output(i) += (fmatrix(i,j) - x(j))*(fmatrix(i,j)-x(j));
             }
         }
         '''
         weave.inline(
                 code,
-                ['fmatrix','N','q','x','D'],
+                ['fmatrix','N','q','x','output'],
                 type_converters=converters.blitz)
-        return D
+        return output
     except:
-        return ((fmatrix - x)**2).sum(1)
+        output[:] = ((fmatrix - x)**2).sum(1)
+        return output
 
-def _mahalabonis2(fmatrix,x,icov):
+def _mahalabonis2(fmatrix, x, icov, output=None):
     diff = (fmatrix-x)
     icov = (icov)
     # The expression below seems to be faster than looping over the elements and summing 
@@ -95,7 +98,7 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
             if covmat is None:
                 covmat = cov(fmatrix.T)
             icov = linalg.inv(covmat)
-        distfunction = lambda f,x: _mahalabonis2(f,x,icov)
+        distfunction = lambda f,x, out: _mahalabonis2(f, x, icov, output=out)
     else:
         raise 'Distance argument unknown (%s)' % distance
     R = get_pyrandom(R)
@@ -110,11 +113,28 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
         assignments[:] = 0
         dists[:] = np.inf
         for ci,C in enumerate(centroids):
-            ndists[:] = distfunction(fmatrix,C)
-            better = (ndists < dists)
-            assignments[better] = ci
-            dists[better] = ndists[better]
-        if (assignments == prev).all():
+            ndists = distfunction(fmatrix, C, output=ndists)
+            try:
+                from scipy import weave
+                from scipy.weave import converters
+                code = '''
+                for (int i = 0; i != N; ++i) {
+                    if (ndists(i) < dists(i)) {
+                        assignments(i) = ci;
+                        dists(i) = ndists(i);
+                    }
+                }
+                '''
+                weave.inline(
+                    code,
+                    ['dists', 'ndists', 'N', 'assignments', 'ci'],
+                    type_converters=converters.blitz)
+            except Exception, e:
+                print 'scipy.weave.inline failed. Resorting to Python code (Exception was "%s")' % e
+                better = (ndists < dists)
+                assignments[better] = ci
+                dists[better] = ndists[better]
+        if np.all(assignments == prev):
             break
         try:
             from scipy import weave
