@@ -111,29 +111,57 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
     ndists = np.zeros(N, fmatrix.dtype)
     for i in xrange(max_iter):
         assignments[:] = 0
-        dists[:] = np.inf
-        for ci,C in enumerate(centroids):
-            ndists = distfunction(fmatrix, C, output=ndists)
+        computed = False
+        if distfunction is _euclidean2:
             try:
                 from scipy import weave
                 from scipy.weave import converters
                 code = '''
                 for (int i = 0; i != N; ++i) {
-                    if (ndists(i) < dists(i)) {
-                        assignments(i) = ci;
-                        dists(i) = ndists(i);
+                    float dist = std::numeric_limits<float>::infinity();
+                    for (int k = 0; k != K; ++k) {
+                        float ndist = 0.0;
+                        for (int d = 0; d != q; ++d) {
+                            ndist += (fmatrix(i,d) - centroids(k,d))*(fmatrix(i,d) - centroids(k,d));
+                        }
+                        if (ndist < dist) {
+                            assignments(i) = k;
+                            dist = ndist;
+                        }
                     }
                 }
                 '''
                 weave.inline(
                     code,
-                    ['dists', 'ndists', 'N', 'assignments', 'ci'],
+                    ['fmatrix','N','q','K','assignments','centroids'],
                     type_converters=converters.blitz)
-            except Exception, e:
-                print 'scipy.weave.inline failed. Resorting to Python code (Exception was "%s")' % e
-                better = (ndists < dists)
-                assignments[better] = ci
-                dists[better] = ndists[better]
+                computed = True
+            except:
+                pass
+        if not computed:
+            dists[:] = np.inf
+            for ci,C in enumerate(centroids):
+                ndists = distfunction(fmatrix, C, output=ndists)
+                try:
+                    from scipy import weave
+                    from scipy.weave import converters
+                    code = '''
+                    for (int i = 0; i != N; ++i) {
+                        if (ndists(i) < dists(i)) {
+                            assignments(i) = ci;
+                            dists(i) = ndists(i);
+                        }
+                    }
+                    '''
+                    weave.inline(
+                        code,
+                        ['dists', 'ndists', 'N', 'assignments', 'ci'],
+                        type_converters=converters.blitz)
+                except Exception, e:
+                    print 'scipy.weave.inline failed. Resorting to Python code (Exception was "%s")' % e
+                    better = (ndists < dists)
+                    assignments[better] = ci
+                    dists[better] = ndists[better]
         if np.all(assignments == prev):
             break
         try:
