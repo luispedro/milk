@@ -104,7 +104,8 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
     R = get_pyrandom(R)
 
     N,q = fmatrix.shape
-    centroids = np.array(R.sample(fmatrix,K))
+    centroids = np.array(R.sample(fmatrix,K), fmatrix.dtype)
+
     prev = np.zeros(N,np.int32)
     assignments = np.zeros(N,np.int32)
     dists = np.zeros(N, fmatrix.dtype)
@@ -116,25 +117,52 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
             try:
                 from scipy import weave
                 from scipy.weave import converters
-                code = '''
-                for (int i = 0; i != N; ++i) {
-                    float dist = std::numeric_limits<float>::infinity();
-                    for (int k = 0; k != K; ++k) {
-                        float ndist = 0.0;
-                        for (int d = 0; d != q; ++d) {
-                            ndist += (fmatrix(i,d) - centroids(k,d))*(fmatrix(i,d) - centroids(k,d));
-                        }
-                        if (ndist < dist) {
-                            assignments(i) = k;
-                            dist = ndist;
+                if fmatrix.flags['C_CONTIGUOUS'] and fmatrix.dtype in (np.float32,np.double):
+                    if fmatrix.dtype == np.float32:
+                        type = 'float'
+                    else:
+                        type = 'double'
+                    code = '''
+#line 123 "kmeans.py"
+                    for (int i = 0; i != N; ++i) {
+                        %(type)s dist = std::numeric_limits<%(type)s>::infinity();
+                        %(type)s* cd = centroids;
+                        for (int k = 0; k != K; ++k) {
+                            %(type)s ndist = 0.0;
+                            %(type)s* fd = fmatrix + i * q;
+                            for (int d = 0; d != q; ++d) {
+                                ndist += (*fd-*cd)*(*fd-*cd);
+                                ++fd;
+                                ++cd;
+                            }
+                            if (ndist < dist) {
+                                assignments[i] = k;
+                                dist = ndist;
+                            }
                         }
                     }
-                }
-                '''
-                weave.inline(
-                    code,
-                    ['fmatrix','N','q','K','assignments','centroids'],
-                    type_converters=converters.blitz)
+                    ''' % { 'type' : type }
+                    weave.inline(code, ['fmatrix','N','q','K','assignments','centroids'], headers=['<limits>'])
+                else: 
+                    code = '''
+                    for (int i = 0; i != N; ++i) {
+                        float dist = std::numeric_limits<float>::infinity();
+                        for (int k = 0; k != K; ++k) {
+                            float ndist = 0.0;
+                            for (int d = 0; d != q; ++d) {
+                                ndist += (fmatrix(i,d) - centroids(k,d))*(fmatrix(i,d) - centroids(k,d));
+                            }
+                            if (ndist < dist) {
+                                assignments(i) = k;
+                                dist = ndist;
+                            }
+                        }
+                    }
+                    '''
+                    weave.inline(
+                        code,
+                        ['fmatrix','N','q','K','assignments','centroids'],
+                        type_converters=converters.blitz)
                 computed = True
             except:
                 pass
