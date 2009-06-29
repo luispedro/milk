@@ -25,7 +25,7 @@ from ..supervised.classifier import normaliselabels
 import numpy
 import numpy as np
 
-__all__=['nfoldcrossvalidation']
+__all__ = ['foldgenerator', 'getfold', 'nfoldcrossvalidation']
 def foldgenerator(labels,nfolds=None):
     '''
     for test,train in foldgenerator(labels,nfolds=None)
@@ -63,6 +63,18 @@ def foldgenerator(labels,nfolds=None):
             testingset[idxs]=True
         trainingset = ~testingset
         yield trainingset,testingset
+
+def getfold(labels, fold, nfolds=None):
+    '''
+    trainingset,testingset = getfold(labels, fold, nfolds=None)
+
+    '''
+    _nfolds = (10 if nfolds is None else nfolds)
+    assert fold < _nfolds, 'milk.getfold: Attempted to get fold %s out of %s' % (fold, nfolds)
+    for i,(t,s) in enumerate(foldgenerator(labels,nfolds)):
+        if i == fold:
+            return t,s
+    assert False, 'milk.getfold: Attempted to get fold %s but the number of actual folds was too small' % fold
 
 def nfoldcrossvalidation(features,labels,nfolds=None,classifier=None, return_predictions=False):
     '''

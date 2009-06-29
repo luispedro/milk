@@ -42,3 +42,10 @@ def test_nfoldcrossvalidation_testall():
     labels = np.zeros(N)
     cmat,clabels = nfoldcrossvalidation(features, labels, classifier=C)
     assert np.all(C.tested)
+
+def test_getfold():
+    A = np.zeros(20)
+    A[:10] = 1
+    t,s = milk.measures.nfoldcrossvalidation.getfold(A,0,10)
+    tt,ss = milk.measures.nfoldcrossvalidation.getfold(A,1,10)
+    assert not np.any((~t)&(~tt))
