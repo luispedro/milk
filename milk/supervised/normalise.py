@@ -71,10 +71,10 @@ class interval_normalise(subtract_divide):
         subtract_divide.__init__(self,features)
 
     def train(self,features,labels):
-        D = features.max(0) - features.min(0)
+        D = features.ptp(0)
         self.shift = features.mean(0) + D/2.
         self.factor = D/2.
-        self.factor[self.factor== 0.]=1 # This makes the division a null op.
+        self.factor[self.factor == 0] = 1 # This makes the division a null op.
 
 
 def sample_to_2min(labels):
