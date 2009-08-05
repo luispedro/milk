@@ -21,6 +21,8 @@
 
 from __future__ import division
 import numpy
+import numpy as np
+from milk.supervised.normalise import sample_to_2min
 import milk.supervised.normalise
 
 def test_interval_normalise():
@@ -39,5 +41,24 @@ def test_zscore_normalise():
     I.train(features,L)
     assert numpy.all( I.apply(features).mean(0)**2 < 1e-7 )
     assert numpy.all( I.apply(features).std(0) - 1 < 1e-3 )
+
+        
+def test_sample_to_2min():
+    A = np.zeros(256, np.int32)
+    def test_one(A):
+        selected = sample_to_2min(A)
+        ratios = []
+        for l0 in set(A):
+            for l1 in set(A):
+                ratios.append( (A[selected] == l0).sum() / (A[selected] == l1).sum() )
+        assert np.max(ratios) <= 2.001
+    A[20:] = 1
+    yield test_one, A
+
+    A[21:] = 1
+    yield test_one, A
+
+    A[129:] = 2
+    yield test_one, A
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:

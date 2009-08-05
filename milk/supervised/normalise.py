@@ -20,13 +20,13 @@
 #  THE SOFTWARE.
 
 from __future__ import division
-import numpy
+from collections import defaultdict
 import numpy as np
 try:
     import ncreduce
-    _std=ncreduce.std
+    _std = ncreduce.std
 except:
-    _std=numpy.std
+    _std = np.std
 
 __all__ = ['zscore','zscore_normalise','interval_normalise','chkfinite','icdf_normalise']
 
@@ -75,6 +75,38 @@ class interval_normalise(subtract_divide):
         self.shift = features.mean(0) + D/2.
         self.factor = D/2.
         self.factor[self.factor== 0.]=1 # This makes the division a null op.
+
+
+def sample_to_2min(labels):
+    '''
+    selected = sample_to_2min(labels)
+
+    Select examples so that the ratio of size of the largest
+    class to the smallest class is at most two (i.e.,
+        ForAll l0, l1: (labels == l0).sum()/(labels == l1).sum() <= 2
+    )
+
+    Parameters
+    ----------
+        * labels: sequence of labels
+
+    Output
+    ------
+        * selected: a Boolean numpy.ndarray
+    '''
+    counts = defaultdict(int)
+    for n in labels:
+        counts[n] += 1
+
+    max_entries = np.min(counts.values())*2
+    selected = np.zeros(len(labels), bool)
+    for c in counts.iterkeys():
+        p, = np.where(labels == c)
+        p = p[:max_entries]
+        selected[p] = 1
+    return selected
+
+
 
 class chkfinite(object):
     '''
