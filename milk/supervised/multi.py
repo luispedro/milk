@@ -36,20 +36,20 @@ class one_against_rest(object):
     Example
     -------
 
-    multi = one_against_rest(milk.supervised.simple_svm)
-    multi.train(training_features,labels)
-    print multi.apply(testing_features)
+        multi = one_against_rest(milk.supervised.simple_svm)
+        multi.train(training_features,labels)
+        print multi.apply(testing_features)
 
     We are using a class as a base, but we can use any callable object:
 
-    multi = one_against_rest(lambda : milk.supervised.tree(purity_measure='gini'))
+        multi = one_against_rest(lambda : milk.supervised.tree(purity_measure='gini'))
     ...
 
     See Also
     -------
-    one_against_rest
-
+    one_against_one
     '''
+
     def __init__(self,base):
         self.classifiers = None
         self.base = base
@@ -90,20 +90,20 @@ class one_against_one(object):
     Example
     -------
 
-    multi = one_against_one(milk.supervised.simple_svm)
-    multi.train(training_features,labels)
-    print multi.apply(testing_features)
+        multi = one_against_one(milk.supervised.simple_svm)
+        multi.train(training_features,labels)
+        print multi.apply(testing_features)
 
     We are using a class as a base, but we can use any callable object:
 
-    multi = one_against_one(lambda : milk.supervised.tree(purity_measure='gini'))
+        multi = one_against_one(lambda : milk.supervised.tree(purity_measure='gini'))
     ...
 
     See Also
     -------
     one_against_rest
-
     '''
+
     def __init__(self, base):
         self.classifiers = None
         self.base = base

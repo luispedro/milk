@@ -71,19 +71,21 @@ def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kw
 
 def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
     '''
-    assignmens, centroids = kmean(fmatrix, K, distance='euclidean', R=None, icov=None, covmat=None)
+    assignments, centroids = kmean(fmatrix, K, distance='euclidean', R=None, icov=None, covmat=None)
 
     K-Means Clustering
 
-    @param distance can be one of:
-        'euclidean'   : euclidean distance (default)
-        'seuclidean'  : standartised euclidean distance. This is equivalent to first normalising the features.
-        'mahalanobis' : mahalanobis distance.
+    Parameters
+    ==========
+        * distance can be one of:
+            - 'euclidean'   : euclidean distance (default)
+            - 'seuclidean'  : standartised euclidean distance. This is equivalent to first normalising the features.
+            - 'mahalanobis' : mahalanobis distance.
                 This can make use of the following keyword arguments:
-                    'icov' (the inverse of the covariance matrix), 
-                    'covmat' (the covariance matrix)
+                    + 'icov' (the inverse of the covariance matrix), 
+                    + 'covmat' (the covariance matrix)
                 If neither is passed, then the function computes the covariance from the feature matrix
-    @param max_iter: Maximum number of iteration
+        * max_iter: Maximum number of iteration
     '''
     fmatrix = np.asanyarray(fmatrix)
     if distance == 'euclidean':
@@ -123,7 +125,7 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
                     else:
                         type = 'double'
                     code = '''
-#line 123 "kmeans.py"
+#line 129 "kmeans.py"
                     for (int i = 0; i != N; ++i) {
                         %(type)s dist = std::numeric_limits<%(type)s>::infinity();
                         %(type)s* cd = centroids;

@@ -367,7 +367,7 @@ def sigma_value_fisher(features,labels):
     Implements the measure in
 
         "Determination of the spread parameter in the
-        Gaussian kernel for classiÿcation and regression"
+        Gaussian kernel for classification and regression"
     by Wenjian Wanga, Zongben Xua, Weizhen Luc, and Xiaoyun Zhanga
     '''
     features = np.asanyarray(features)
