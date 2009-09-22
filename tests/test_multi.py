@@ -7,6 +7,7 @@ from milk.supervised.classifier import ctransforms
 import milksets
 features,labels = milksets.wine.load()
 A = np.arange(len(features))
+random.seed(9876543210)
 random.shuffle(A)
 features = features[A]
 labels = labels[A]
