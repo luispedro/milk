@@ -38,6 +38,7 @@ def defaultclassifier(mode='medium'):
     from . import svm
     from .normalise import chkfinite, interval_normalise
     from .featureselection import sda_filter, featureselector, linear_independent_features
+    from .multi import one_against_one
     assert mode in ('slow','medium','fast'), "milk.supervised.defaultclassifier: mode must be one of 'fast','slow','medium'."
     if mode == 'fast':
         c_range = np.arange(-2,4)
@@ -53,10 +54,11 @@ def defaultclassifier(mode='medium'):
             interval_normalise(),
             featureselector(linear_independent_features),
             sda_filter(),
-            gridsearch(ctransforms(
-                            svm.svm_raw(),
-                            svm.svm_binary()
-                            ),
+            gridsearch(one_against_one(
+                            lambda: ctransforms( \
+                                svm.svm_raw(), \
+                                svm.svm_binary() \
+                                )),
                         params={
                             (0,'C'): 2.**c_range,
                             (0,'kernel'): [svm.rbf_kernel(2.**i) for i in sigma_range],
