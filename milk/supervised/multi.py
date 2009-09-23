@@ -55,6 +55,10 @@ class one_against_rest(object):
         self.base = base
         self.is_multi_class = True
         self.trained = False
+        self.options = {}
+
+    def set_option(self, k, v):
+        self.options[k] = v
 
     def train(self,features,labels):
         labels, self.names = normaliselabels(labels)
@@ -62,6 +66,8 @@ class one_against_rest(object):
         self.classifiers = []
         for i in xrange(self.nclasses):
             s = self.base()
+            for k,v in self.options.iteritems():
+                s.set_option(k, v)
             s.train(features, labels == i)
             self.classifiers.append(s)
         self.trained = True
@@ -109,6 +115,10 @@ class one_against_one(object):
         self.base = base
         self.is_multi_class = True
         self.trained = False
+        self.options = {}
+
+    def set_option(self, k, v):
+        self.options[k] = v
 
     def train(self, features, labels):
         '''
@@ -120,6 +130,8 @@ class one_against_one(object):
         for i in xrange(self.nclasses):
             for j in xrange(i+1,self.nclasses):
                 s = self.base()
+                for k,v in self.options.iteritems():
+                    s.set_option(k, v)
                 idxs = (labels == i) | (labels == j)
                 assert len(idxs) > 0, 'milk.multi.one_against_one: Pair-wise classifier has no data'
                 # Fixme: here I could add a Null classifier or something
