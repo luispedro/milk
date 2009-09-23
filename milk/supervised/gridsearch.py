@@ -36,8 +36,6 @@ def _allassignments(D):
         yield A
 
 def _set_assignment(obj,assignments):
-    if not hasattr(obj,'set_option'):
-        raise "Don't know how to set options"
     for k,v in assignments:
         obj.set_option(k,v)
 
@@ -75,6 +73,7 @@ class gridsearch(object):
                 self.best = assignement
                 best_val = cur
         _set_assignment(self.base, self.best)
+        self.base.train(features, labels)
 
     def apply(self,features):
         return self.base.apply(features)
