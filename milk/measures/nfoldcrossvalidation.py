@@ -22,6 +22,7 @@
 from __future__ import division
 from collections import defaultdict
 from ..supervised.classifier import normaliselabels
+from ..supervised.defaultclassifier import defaultclassifier
 import numpy
 import numpy as np
 

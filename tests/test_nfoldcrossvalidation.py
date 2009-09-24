@@ -49,3 +49,17 @@ def test_getfold():
     t,s = milk.measures.nfoldcrossvalidation.getfold(A,0,10)
     tt,ss = milk.measures.nfoldcrossvalidation.getfold(A,1,10)
     assert not np.any((~t)&(~tt))
+
+def test_nfoldcrossvalidation_defaultclassifier():
+    np.random.seed(2233)
+    X = np.random.rand(120,5)
+    X[:40] += .6
+    X[-40:] -= .6
+    Y = np.ones(120)
+    Y[:40] = 0
+    Y[-40:] = 2
+    Y += 100
+    cmat,clabels = milk.measures.nfoldcrossvalidation.nfoldcrossvalidation(X,Y)
+    assert cmat.shape == (3,3)
+    clabels.sort()
+    assert np.all(clabels == [100,101,102])
