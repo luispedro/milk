@@ -26,3 +26,17 @@ def test_one_against_one():
     tlabels = [M.apply(f) for f in features[100:]]
     for tl in tlabels:
         assert tl in (1,2,3)
+
+def test_two_thirds():
+    np.random.seed(2345)
+    C = milk.supervised.defaultclassifier()
+    X = np.random.rand(120,4)
+    X[:40] += np.random.rand(40,4)
+    X[:40] += np.random.rand(40,4)
+    X[40:80] -= np.random.rand(40,4)
+    X[40:80] -= np.random.rand(40,4)
+    Y = np.repeat(np.arange(3), 40)
+    C.train(X,Y)
+    Y_ = np.array([C.apply(x) for x in X])
+    assert (Y_ == Y).mean() * 3 > 2
+
