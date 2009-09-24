@@ -20,6 +20,6 @@
 #  THE SOFTWARE.
 
 from __future__ import division
-from .measures import nfoldcrossvalidation
+import measures.nfoldcrossvalidation as nfoldcrossvalidation
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
