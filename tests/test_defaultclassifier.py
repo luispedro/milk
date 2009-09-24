@@ -4,8 +4,9 @@ data = tests.data.german.german.load()
 features = data['data']
 labels = data['label']
 def test_defaultclassifier():
-    C = milk.supervised.defaultclassifier.defaultclassifier()
+    C = milk.supervised.defaultclassifier()
     C.train(features,labels)
-    assert C.apply(features[0]) in (0,1)
+    for f in features:
+        assert C.apply(f) in (0,1)
 test_defaultclassifier.slow = True
 
