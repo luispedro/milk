@@ -66,7 +66,7 @@ class gridsearch(object):
         best_val = -1
         for assignement in _allassignments(self.params):
             _set_assignment(self.base, assignement)
-            print 'gridsearch:', assignement
+            #print 'gridsearch:', assignement
             S,_ = nfoldcrossvalidation(features, labels, classifier=self.base)
             cur = self.measure(S)
             if cur > best_val:
