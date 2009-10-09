@@ -28,7 +28,12 @@ try:
 except:
     _std = np.std
 
-__all__ = ['zscore','zscore_normalise','interval_normalise','chkfinite','icdf_normalise']
+__all__ = [
+    'zscore',
+    'zscore_normalise',
+    'interval_normalise',
+    'chkfinite',
+]
 
 def zscore(features):
     """
@@ -83,7 +88,9 @@ def sample_to_2min(labels):
 
     Select examples so that the ratio of size of the largest
     class to the smallest class is at most two (i.e.,
-        ForAll l0, l1: (labels == l0).sum()/(labels == l1).sum() <= 2
+        min_label_count = min { (labels == L).sum() | for L in set(labels) }
+        for L' in set(labels):
+            assert (labels == L').sum() <= 2 * min_label_count
     )
 
     Parameters
