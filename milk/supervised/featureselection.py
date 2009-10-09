@@ -88,7 +88,7 @@ def sda(features,labels):
     K. Enslein, A. Ralston, and H. Wilf, New York; John Wiley & Sons, Inc.
     '''
 
-
+    assert len(features) == len(labels), 'milk.supervised.featureselection.sda: length of features not the same as length of labels'
     N, m = features.shape
     labels,labelsu = normaliselabels(labels)
     q = len(labelsu)
@@ -117,7 +117,7 @@ def sda(features,labels):
                 code,
                 ['N','m','W','T','features','mu','mus','labels'],
                 type_converters=converters.blitz)
-    except:
+    except ImportError:
         import warnings
         warnings.warn('scipy.weave failed. Resorting to (slow) Python code')
         for i in xrange(m):
