@@ -51,11 +51,13 @@ def _svm_apply(SVM, q, filtered=False):
         D2 = X-q
         D2 **= 2
         D2 = D2.sum(1)
-        Q = np.exp(-D2/s)
+        D2 /= -s
+        Q = np.exp(D2)
     except AttributeError:
         Q = np.array([kernel(x, q) for x in X])
     if filtered:
-        return (Y*Alphas*Q).sum() - b
+        Q *= Alphas
+        return Q.sum() - b
     else:
         filter = (Alphas != 0)|(Alphas != C)
         return (Y[filter]*Alphas[filter]*Q[filter]).sum() - b
@@ -196,6 +198,7 @@ class svm_raw(object):
         self.svs = features[svs]
         self.w = alphas[svs]
         self.Y = self.Y[svs]
+        self.Yw = self.w * self.Y
         self.trained = True
     
     def get_params(self):
@@ -209,7 +212,7 @@ class svm_raw(object):
 
     def apply(self,x):
         assert self.trained
-        return _svm_apply((self.svs,self.Y,self.w,self.b,self.C,self.kernel), x, filtered=True)
+        return _svm_apply((self.svs,self.Y,self.Yw,self.b,self.C,self.kernel), x, filtered=True)
 
 
 def learn_sigmoid_constants(F,Y,
