@@ -55,10 +55,10 @@ def _svm_apply(SVM, q, filtered=False):
     except AttributeError:
         Q = np.array([kernel(x, q) for x in X])
     if filtered:
-        return np.sum(Y*Alphas*Q) - b
+        return (Y*Alphas*Q).sum() - b
     else:
         filter = (Alphas != 0)|(Alphas != C)
-        return np.sum(Y[filter]*Alphas[filter]*Q[filter]) - b
+        return (Y[filter]*Alphas[filter]*Q[filter]).sum() - b
 
 def svm_learn_smo(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
     '''
@@ -186,7 +186,7 @@ class svm_raw(object):
         try:
             kernel = (self.kernel.kernel_nr_, self.kernel.kernel_arg_)
             features = np.ascontiguousarray(features, np.double)
-        except:
+        except AttributeError:
             pass
         if self.algorithm == 'smo':
             alphas,self.b = svm_learn_smo(features,self.Y,kernel,self.C,self.eps,self.tol)
