@@ -133,7 +133,7 @@ class one_against_one(object):
                 for k,v in self.options.iteritems():
                     s.set_option(k, v)
                 idxs = (labels == i) | (labels == j)
-                assert len(idxs) > 0, 'milk.multi.one_against_one: Pair-wise classifier has no data'
+                assert idxs.sum() > 0, 'milk.multi.one_against_one: Pair-wise classifier has no data'
                 # Fixme: here I could add a Null classifier or something
                 s.train(features[idxs],labels[idxs]==i)
                 self.classifiers[i][j] = s
