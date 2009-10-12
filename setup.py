@@ -21,7 +21,7 @@
 
 from __future__ import division
 try:
-    from setuptools import *
+    import setuptools
 except:
     print '''
 setuptools not found.
@@ -29,11 +29,12 @@ setuptools not found.
 On linux, the package is often called python-setuptools'''
     from sys import exit
     exit(1)
+from numpy.distutils.core import setup, Extension
 
 svm_ext = Extension('milk.supervised._svm', sources = ['milk/supervised/_svm.cpp'])
 ext_modules = [svm_ext]
 
-packages = find_packages()
+packages = setuptools.find_packages()
 if 'tests' in packages: packages.remove('tests')
 
 setup(name = 'milk',
