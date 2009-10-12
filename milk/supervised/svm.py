@@ -37,19 +37,28 @@ def _svm_size(SVM):
     '''
     return len(SVM[2])
 
-def _svm_apply(SVM,q):
+def _svm_apply(SVM, q, filtered=False):
     '''
-    f_i = _svm_apply(SVM,q)
+    f_i = _svm_apply(SVM, q, filtered=False)
    
     @internal: This is mostly used for testing
     '''
-    N=_svm_size(SVM)
     X,Y,Alphas,b,C,kernel=SVM
-    res = -b
-    for i in xrange(N):
-        if Alphas[i] != C:
-            res += Y[i]*Alphas[i]*kernel(X[i],q)
-    return res
+    try:
+        if kernel.kernel_nr_ != 0:
+            raise AttributeError
+        s = kernel.kernel_arg_
+        D2 = X-q
+        D2 **= 2
+        D2 = D2.sum(1)
+        Q = np.exp(-D2/s)
+    except AttributeError:
+        Q = np.array([kernel(x, q) for x in X])
+    if filtered:
+        return np.sum(Y*Alphas*Q) - b
+    else:
+        filter = (Alphas != 0)|(Alphas != C)
+        return np.sum(Y[filter]*Alphas[filter]*Q[filter]) - b
 
 def svm_learn_smo(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
     '''
@@ -200,7 +209,7 @@ class svm_raw(object):
 
     def apply(self,x):
         assert self.trained
-        return _svm_apply((self.svs,self.Y,self.w,self.b,self.C,self.kernel),x)
+        return _svm_apply((self.svs,self.Y,self.w,self.b,self.C,self.kernel), x, filtered=True)
 
 
 def learn_sigmoid_constants(F,Y,
