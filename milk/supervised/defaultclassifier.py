@@ -47,8 +47,8 @@ def defaultclassifier(mode='medium'):
         c_range = np.arange(-2,4)
         sigma_range = np.arange(-4,4)
     else: # mode == 'slow'
-        c_range = np.arange(-7,4)
-        sigma_range = np.arange(-4,4)
+        c_range = np.arange(-9,5)
+        sigma_range = np.arange(-7,4)
     return ctransforms(
             chkfinite(),
             interval_normalise(),
