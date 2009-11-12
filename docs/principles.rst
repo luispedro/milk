@@ -16,10 +16,14 @@ Work Interactively
 
 This means that building a classifier should look like this::
 
+::
+
     classifier = milk.default_classifier(data,labels)
 
 and not like this::
-    
+
+::
+
     classifier = milk.concattransforms(
                 milk.chkfinite(),
                 milk.to_interval(1,-1),
