@@ -56,8 +56,7 @@ def _svm_apply(SVM, q, filtered=False):
     except AttributeError:
         Q = np.array([kernel(x, q) for x in X])
     if filtered:
-        Q *= Alphas
-        return Q.sum() - b
+        return np.dot(Q, Alphas) - b
     else:
         filter = (Alphas != 0)|(Alphas != C)
         return (Y[filter]*Alphas[filter]*Q[filter]).sum() - b
@@ -112,62 +111,74 @@ def svm_learn_libsvm(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
     return Alphas0, params[0]
 
 
-def rbf_kernel(sigma,beta=1):
+class rbf_kernel(object):
+
     '''
-    kernel = rbf(sigma,beta=1)
+    kernel = rbf_kernel(sigma,beta=1)
 
     Radial Basis Function kernel
 
     Returns a kernel (ie, a function that implements)
         beta * exp( - ||x1 - x2|| / sigma) 
     '''
-    def k(x1,x2):
-        d2=((x1-x2)**2).sum()
-        res = beta*numpy.exp(-d2/sigma)
-        return res
-    k.kernel_nr_ = 0
-    k.kernel_arg_ = float(sigma)
-    return k
+    def __init__(self, sigma, beta=1):
+        self.sigma = sigma
+        self.beta = beta
+        self.kernel_nr_ = 0
+        self.kernel_arg_ = float(sigma)
 
-def polynomial_kernel(d,c=1):
+    def __call__(self, x1, x2):
+        d2 = x1 - x2
+        d2 **= 2
+        d2 = d2.sum()
+        res = self.beta*np.exp(-d2/self.sigma)
+        return res
+
+class polynomial_kernel(object):
     '''
     kernel = polynomial_kernel(d,c=1)
 
     returns a kernel (ie, a function) that implements:
         (<x1,x2>+c)**d
     '''
-    def k(x1,x2):
-        return (numpy.dot(x1,x2)+c)**d
-    return k
+    def __init__(self, d, c=1):
+        self.d = d
+        self.c = c
 
-def precomputed_kernel(kmatrix):
+    def __call__(self,x1,x2):
+        return (np.dot(x1,x2)+self.c)**self.d
+
+class precomputed_kernel(object):
     '''
     kernel = precomputed_kernel(kmatrix)
 
     A "fake" kernel which is precomputed.
     '''
-    kmatrix = np.ascontiguousarray(kmatrix,np.double)
-    def k(x1,x2):
-        return kmatrix[x1,x2]
-    k.kernel_nr_ = 1
-    k.kernel_arg_ = 0.
-    return k
+    def __init__(self, kmatrix, copy=False):
+        kmatrix = np.ascontiguousarray(kmatrix, np.double, copy=copy)
+        self.kernel_nr_ = 1
+        self.kernel_arg_ = 0.
+
+    def __call__(self, x0, x1):
+        return kmatrix[x0,x1]
 
 class svm_raw(object):
     '''
     svm_raw: classifier
 
-    classifier = svm_raw(kernel,C,eps=1e-3,tol=1e-8)
+    classifier = svm_raw(kernel, C, eps=1e-3, tol=1e-8)
 
     MAJOR PARAMETERS:
-    * kernel: the kernel to use.
-        This should be a function that takes two data arguments
-        see rbf_kernel and polynomial_kernel.
-    * C: the C parameter
+    -----------------
+    kernel : the kernel to use.
+             This should be a function that takes two data arguments
+             see rbf_kernel and polynomial_kernel.
+    C : the C parameter
 
-    MINOR PARAMETERS
-    * eps: the precision to which to solve the problem (default 1e-3)
-    * tol: (|x| < tol) is considered zero
+    MINOR PARAMETERS:
+    ----------------
+    eps : the precision to which to solve the problem (default 1e-3)
+    tol : (|x| < tol) is considered zero
     '''
     def __init__(self, kernel=None, C=1., eps=1e-3, tol=1e-8):
         self.C = C
@@ -194,7 +205,7 @@ class svm_raw(object):
             alphas,self.b = svm_learn_smo(features,self.Y,kernel,self.C,self.eps,self.tol)
         else:
             alphas,self.b = svm_learn_libsvm(features,self.Y,kernel,self.C,self.eps,self.tol)
-        svs = (alphas != 0) & (alphas != self.C)
+        svs = (alphas != 0)
         self.svs = features[svs]
         self.w = alphas[svs]
         self.Y = self.Y[svs]
