@@ -39,13 +39,17 @@ def defaultclassifier(mode='medium'):
     from .normalise import chkfinite, interval_normalise
     from .featureselection import sda_filter, featureselector, linear_independent_features
     from .multi import one_against_one
-    assert mode in ('slow','medium','fast'), "milk.supervised.defaultclassifier: mode must be one of 'fast','slow','medium'."
+    assert mode in ('really-slow', 'slow', 'medium', 'fast'), \
+        "milk.supervised.defaultclassifier: mode must be one of 'fast','slow','medium'."
     if mode == 'fast':
         c_range = np.arange(-2,4)
         sigma_range = np.arange(-2,3)
     elif mode == 'medium':
         c_range = np.arange(-2,4)
         sigma_range = np.arange(-4,4)
+    elif mode == 'really-slow':
+        c_range = np.arange(-4,10)
+        sigma_range = np.arange(-7,7)
     else: # mode == 'slow'
         c_range = np.arange(-9,5)
         sigma_range = np.arange(-7,4)
