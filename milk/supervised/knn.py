@@ -23,6 +23,7 @@ from __future__ import division
 from collections import defaultdict
 import numpy as np
 
+
 class kNN(object):
     '''
     k-Nearest Neighbour Classifier
@@ -35,18 +36,24 @@ class kNN(object):
     -----------
         * k: the k to use
     '''
-    def __init__(self, k=1,):
+
+
+    def __init__(self, k=1):
         self.k = k
 
     def train(self, features, labels, copy_features=False):
         features = np.asanyarray(features)
         labels = np.asanyarray(labels)
         if copy_features:
-            self.features = features.copy()
-            self.labels = labels.copy()
-        else:
-            self.features = features
-            self.labels = labels
+            features = features.copy()
+            labels = labels.copy()
+        return kNN_model(self.k, features, labels)
+
+class kNN_model(object):
+    def __init__(self, k, features, labels):
+        self.k = k
+        self.features = features
+        self.labels = labels
 
     def apply(self,features):
         diff2 = ( (self.features - features)**2 ).sum(1)
@@ -57,5 +64,6 @@ class kNN(object):
             votes[L] += 1
         v,L = max( (v,L) for L,v in votes.items() )
         return L
+
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:

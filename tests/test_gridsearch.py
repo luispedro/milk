@@ -11,8 +11,8 @@ def test_gridsearch():
             params={'C':[.01,.1,1.,10.],
                     'kernel':[milk.supervised.svm.rbf_kernel(0.1),milk.supervised.svm.rbf_kernel(1.)]
             })
-    G.train(features,labels)
-    reslabels = [G.apply(f) for f in features]
+    model = G.train(features,labels)
+    reslabels = [model.apply(f) for f in features]
     assert len(reslabels) == len(features)
 test_gridsearch.slow = True
 

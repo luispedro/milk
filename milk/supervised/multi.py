@@ -51,30 +51,33 @@ class one_against_rest(object):
     '''
 
     def __init__(self,base):
-        self.classifiers = None
         self.base = base
         self.is_multi_class = True
-        self.trained = False
         self.options = {}
 
     def set_option(self, k, v):
         self.options[k] = v
 
     def train(self,features,labels):
-        labels, self.names = normaliselabels(labels)
-        self.nclasses = labels.max() + 1
-        self.classifiers = []
-        for i in xrange(self.nclasses):
+        labels, names = normaliselabels(labels)
+        nclasses = labels.max() + 1
+        models  = []
+        for i in xrange(nclasses):
             s = self.base()
             for k,v in self.options.iteritems():
                 s.set_option(k, v)
-            s.train(features, labels == i)
-            self.classifiers.append(s)
-        self.trained = True
+            model = s.train(features, labels == i)
+            models.append(model)
+        return one_against_rest_model(models, names)
 
-    def apply(self,feats):
-        assert self.trained
-        vals = np.array([c.apply(feats) for c in self.classifiers])
+class one_against_rest_model(object):
+    def __init__(self, models, names):
+        self.models = models
+        self.nclasses = len(self.models)
+        self.names = names
+
+    def apply(self, feats):
+        vals = np.array([c.apply(feats) for c in self.models])
         idxs, = np.where(vals == 1)
         if len(idxs) == 1:
             label = idxs[0]
@@ -83,6 +86,7 @@ class one_against_rest(object):
         else:
             label = random.choice(idxs)
         return self.names[label]
+
 
 class one_against_one(object):
     '''
@@ -110,12 +114,12 @@ class one_against_one(object):
     one_against_rest
     '''
 
+
     def __init__(self, base):
-        self.classifiers = None
         self.base = base
         self.is_multi_class = True
-        self.trained = False
         self.options = {}
+
 
     def set_option(self, k, v):
         self.options[k] = v
@@ -124,20 +128,26 @@ class one_against_one(object):
         '''
         one_against_one.train(objs,labels)
         '''
-        labels, self.names = normaliselabels(labels)
-        self.nclasses = labels.max() + 1
-        self.classifiers = [ [None for i in xrange(self.nclasses)] for j in xrange(self.nclasses)]
-        for i in xrange(self.nclasses):
-            for j in xrange(i+1,self.nclasses):
+        labels, names = normaliselabels(labels)
+        nclasses = labels.max() + 1
+        models = [ [None for i in xrange(nclasses)] for j in xrange(nclasses)]
+        for i in xrange(nclasses):
+            for j in xrange(i+1, nclasses):
                 s = self.base()
                 for k,v in self.options.iteritems():
                     s.set_option(k, v)
                 idxs = (labels == i) | (labels == j)
                 assert idxs.sum() > 0, 'milk.multi.one_against_one: Pair-wise classifier has no data'
-                # Fixme: here I could add a Null classifier or something
-                s.train(features[idxs],labels[idxs]==i)
-                self.classifiers[i][j] = s
-        self.trained = True
+                # Fixme: here I could add a Null model or something
+                model = s.train(features[idxs],labels[idxs]==i)
+                models[i][j] = model
+        return one_against_one_model(models, names)
+
+class one_against_one_model(object):
+    def __init__(self, models, names):
+        self.models = models
+        self.names = names
+        self.nclasses = len(models)
 
     def apply(self,feats):
         '''
@@ -145,12 +155,11 @@ class one_against_one(object):
 
         Classify one single object.
         '''
-        assert self.trained
         nc = self.nclasses
         votes = np.zeros(nc)
         for i in xrange(nc):
             for j in xrange(i+1,nc):
-                c = self.classifiers[i][j].apply(feats)
+                c = self.models[i][j].apply(feats)
                 if c:
                     votes[i] += 1
                 else:

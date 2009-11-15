@@ -162,6 +162,17 @@ class precomputed_kernel(object):
     def __call__(self, x0, x1):
         return kmatrix[x0,x1]
 
+class svm_raw_model(object):
+    def __init__(self, svs, Y, Yw, b, C, kernel):
+        self.svs = svs
+        self.Y = Y
+        self.Yw = Yw
+        self.b = b
+        self.C = C
+        self.kernel = kernel
+
+    def apply(self,x):
+        return _svm_apply((self.svs,self.Y,self.Yw,self.b,self.C,self.kernel), x, filtered=True)
 class svm_raw(object):
     '''
     svm_raw: classifier
@@ -185,16 +196,16 @@ class svm_raw(object):
         self.kernel = kernel
         self.eps = eps
         self.tol = tol
-        self.trained = False
         self.algorithm = 'libsvm'
+
 
     def train(self,features,labels):
         assert self.kernel is not None, 'milk.supervised.svm_raw.train: kernel not set!'
         assert self.algorithm in ('libsvm','smo'), 'milk.supervised.svm_raw: unknown algorithm (%s)' % self.algorithm
-        self.Y,_ = normaliselabels(labels)
-        assert numpy.all( (self.Y == 0) | (self.Y  == 1) ), 'milk.supervised.svm_raw can only handle binary problems'
-        self.Y *= 2
-        self.Y -= 1
+        Y,_ = normaliselabels(labels)
+        assert numpy.all( (Y == 0) | (Y  == 1) ), 'milk.supervised.svm_raw can only handle binary problems'
+        Y *= 2
+        Y -= 1
         kernel = self.kernel
         try:
             kernel = (self.kernel.kernel_nr_, self.kernel.kernel_arg_)
@@ -202,15 +213,15 @@ class svm_raw(object):
         except AttributeError:
             pass
         if self.algorithm == 'smo':
-            alphas,self.b = svm_learn_smo(features,self.Y,kernel,self.C,self.eps,self.tol)
+            alphas,b = svm_learn_smo(features,Y,kernel,self.C,self.eps,self.tol)
         else:
-            alphas,self.b = svm_learn_libsvm(features,self.Y,kernel,self.C,self.eps,self.tol)
-        svs = (alphas != 0)
-        self.svs = features[svs]
-        self.w = alphas[svs]
-        self.Y = self.Y[svs]
-        self.Yw = self.w * self.Y
-        self.trained = True
+            alphas,b = svm_learn_libsvm(features,Y,kernel,self.C,self.eps,self.tol)
+        svsi = (alphas != 0)
+        svs = features[svsi]
+        w = alphas[svsi]
+        Y = Y[svsi]
+        Yw = w * Y
+        return svm_raw_model(svs, Y, Yw, b, self.C, self.kernel)
     
     def get_params(self):
         return self.C, self.eps,self.tol
@@ -221,9 +232,6 @@ class svm_raw(object):
     def set_option(self, optname, value):
         setattr(self, optname, value)
 
-    def apply(self,x):
-        assert self.trained
-        return _svm_apply((self.svs,self.Y,self.Yw,self.b,self.C,self.kernel), x, filtered=True)
 
 
 def learn_sigmoid_constants(F,Y,
@@ -330,24 +338,30 @@ def learn_sigmoid_constants(F,Y,
             break
     return A,B
 
-class svm_binary(object):
-    def __init__(self):
-        pass
-
-    def train(self,features,labels):
-        assert len(labels) >= 2, 'Cannot train from a single example'
-        c0 = labels[0]
-        i = 1
-        while labels[i] == c0:
-            i += 1
-            if i == len(labels):
-                i -= 1
-                break
-        c1 = labels[i]
-        self.classes = [c0,c1]
-
+class svm_binary_model(object):
+    def __init__(self, classes):
+        self.classes = classes
     def apply(self,f):
         return self.classes[f >= 0.]
+class svm_binary(object):
+
+    def train(self, features, labels):
+        assert len(labels) >= 2, 'Cannot train from a single example'
+        labelset = set(labels)
+        assert len(labelset) == 2, 'milk.supervised.svm.svm_binary.train: Can only handle two class problems'
+        c0,c1 = labelset
+        if c0 != labels[0]:
+            c0,c1 = c1, c0
+        return svm_binary_model( (c0,c1) )
+
+
+class svm_sigmoidal_correction_model(object):
+    def __init__(self, A, B):
+        self.A = A
+        self.B = B
+
+    def apply(self,features):
+        return 1./(1.+numpy.exp(features*self.A+self.B))
 
 class svm_sigmoidal_correction(object):
     '''
@@ -360,7 +374,8 @@ class svm_sigmoidal_correction(object):
         self.max_iters = None
     
     def train(self,features,labels):
-        self.A,self.B = learn_sigmoid_constants(features,labels,self.max_iters)
+        A,B = learn_sigmoid_constants(features,labels,self.max_iters)
+        return svm_sigmoidal_correction_model(A, B)
 
     def get_params(self):
         return self.max_iters
@@ -368,8 +383,6 @@ class svm_sigmoidal_correction(object):
     def set_params(self,params):
         self.max_iters = params
 
-    def apply(self,features):
-        return 1./(1.+numpy.exp(features*self.A+self.B))
 
 def sigma_value_fisher(features,labels):
     '''
@@ -459,17 +472,13 @@ class fisher_tuned_rbf_svm(object):
     def __init__(self, sigmas, base):
         self.sigmas = sigmas
         self.base = base
-        self.trained = False
 
     def train(self, features, labels):
         f = sigma_value_fisher(features, labels)
         fs = [f(s) for s in self.sigmas]
         self.sigma = self.sigmas[np.argmin(fs)]
         self.base.set_option('kernel',rbf_kernel(self.sigma))
-        self.base.train(features,labels)
-        self.trained = True
+        return self.base.train(features,labels)
 
-    def apply(self,features):
-        return self.base.apply(features)
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:

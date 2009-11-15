@@ -47,19 +47,32 @@ def normaliselabels(labels):
     return numpy.array(normalised),names
 
 
+class ctransforms_model(object):
+    def __init__(self, models):
+        self.models = models
+    def apply(self,features):
+        for T in self.models:
+            features = T.apply(features)
+        return features
+
 class ctransforms(object):
+    '''
+    ctransforms(c0, c1, c2, ...)
+
+    Concatenate transforms.
+    '''
     def __init__(self,*args):
         self.transforms = args
 
-    def train(self,features,labels):
-        for T in self.transforms:
-            T.train(features,labels) 
-            features = numpy.array([T.apply(f) for f in features])
 
-    def apply(self,features):
+    def train(self,features,labels):
+        models = []
         for T in self.transforms:
-            features = T.apply(features)
-        return features
+            model = T.train(features,labels)
+            features = numpy.array([model.apply(f) for f in features])
+            models.append(model)
+        return ctransforms_model(models)
+
 
     def set_option(self, opt, val):
         idx, opt = opt

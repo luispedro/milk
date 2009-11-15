@@ -126,13 +126,13 @@ def test_platt_correction_class():
     L=numpy.ones(10)
     F[:5] *= -1
     L[:5] *= 0
-    corrector=svm_sigmoidal_correction()
-    A,B=learn_sigmoid_constants(F,L)
-    corrector.train(F,L)
-    assert corrector.A == A
-    assert corrector.B == B
-    assert corrector.apply(10) > .99
-    assert corrector.apply(-10) < .01
+    corrector = svm_sigmoidal_correction()
+    A,B = learn_sigmoid_constants(F,L)
+    model = corrector.train(F,L)
+    assert model.A == A
+    assert model.B == B
+    assert model.apply(10) > .99
+    assert model.apply(-10) < .01
 
 def test_perfect():
     data = numpy.zeros((10,2))
@@ -140,8 +140,8 @@ def test_perfect():
     labels = numpy.zeros(10)
     labels[5:] = 1
     classifier=milk.supervised.svm.svm_raw(kernel=milk.supervised.svm.rbf_kernel(1),C=4)
-    classifier.train(data,labels)
-    assert numpy.all( (numpy.array([classifier.apply(data[i]) for i in xrange(10)]) > 0) == labels )
+    model = classifier.train(data,labels)
+    assert numpy.all( (numpy.array([model.apply(data[i]) for i in xrange(10)]) > 0) == labels )
 
 def test_smart_rbf():
     import milksets.wine
@@ -149,12 +149,12 @@ def test_smart_rbf():
     labels = (labels == 1)
     kernel = milk.supervised.svm.rbf_kernel(2.**-4)
     C = milk.supervised.svm.svm_raw(C=2.,kernel=kernel)
-    C.train(features,labels)
-    smartkernel = [C.apply(f) for f in features]
+    model = C.train(features,labels)
+    smartkernel = [model.apply(f) for f in features]
     del kernel.kernel_nr_
     del kernel.kernel_arg_
     C = milk.supervised.svm.svm_raw(C=2.,kernel=kernel)
-    C.train(features,labels)
-    dumbkernel = [C.apply(f) for f in features]
+    model = C.train(features,labels)
+    dumbkernel = [model.apply(f) for f in features]
     smartkernel == dumbkernel
     assert smartkernel == dumbkernel

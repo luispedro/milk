@@ -46,40 +46,38 @@ def zscore(features):
     sigma[sigma == 0] = 1
     return (features - mu) / sigma
 
-class subtract_divide(object):
-    def __init__(self,features=None):
-        if features:
-            self.train(features)
+class subtract_divide_model(object):
+    def __init__(self, shift, factor):
+        factor[factor == 0] = 1 # This makes the division a null op.
+
+        self.shift = shift
+        self.factor = factor
+
     def apply(self, features):
         return (features - self.shift)/self.factor
 
-class zscore_normalise(subtract_divide):
+class zscore_normalise(object):
     '''
     Normalise to z-scores
 
     A preprocessor that normalises features to z scores.
     '''
-    def __init__(self,features=None):
-        subtract_divide.__init__(self,features)
 
     def train(self,features,labels):
-        self.shift = features.mean(0)
-        self.factor = _std(features,0)
-        self.factor[self.factor== 0.] = 1 # This makes the division a null op.
+        shift = features.mean(0)
+        factor = _std(features,0)
+        return subtract_divide_model(shift, factor)
 
-class interval_normalise(subtract_divide):
+class interval_normalise(object):
     '''
     Linearly scale to the interval [-1,1] (per libsvm recommendation)
 
     '''
-    def __init__(self,features=None):
-        subtract_divide.__init__(self,features)
-
     def train(self,features,labels):
         D = features.ptp(0)
-        self.shift = features.mean(0) + D/2.
-        self.factor = D/2.
-        self.factor[self.factor == 0] = 1 # This makes the division a null op.
+        shift = features.mean(0) + D/2.
+        factor = D/2.
+        return subtract_divide_model(shift, factor)
 
 
 def sample_to_2min(labels):
@@ -125,9 +123,9 @@ class chkfinite(object):
         pass
 
     def train(self,features,labels):
-        pass
+        return self
 
-    def apply(self,features):
+    def apply(self, features):
         nans = np.isnan(features) + np.isinf(features)
         if nans.any():
             features = features.copy()

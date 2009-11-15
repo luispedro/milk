@@ -96,7 +96,7 @@ def nfoldcrossvalidation(features,labels,nfolds=None,classifier=None, return_pre
         * nfolds: Nr of folds.
         * return_predictions: whether to return predictions
 
-    classifier should implement the train() and apply() methods
+    classifier should implement the train() method to return a model (something with an apply() method)
     '''
     assert len(features) == len(labels), 'milk.measures.nfoldcrossvalidation: len(features) should match len(labels)'
     if classifier is None:
@@ -109,8 +109,8 @@ def nfoldcrossvalidation(features,labels,nfolds=None,classifier=None, return_pre
     nclasses = labels.max() + 1
     cmatrix = np.zeros((nclasses,nclasses))
     for trainingset,testingset in foldgenerator(labels, nfolds):
-        classifier.train(features[trainingset], labels[trainingset])
-        prediction = np.array([classifier.apply(f) for f in features[testingset]])
+        model = classifier.train(features[trainingset], labels[trainingset])
+        prediction = np.array([model.apply(f) for f in features[testingset]])
         predictions[testingset] = prediction.astype(predictions.dtype)
         for p, r in zip(prediction,labels[testingset]):
             cmatrix[r,p] += 1

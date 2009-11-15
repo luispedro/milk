@@ -73,9 +73,7 @@ class gridsearch(object):
                 self.best = assignement
                 best_val = cur
         _set_assignment(self.base, self.best)
-        self.base.train(features, labels)
+        return self.base.train(features, labels)
 
-    def apply(self,features):
-        return self.base.apply(features)
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:

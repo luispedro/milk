@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#s -*- coding: utf-8 -*-
 # Copyright (C) 2008  Murphy Lab
 # Carnegie Mellon University
 # 
@@ -34,6 +34,7 @@ except:
 
 __all__=['libsvmClassifier']
 class libsvmClassifier(object):
+
     def __init__(self,probability = False):
         classifier.__init__(self)
         if _svm is None:
@@ -45,8 +46,12 @@ class libsvmClassifier(object):
         setattr(self.param,optname,value)
 
     def train(self,features,labels):
-        problem=_svm.svm_problem(labels,features)
-        self.model=_svm.svm_model(problem,self.param)
+        problem = _svm.svm_problem(labels,features)
+        return libsvmClassifier_model(_svm.svm_model(problem,self.param))
+
+class libsvmClassifier_model(object):
+    def __init__(self, model):
+        self.model = model
 
     def apply(self,feats):
         if self.output_probability:

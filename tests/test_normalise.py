@@ -30,7 +30,7 @@ def test_interval_normalise():
     numpy.random.seed(1234)
     features=numpy.random.rand(20,100)
     L=numpy.zeros(100)
-    I.train(features,L)
+    I = I.train(features,L)
     assert numpy.all(numpy.abs( ( I.apply(features).max(0)-I.apply(features).min(0) ) - 2) < 1e-4)
 
 def test_zscore_normalise():
@@ -38,7 +38,7 @@ def test_zscore_normalise():
     numpy.random.seed(1234)
     features=numpy.random.rand(20,100)
     L=numpy.zeros(100)
-    I.train(features,L)
+    I = I.train(features,L)
     assert numpy.all( I.apply(features).mean(0)**2 < 1e-7 )
     assert numpy.all( I.apply(features).std(0) - 1 < 1e-3 )
 

@@ -148,11 +148,15 @@ class tree_classifier(object):
         self.min_split = 4
         self.return_label = return_label
 
-    def train(self,features,labels):
-        self.tree  = build_tree(features, labels, self.criterion, self.min_split)
+    def train(self, features, labels):
+        return tree_model(build_tree(features, labels, self.criterion, self.min_split), self.return_label)
+
+class tree_model(object):
+    def __init__(self, tree, return_label):
+        self.tree = tree
+        self.return_label = return_label
 
     def apply(self,feats):
-        assert self.tree, 'tree_classifier.apply(): Tree not trained'
         value = apply_tree(self.tree, feats)
         if self.return_label:
             return value > .5

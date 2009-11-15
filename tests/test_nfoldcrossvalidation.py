@@ -33,7 +33,7 @@ class test_classifier(object):
         self.tested |= cur
         return np.zeros_like(features)
     def train(self,f,l):
-        pass
+        return self
     
 def test_nfoldcrossvalidation_testall():
     N = 121

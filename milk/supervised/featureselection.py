@@ -202,6 +202,19 @@ def linear_independent_features(featmatrix, labels = None):
             i += 1
     return np.array(independent)
 
+class filterfeatures(object):
+    '''
+    selector = filterfeatures(idxs)
+
+    Returns a transformer which selects the features given
+     by idxs
+    '''
+    def __init__(self, idxs):
+        self.idxs = idxs
+
+    def apply(self, features):
+        return features[self.idxs]
+
 class featureselector(object):
     '''
     selector = featureselector(function)
@@ -213,10 +226,8 @@ class featureselector(object):
         self.selector = selector
 
     def train(self, features, labels):
-        self.idxs = self.selector(features, labels)
-
-    def apply(self, features):
-        return features[self.idxs]
+        idxs = self.selector(features, labels)
+        return filterfeatures(idxs)
 
 def sda_filter():
     return featureselector(sda)

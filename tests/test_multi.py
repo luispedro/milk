@@ -15,14 +15,14 @@ base = lambda : ctransforms(milk.supervised.svm.svm_raw(C=2.,kernel=milk.supervi
 
 def test_one_against_rest():
     M = milk.supervised.multi.one_against_rest(base)
-    M.train(features[:100,:],labels[:100])
+    M = M.train(features[:100,:],labels[:100])
     tlabels = [M.apply(f) for f in features[100:]]
     for tl in tlabels:
         assert tl in (1,2,3)
 
 def test_one_against_one():
     M = milk.supervised.multi.one_against_one(base)
-    M.train(features[:100,:],labels[:100])
+    M = M.train(features[:100,:],labels[:100])
     tlabels = [M.apply(f) for f in features[100:]]
     for tl in tlabels:
         assert tl in (1,2,3)
@@ -36,7 +36,7 @@ def test_two_thirds():
     X[40:80] -= np.random.rand(40,4)
     X[40:80] -= np.random.rand(40,4)
     Y = np.repeat(np.arange(3), 40)
-    C.train(X,Y)
-    Y_ = np.array([C.apply(x) for x in X])
+    model = C.train(X,Y)
+    Y_ = np.array([model.apply(x) for x in X])
     assert (Y_ == Y).mean() * 3 > 2
 
