@@ -13,7 +13,7 @@ def test_defaultclassifier():
         assert model.apply(f) in (0,1)
 test_defaultclassifier.slow = True
 
-def tests_pickle():
+def test_pickle():
     np.random.seed(23232432)
     X = np.random.rand(100,10)
     labels = np.zeros(100)
