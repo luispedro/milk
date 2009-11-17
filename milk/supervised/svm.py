@@ -27,39 +27,18 @@ import numpy as np
 import random
 from . import _svm
 
-def _svm_size(SVM):
+def _svm_apply(SVM, q):
     '''
-    N = _svm_size(SVM)
-
-    Nr. of elements in the SVM
-
-    @internal: This is mostly used for testing. see the class svm_raw
-    '''
-    return len(SVM[2])
-
-def _svm_apply(SVM, q, filtered=False):
-    '''
-    f_i = _svm_apply(SVM, q, filtered=False)
+    f_i = _svm_apply(SVM, q)
    
     @internal: This is mostly used for testing
     '''
     X,Y,Alphas,b,C,kernel=SVM
-    try:
-        if kernel.kernel_nr_ != 0:
-            raise AttributeError
-        s = kernel.kernel_arg_
-        D2 = X-q
-        D2 **= 2
-        D2 = D2.sum(1)
-        D2 /= -s
-        Q = np.exp(D2)
-    except AttributeError:
-        Q = np.array([kernel(x, q) for x in X])
-    if filtered:
-        return np.dot(Q, Alphas) - b
-    else:
-        filter = (Alphas != 0)|(Alphas != C)
-        return (Y[filter]*Alphas[filter]*Q[filter]).sum() - b
+    N = len(X)
+    s = 0.0
+    for i in xrange(N):
+        s += Alphas[i] * Y[i] * kernel(q, X[i])
+    return s - b
 
 def svm_learn_smo(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
     '''
@@ -111,6 +90,21 @@ def svm_learn_libsvm(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
     return Alphas0, params[0]
 
 
+class preprocessed_rbf_kernel(object):
+    def __init__(self, X, sigma, beta):
+        self.X = X
+        self.Xsum = (X**2).sum(1)
+        self.sigma = sigma
+        self.beta = beta
+
+    def __call__(self, q):
+        minus_d2_sigma = np.dot(self.X,q)
+        minus_d2_sigma *= 2.
+        minus_d2_sigma -= self.Xsum
+        minus_d2_sigma -= np.dot(q,q)
+        minus_d2_sigma /= self.sigma
+        return self.beta * np.exp(minus_d2_sigma)
+
 class rbf_kernel(object):
 
     '''
@@ -119,7 +113,7 @@ class rbf_kernel(object):
     Radial Basis Function kernel
 
     Returns a kernel (ie, a function that implements)
-        beta * exp( - ||x1 - x2|| / sigma) 
+        beta * exp( - ||x1 - x2|| / sigma)
     '''
     def __init__(self, sigma, beta=1):
         self.sigma = sigma
@@ -133,6 +127,9 @@ class rbf_kernel(object):
         d2 = d2.sum()
         res = self.beta*np.exp(-d2/self.sigma)
         return res
+
+    def preprocess(self, X):
+        return preprocessed_rbf_kernel(X, self.sigma, self.beta)
 
 class polynomial_kernel(object):
     '''
@@ -163,16 +160,23 @@ class precomputed_kernel(object):
         return kmatrix[x0,x1]
 
 class svm_raw_model(object):
-    def __init__(self, svs, Y, Yw, b, C, kernel):
+    def __init__(self, svs, Yw, b, kernel):
         self.svs = svs
-        self.Y = Y
         self.Yw = Yw
         self.b = b
-        self.C = C
         self.kernel = kernel
+        try:
+            self.kernelfunction = self.kernel.preprocess(self.svs)
+        except AttributeError:
+            def _k(q):
+                return np.array([self.kernel(s, q) for s in self.svs])
+            self.kernelfunction = _k
 
-    def apply(self,x):
-        return _svm_apply((self.svs,self.Y,self.Yw,self.b,self.C,self.kernel), x, filtered=True)
+    def apply(self, q):
+        Q = self.kernelfunction(q)
+        return np.dot(Q, self.Yw) - self.b
+
+
 class svm_raw(object):
     '''
     svm_raw: classifier
@@ -221,7 +225,7 @@ class svm_raw(object):
         w = alphas[svsi]
         Y = Y[svsi]
         Yw = w * Y
-        return svm_raw_model(svs, Y, Yw, b, self.C, self.kernel)
+        return svm_raw_model(svs, Yw, b, self.kernel)
     
     def get_params(self):
         return self.C, self.eps,self.tol
@@ -438,7 +442,7 @@ def sigma_value_fisher(features,labels):
             double C2v = 0.;
             double C12v = 0.;
             for (int i = 0; i != N1; ++i)
-                for (int j = 0; j != N1; ++j) 
+                for (int j = 0; j != N1; ++j)
                     C1v += std::exp(C1(i,j)/sigma);
             for (int i = 0; i != N2; ++i)
                 for (int j = 0; j != N2; ++j)

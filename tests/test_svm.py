@@ -1,7 +1,9 @@
 import milk.supervised.svm
-from milk.supervised.svm import svm_learn_smo, svm_learn_libsvm, _svm_apply, _svm_size, learn_sigmoid_constants, svm_sigmoidal_correction
+from milk.supervised.svm import svm_learn_smo, svm_learn_libsvm, _svm_apply, learn_sigmoid_constants, svm_sigmoidal_correction
 import numpy
 import random
+import numpy as np
+import milk.supervised.svm
 eps=1e-3
 def approximate(a,b):
     a=numpy.asanyarray(a)
@@ -20,12 +22,12 @@ def assert_kkt(SVM):
             assert abs(Y[i]*_svm_apply(SVM,X[i])-1) <= eps
 
 def assert_all_correctly_classified(SVM,X,Y):
-    N=_svm_size(SVM)
+    N = len(X)
     for i in xrange(N):
         assert _svm_apply(SVM,X[i]) * Y[i] > 0
 
 def assert_more_than_50(SVM,X,Y):
-    N=_svm_size(SVM)
+    N = len(X)
     correct = 0
     for i in xrange(N):
         correct += (_svm_apply(SVM,X[i]) * Y[i] > 0)
@@ -156,5 +158,18 @@ def test_smart_rbf():
     C = milk.supervised.svm.svm_raw(C=2.,kernel=kernel)
     model = C.train(features,labels)
     dumbkernel = [model.apply(f) for f in features]
-    smartkernel == dumbkernel
     assert smartkernel == dumbkernel
+
+
+def test_preprockernel():
+    def test_preproc(kernel):
+        X = np.random.rand(200,20)
+        Qs = np.random.rand(100, 20)
+        prekernel = kernel.preprocess(X)
+        Qs = np.random.rand(10, 20)
+        for q in Qs:
+            preprocval = prekernel(q)
+            procval = np.array([kernel(q,x) for x in X])
+            assert np.allclose(preprocval, procval)
+    yield test_preproc, milk.supervised.svm.rbf_kernel(2.)
+
