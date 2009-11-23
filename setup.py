@@ -40,7 +40,7 @@ if 'tests' in packages: packages.remove('tests')
 setup(name = 'milk',
       version = '0.1-alpha-0',
       description = 'Machine Learning Toolkit',
-      author = 'Luís Pedro Coelho',
+      author = u'Luís Pedro Coelho',
       author_email = 'lpc@mcu.edu',
       url = 'http://luispedro.org/software/milk',
       packages = packages,
