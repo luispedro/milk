@@ -42,6 +42,7 @@ setup(name = 'milk',
       author = u'Luis Pedro Coelho',
       author_email = 'lpc@cmu.edu',
       url = 'http://luispedro.org/software/milk',
+      license = 'MIT',
       packages = packages,
       ext_modules = ext_modules,
       )
