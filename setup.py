@@ -34,11 +34,10 @@ from numpy.distutils.core import setup, Extension
 svm_ext = Extension('milk.supervised._svm', sources = ['milk/supervised/_svm.cpp'])
 ext_modules = [svm_ext]
 
-packages = setuptools.find_packages()
-if 'tests' in packages: packages.remove('tests')
+packages = filter(lambda p: p.startswith('milk'), setuptools.find_packages())
 
 setup(name = 'milk',
-      version = '0.1-alpha-0',
+      version = '0.1-alpha-1',
       description = 'Machine Learning Toolkit',
       author = u'Luís Pedro Coelho',
       author_email = 'lpc@cmu.edu',
