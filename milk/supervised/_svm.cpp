@@ -655,6 +655,10 @@ class LIBSVM_Solver {
 
 void LIBSVM_Solver::swap_index(int i, int j)
 {
+    // We *do not* swap in the cache or kernel
+    // Therefore *all acesses* to the cache or kernel
+    // must be of the form cache_.get_kernel(active_set[i])
+    // instead of cache_.get_kernel(i)!
 	std::swap(Y[i],Y[j]);
 	std::swap(G[i],G[j]);
 	std::swap(alpha_status[i],alpha_status[j]);
