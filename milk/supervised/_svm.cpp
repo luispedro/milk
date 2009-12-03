@@ -923,29 +923,19 @@ bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
 	double obj_diff_min = INF;
 
 	for(int t=0;t<active_size;t++) {
-		if(Y[t] == +1)	{
-			if(!is_upper_bound(t)) {
-				if(-G[t] >= Gmax) {
-					Gmax = -G[t];
-					Gmax_idx = t;
-				}
+		if( (Y[t] == +1 && !is_upper_bound(t)) ||
+            (Y[t] == -1 && !is_lower_bound(t)))	{
+            if (-Y[t]*G[t] >= Gmax) {
+                Gmax = -Y[t]*G[t];
+                Gmax_idx = t;
             }
-		} else {
-			if(!is_lower_bound(t)) {
-				if(G[t] >= Gmax) {
-					Gmax = G[t];
-					Gmax_idx = t;
-				}
-            }
-		}
+        }
     }
 
+    if (Gmax_idx == -1) return true;
 	const int i = Gmax_idx;
-	const double *Q_i = 0;
-    const double *QDiag = cache_.get_diag();
-	if(i != -1) { // NULL Q_i not accessed: Gmax=-INF if i=-1
-		Q_i = cache_.get_kline(active_set[i],N);
-    }
+	const double* Q_i = cache_.get_kline(active_set[i], N);
+    const double* QDiag = cache_.get_diag();
 
 	for(int j=0;j<active_size;++j) {
         if ((Y[j] == +1 && !is_lower_bound(j)) ||
@@ -970,8 +960,6 @@ bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
 	if(Gmax+Gmax2 < eps) return true;
 	out_i = Gmax_idx;
 	out_j = Gmin_idx;
-    assert(out_i != -1);
-    assert(out_j != -1);
 	return false;
 }
 
