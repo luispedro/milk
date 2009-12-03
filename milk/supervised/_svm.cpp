@@ -28,8 +28,11 @@
 #include <cmath>
 #include <vector>
 #include <debug/vector>
+#include <debug/list>
 //using __gnu_debug::vector;
 using std::vector;
+//using __gnu_debug::list;
+using std::list;
 extern "C" {
     #include <Python.h>
     #include <numpy/ndarrayobject.h>
@@ -93,8 +96,8 @@ class KernelCache {
         double ** cache_;
         double * dcache_;
         int cache_free_;
-        std::list<int> cache_lru;
-        vector<std::list<int>::iterator> cache_iter;
+        list<int> cache_lru;
+        vector<list<int>::iterator> cache_iter;
 };
 
 KernelCache::KernelCache(std::auto_ptr<KernelComputation> computation, int N, int cache_nr_floats):
@@ -114,7 +117,8 @@ KernelCache::~KernelCache() {
 }
 
 double* KernelCache::get_kline(int idx, int s) {
-    assert (s == N_);
+    if (s == -1) s = N_;
+    assert (s <= N_);
     if (!cache_[idx]) {
         if (!cache_free_) {
             int to_remove = cache_lru.front();
@@ -484,7 +488,7 @@ void SMO::optimise() {
     for (int i = 0; i != N; ++i) Alphas[i] = 0;
     int changed = 0;
     bool examineAll = true;
-    int iter = 0;
+    //int iter = 0;
     while (changed || examineAll) {
         //std::cout << "SMO::optimize loop: " << iter++ << "\n";
         check_for_interrupts();
@@ -509,9 +513,9 @@ void assert_type_contiguous(PyArrayObject* array,int type) {
 PyObject* eval_SMO(PyObject* self, PyObject* args) {
     try {
         PyObject* X;
-        PyArrayObject* Y; 
+        PyArrayObject* Y;
         PyArrayObject* Alphas0;
-        PyArrayObject* params; 
+        PyArrayObject* params;
         PyObject* kernel;
         int cache_size;
         if (!PyArg_ParseTuple(args, "OOOOOi", &X, &Y, &Alphas0, &params,&kernel,&cache_size)) {
@@ -944,47 +948,30 @@ bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
     }
 
 	for(int j=0;j<active_size;++j) {
-		if(Y[j]==+1) {
-            // TODO: Refactor this into a single loop
-			if (!is_lower_bound(j)) {
-				const double grad_diff=Gmax+G[j];
-				if (G[j] >= Gmax2) Gmax2 = G[j];
-				if (grad_diff > 0) {
-					double obj_diff; 
-					double quad_coef=Q_i[active_set[i]]+QDiag[active_set[j]]-2*Y[i]*Q_i[active_set[j]];
-					if (quad_coef > 0) obj_diff = -(grad_diff*grad_diff)/quad_coef;
-					else obj_diff = -(grad_diff*grad_diff)/tau;
+        if ((Y[j] == +1 && !is_lower_bound(j)) ||
+            (Y[j] == -1 && !is_upper_bound(j))) {
+                const double YGj = Y[j]*G[j];
+                const double grad_diff = Gmax+YGj;
+                if (YGj >= Gmax2) Gmax2 = YGj;
+                if (grad_diff > 0) {
+                    const double quad_coef = Q_i[active_set[i]] + QDiag[active_set[j]] - 2*Q_i[active_set[j]];
+                    const double obj_diff_factor = (quad_coef > 0) ? quad_coef : tau;
+                    const double obj_diff = -(grad_diff*grad_diff)/obj_diff_factor;
 
-					if (obj_diff <= obj_diff_min) {
-						Gmin_idx=j;
-						obj_diff_min = obj_diff;
-					}
-				}
-			}
-		} else {
-			if (!is_upper_bound(j)) {
-				const double grad_diff= Gmax-G[j];
-				if (-G[j] >= Gmax2) Gmax2 = -G[j];
-				if (grad_diff > 0) {
-					double obj_diff; 
-					double quad_coef=Q_i[active_set[i]]+QDiag[active_set[j]]+2*Y[i]*Q_i[active_set[j]];
-					if (quad_coef > 0) obj_diff = -(grad_diff*grad_diff)/quad_coef;
-					else obj_diff = -(grad_diff*grad_diff)/tau;
-
-					if (obj_diff <= obj_diff_min) {
-						Gmin_idx=j;
-						obj_diff_min = obj_diff;
-					}
-				}
-			}
-		}
+                    if (obj_diff <= obj_diff_min) {
+                        Gmin_idx = j;
+                        obj_diff_min = obj_diff;
+                    }
+                }
+        }
 	}
 
 
 	if(Gmax+Gmax2 < eps) return true;
-
 	out_i = Gmax_idx;
 	out_j = Gmin_idx;
+    assert(out_i != -1);
+    assert(out_j != -1);
 	return false;
 }
 
