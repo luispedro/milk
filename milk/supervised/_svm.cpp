@@ -956,7 +956,7 @@ bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
         }
 	}
 
-
+    if (Gmin_idx == -1) return true;
 	if(Gmax+Gmax2 < eps) return true;
 	out_i = Gmax_idx;
 	out_j = Gmin_idx;
