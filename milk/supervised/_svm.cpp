@@ -954,7 +954,7 @@ bool LIBSVM_Solver::select_working_set(int &out_i, int &out_j) {
                 const double grad_diff = Gmax+YGj;
                 if (YGj >= Gmax2) Gmax2 = YGj;
                 if (grad_diff > 0) {
-                    const double quad_coef = Q_i[active_set[i]] + QDiag[active_set[j]] - 2*Q_i[active_set[j]];
+                    const double quad_coef = Q_i[active_set[i]] + QDiag[active_set[j]] - 2*Y[j]*Y[i]*Q_i[active_set[j]];
                     const double obj_diff_factor = (quad_coef > 0) ? quad_coef : tau;
                     const double obj_diff = -(grad_diff*grad_diff)/obj_diff_factor;
 
