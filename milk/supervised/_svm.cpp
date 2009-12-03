@@ -19,7 +19,7 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-#include <assert.h>
+#include <cassert>
 #include <math.h>
 #include <iostream>
 #include <stdio.h>
@@ -458,7 +458,8 @@ bool SMO::examine_example(int i2) {
     const double E2 = get_error(i2);
     const double r2 = E2 * y2;
     //#print 'alpha2', alpha2, 'E2', E2, 'r2', r2
-    if ( (r2 < -tol) and (alpha2 < C) or (r2 > tol) and (alpha2 > 0)){
+    if ( ( (r2 < -tol) && (alpha2 < C) ) ||
+        ( (r2 > tol) && (alpha2 > 0) )){
         int best_i1 = -1;
         double bestE = -1;
 
@@ -494,7 +495,7 @@ void SMO::optimise() {
         check_for_interrupts();
         changed = 0;
         for (int i = 0; i != N; ++i) {
-            if (examineAll || Alphas[i] != 0 && Alphas[i] != C) {
+            if (examineAll || (Alphas[i] != 0 && Alphas[i] != C)) {
                 changed += examine_example(i);
             }
         }
