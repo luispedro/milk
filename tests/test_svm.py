@@ -51,7 +51,7 @@ def test_simplest():
     assert_kkt(SVM)
     assert_all_correctly_classified(SVM,X,Y)
 
-def test_more_complex_smo():
+def test_more_complex_kkt():
     X=numpy.array([
         [1,0],
         [2,1],
