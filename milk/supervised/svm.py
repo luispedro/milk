@@ -390,6 +390,9 @@ class svm_to_binary(object):
         binary_model = binary.train(features, labels)
         return ctransforms_model([model, binary_model])
 
+    def set_option(self, opt, value):
+        self.base.set_option(opt, value)
+
 
 
 class svm_sigmoidal_correction_model(object):
