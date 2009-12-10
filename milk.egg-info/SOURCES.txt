@@ -7,7 +7,6 @@ milk.egg-info/dependency_links.txt
 milk.egg-info/top_level.txt
 milk/active/__init__.py
 milk/active/eimpact.py
-milk/active/roymccallum.py
 milk/active/uncertainty.py
 milk/measures/__init__.py
 milk/measures/measures.py
@@ -23,6 +22,7 @@ milk/supervised/libsvmclassifier.py
 milk/supervised/multi.py
 milk/supervised/normalise.py
 milk/supervised/parzen.py
+milk/supervised/set2binary_array.py
 milk/supervised/setup.py
 milk/supervised/svm.py
 milk/supervised/tree.py
