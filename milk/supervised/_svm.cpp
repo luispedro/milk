@@ -273,6 +273,48 @@ double RBFKernel::do_kernel(int i1, int i2) const {
     return res;
 }
 
+class DotKernel : public KernelComputation { 
+    public:
+        explicit DotKernel(PyArrayObject* X);
+        ~DotKernel();
+    protected:
+        virtual double do_kernel(int i1, int i2) const;
+    private:
+        PyArrayObject* X_;
+        const int N_;
+        const int N1_;
+};
+
+DotKernel::DotKernel(PyArrayObject* X):
+    X_(reinterpret_cast<PyArrayObject*>(X)),
+    N_(PyArray_DIM(X,0)),
+    N1_(PyArray_DIM(X,1))
+    {
+        if (!PyArray_Check(X)) {
+            throw SMO_Exception("Dot Kernel used, but not with numpy array.");
+        }
+        if (!PyArray_ISCARRAY(X)) {
+            throw SMO_Exception("Dot Kernel used but not with CARRAY.");
+        }
+        Py_INCREF(X);
+    }
+
+DotKernel::~DotKernel() {
+    Py_DECREF(X_);
+}
+
+double DotKernel::do_kernel(int i1, int i2) const {
+    assert(i1 < N_);
+    assert(i2 < N_);
+    const double* data1 = static_cast<const double*>(PyArray_GETPTR1(X_,i1));
+    const double* data2 = static_cast<const double*>(PyArray_GETPTR1(X_,i2));
+    double dotsum = 0.;
+    for (int i = 0; i != N1_; ++i) {
+        dotsum += data1[i] * data2[i];
+    }
+    return dotsum;
+}
+
 class PrecomputedKernel : public KernelComputation { 
     public:
         PrecomputedKernel(PyArrayObject* X);
@@ -318,6 +360,8 @@ std::auto_ptr<KernelComputation> get_kernel(PyObject* X, PyObject* kernel) {
             return res_type(new RBFKernel(reinterpret_cast<PyArrayObject*>(X), arg_value));
         case 1:
             return res_type(new PrecomputedKernel(reinterpret_cast<PyArrayObject*>(X)));
+        case 2:
+            return res_type(new DotKernel(reinterpret_cast<PyArrayObject*>(X)));
         default:
             throw SMO_Exception("Unknown kernel type!");
     }

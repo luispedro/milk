@@ -168,6 +168,13 @@ class _call_kernel(object):
     def __call__(self, q):
         return np.array([self.kernel(s, q) for s in self.svs])
 
+class dot_kernel(object):
+    def __init__(self):
+        self.kernel_nr_ = 2
+        self.kernel_arg_ = 0.
+
+    def __call__(self, x0, x1):
+        return np.dot(x0, x1)
 
 class svm_raw_model(object):
     def __init__(self, svs, Yw, b, kernel):

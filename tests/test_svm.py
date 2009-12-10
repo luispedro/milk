@@ -173,7 +173,6 @@ def test_preprockernel():
             assert np.allclose(preprocval, procval)
     yield test_preproc, milk.supervised.svm.rbf_kernel(2.)
 
-
 def test_svm_to_binary():
     base = milk.supervised.svm.svm_raw(kernel=np.dot, C=4.)
     bin = milk.supervised.svm.svm_to_binary(base)
@@ -192,3 +191,21 @@ def test_svm_to_binary():
     assert np.all(modelbase.Yw == model.models[0].Yw)
     for x in X:
         assert model.apply(x) in set(Y)
+
+def test_fast_dotkernel():
+    base = milk.supervised.svm.svm_raw(kernel=np.dot, C=4.)
+    X = np.array([
+                [1,0],
+                [2,1],
+                [2,0],
+                [4,2],
+                [0,1],
+                [0,2],
+                [1,2],
+                [2,8]])
+    Y = np.array([1,1,1,1,-1,-1,-1,-1])
+    model = base.train(X,Y)
+    base = milk.supervised.svm.svm_raw(kernel = milk.supervised.svm.dot_kernel(), C = 4.)
+    model2 = base.train(X,Y)
+    assert np.all( model2.Yw == model.Yw )
+
