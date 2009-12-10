@@ -59,13 +59,11 @@ def defaultclassifier(mode='medium'):
             featureselector(linear_independent_features),
             sda_filter(),
             gridsearch(one_against_one(
-                            lambda: ctransforms( \
-                                svm.svm_raw(), \
-                                svm.svm_binary() \
-                                )),
+                            lambda: svm.svm_to_binary(svm.svm_raw())
+                            ),
                         params={
-                            (0,'C'): 2.**c_range,
-                            (0,'kernel'): [svm.rbf_kernel(2.**i) for i in sigma_range],
+                            'C': 2.**c_range,
+                            'kernel': [svm.rbf_kernel(2.**i) for i in sigma_range],
                         }
                         ))
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # Copyright (C) 2008, Luís Pedro Coelho <lpc@cmu.edu>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +21,7 @@
 #  THE SOFTWARE.
 
 from __future__ import division
-from .classifier import normaliselabels
+from .classifier import normaliselabels, ctransforms_model
 from collections import deque
 import numpy
 import numpy as np
@@ -365,6 +366,40 @@ class svm_binary(object):
             c0,c1 = c1, c0
         return svm_binary_model( (c0,c1) )
 
+class svm_to_binary(object):
+    '''
+    svm_to_binary(base_svm)
+
+    A simple wrapper so that
+
+        svm_to_binary(base_svm)
+
+    is a model that takes the base_svm classifier and then binarises its model output.
+
+    NOTE:  THis class does the same job as
+
+        ctransforms(base_svm, svm_binary())
+
+    but is slightly more efficient in that it recognises that svm_binary does not need any training.
+    '''
+    def __init__(self, svm_base):
+        '''
+        binclassifier = svm_to_binary(svm_base)
+
+        a classifier that binarises the output of svm_base.
+        '''
+        self.base = svm_base
+
+    def train(self, features, labels):
+        model = self.base.train(features, labels)
+        binary = svm_binary()
+        binary_model = binary.train(features, labels)
+        return ctransforms_model([model, binary_model])
+
+    def set_option(self, opt, value):
+        self.base.set_option(opt, value)
+
+
 
 class svm_sigmoidal_correction_model(object):
     def __init__(self, A, B):
@@ -491,5 +526,3 @@ class fisher_tuned_rbf_svm(object):
         self.base.set_option('kernel',rbf_kernel(self.sigma))
         return self.base.train(features,labels)
 
-
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:

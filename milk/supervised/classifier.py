@@ -67,9 +67,11 @@ class ctransforms(object):
 
     def train(self,features,labels):
         models = []
+        model = None
         for T in self.transforms:
+            if model is not None:
+                features = numpy.array([model.apply(f) for f in features])
             model = T.train(features,labels)
-            features = numpy.array([model.apply(f) for f in features])
             models.append(model)
         return ctransforms_model(models)
 

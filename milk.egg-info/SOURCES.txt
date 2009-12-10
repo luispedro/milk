@@ -4,6 +4,7 @@ milk/__init__.py
 milk.egg-info/PKG-INFO
 milk.egg-info/SOURCES.txt
 milk.egg-info/dependency_links.txt
+milk.egg-info/native_libs.txt
 milk.egg-info/top_level.txt
 milk/active/__init__.py
 milk/active/eimpact.py
@@ -38,4 +39,3 @@ milk/utils/__init__.py
 milk/utils/utils.py
 tests/data/__init__.py
 tests/data/german/__init__.py
-tests/data/german/german.py
