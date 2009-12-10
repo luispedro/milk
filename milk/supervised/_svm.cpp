@@ -309,7 +309,7 @@ double DotKernel::do_kernel(int i1, int i2) const {
     const double* data1 = static_cast<const double*>(PyArray_GETPTR1(X_,i1));
     const double* data2 = static_cast<const double*>(PyArray_GETPTR1(X_,i2));
     double dotsum = 0.;
-    for (int i = 0; i != N_; ++i) {
+    for (int i = 0; i != N1_; ++i) {
         dotsum += data1[i] * data2[i];
     }
     return dotsum;

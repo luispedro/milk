@@ -164,7 +164,7 @@ class dot_kernel(object):
         self.kernel_nr_ = 2
         self.kernel_arg_ = 0.
 
-    def __call__(self x0, x1):
+    def __call__(self, x0, x1):
         return np.dot(x0, x1)
 
 class svm_raw_model(object):
