@@ -159,6 +159,14 @@ class precomputed_kernel(object):
     def __call__(self, x0, x1):
         return kmatrix[x0,x1]
 
+class _call_kernel(object):
+    def __init__(self, svs):
+        self.svs = svs
+
+    def __call__(self, q):
+        return np.array([self.kernel(s, q) for s in self.svs])
+
+
 class svm_raw_model(object):
     def __init__(self, svs, Yw, b, kernel):
         self.svs = svs
@@ -168,9 +176,7 @@ class svm_raw_model(object):
         try:
             self.kernelfunction = self.kernel.preprocess(self.svs)
         except AttributeError:
-            def _k(q):
-                return np.array([self.kernel(s, q) for s in self.svs])
-            self.kernelfunction = _k
+            self.kernelfunction = _call_kernel(self.svs)
 
     def apply(self, q):
         Q = self.kernelfunction(q)
