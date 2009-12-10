@@ -8,8 +8,9 @@ Milk is a machine learning toolkit in Python. Its focus is on supervised classif
 
 Features
 --------
-- SVMs. Using the libsvm solver with a pythonesque wrapper around it
-- Stepwise Discriminant Analysis for feature selection
+- SVMs. Using the libsvm solver with a pythonesque wrapper around it.
+- Stepwise Discriminant Analysis for feature selection.
+- K-means using as little memory as possible.
 
 License: MIT
 Author: Luís Pedro Coelho (with code from LibSVM)
