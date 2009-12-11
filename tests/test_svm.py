@@ -4,6 +4,7 @@ import numpy
 import random
 import numpy as np
 import milk.supervised.svm
+import pickle
 eps=1e-3
 def approximate(a,b):
     a=numpy.asanyarray(a)
@@ -209,3 +210,27 @@ def test_fast_dotkernel():
     model2 = base.train(X,Y)
     assert np.all( model2.Yw == model.Yw )
 
+
+def count_common_elements(s0,s1):
+    return len(s0.intersection(s1))
+
+def test_not_ndarray_input():
+    elems = [
+        set([1,2,3]),
+        set([2,3]),
+        set([2,]),
+        set([0,1]),
+        set([0,2,3]),
+        set([1,2,3]),
+        set([2,3,45]),
+        set([1,2,100])]
+    has_one = [(1 in s) for s in elems]
+    has_one[0] = not has_one[0]
+    c = milk.supervised.svm.svm_raw(kernel = count_common_elements, C = 2.)
+    model = c.train(elems, has_one)
+    trainpreds = [model.apply(e) for e in elems]
+    assert np.mean((np.array(trainpreds)  > 0 ) == has_one ) > .5
+
+    model = pickle.loads(pickle.dumps(model))
+    trainpreds = [model.apply(e) for e in elems]
+    assert np.mean((np.array(trainpreds)  > 0 ) == has_one ) > .5
