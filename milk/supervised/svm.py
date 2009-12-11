@@ -222,6 +222,7 @@ class svm_raw(object):
         assert self.kernel is not None, 'milk.supervised.svm_raw.train: kernel not set!'
         assert self.algorithm in ('libsvm','smo'), 'milk.supervised.svm_raw: unknown algorithm (%s)' % self.algorithm
         assert not (np.isinf(self.C) or np.isnan(self.C)), 'milk.supervised.svm_raw: setting C to NaN or Inf causes problems.'
+        features = np.asanyarray(features)
         Y,_ = normaliselabels(labels)
         assert numpy.all( (Y == 0) | (Y  == 1) ), 'milk.supervised.svm_raw can only handle binary problems'
         Y *= 2
