@@ -188,18 +188,17 @@ def linear_independent_features(featmatrix, labels = None):
 
     indices = linear_independent_features(features)
     '''
-    independent = []
-    R = _rank(featmatrix)
-    i = 0
-    offset = 0
-    while i < featmatrix.shape[1]:
-        R_ = _rank(np.delete(featmatrix,i,1))
-        if R_ == R:
-            featmatrix = np.delete(featmatrix,i,1)
-            offset += 1
+    independent = [0,]
+    rank = 1
+    feat = [featmatrix[:,0]]
+    for i,col in enumerate(featmatrix.T):
+        feat.append(col)
+        nrank = _rank(np.array(feat))
+        if nrank == rank:
+            del feat[-1]
         else:
-            independent.append(i+offset)
-            i += 1
+            rank = nrank
+            independent.append(i)
     return np.array(independent)
 
 class filterfeatures(object):
