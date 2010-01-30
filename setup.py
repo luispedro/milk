@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +38,7 @@ ext_modules = [svm_ext]
 packages = filter(lambda p: p.startswith('milk'), setuptools.find_packages())
 
 setup(name = 'milk',
-      version = '0.1-alpha-1',
+      version = '0.1-beta-0',
       description = 'Machine Learning Toolkit',
       author = u'Luis Pedro Coelho',
       author_email = 'lpc@cmu.edu',
@@ -48,4 +49,3 @@ setup(name = 'milk',
       )
 
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
