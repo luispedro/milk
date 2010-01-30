@@ -2,7 +2,7 @@
 # Copyright (C) 2008  Murphy Lab
 # Carnegie Mellon University
 # 
-# Written by Luís Pedro Coelho <lpc@cmu.edu>
+# Written by Luis Pedro Coelho <lpc@cmu.edu>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
