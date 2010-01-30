@@ -41,15 +41,28 @@ def _set_assignment(obj,assignments):
 
 class gridsearch(object):
     '''
-    G = gridsearch(base_classifier, measure=accuracy, param1=[1,2,3], param2=['a','b','c'],...)
+    G = gridsearch(base, measure=accuracy, param1=[...], param2=[...], ...)
 
     Perform a grid search for the best parameter values.
 
+
+    When G.train() is called, then for each combination of p1 in param1, p2 in
+    param2, ... it performs::
+
+        base_classifier.param1 = p1
+        base_classifier.param2 = p2
+        ...
+        value[p1, p2,...] = measure(crossvaliation(base_classifier)
+
+    it then picks the highest set of parameters and re-learns a model on the
+    whole data.
+
+
     Parameters
     -----------
-
-        * measure: a function which takes a confusion matrix and outputs
-            a good-ness measure
+      base_classifier : classifier to use
+      measure : a function which takes a confusion matrix and outputs
+                 how good the matrix is
     '''
     def __init__(self, base, measure=None, params={}):
         self.params = params

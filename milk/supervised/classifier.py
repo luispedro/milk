@@ -30,8 +30,16 @@ def normaliselabels(labels):
 
     Normalises the labels to be integers from 0 through N-1
 
-    normalised is a numpy.array, while names is a dictionary mapping the indices
+    normalised is a numpy.array, while names is a list mapping the indices
     to the old names.
+
+    Parameters
+    ----------
+      labels : any iterable of labels
+    Returns
+    ------
+      normalised : a numpy ndarray of integers 0 .. N-1
+      names : list of label names
     '''
     labelnames={}
     normalised=[]
@@ -48,6 +56,15 @@ def normaliselabels(labels):
 
 
 class ctransforms_model(object):
+    '''
+    model = ctransforms_model(models)
+
+    A model that consists of a series of transformations.
+
+    See Also
+    --------
+      ctransforms
+    '''
     def __init__(self, models):
         self.models = models
     def apply(self,features):
@@ -57,7 +74,7 @@ class ctransforms_model(object):
 
 class ctransforms(object):
     '''
-    ctransforms(c0, c1, c2, ...)
+    ctransf = ctransforms(c0, c1, c2, ...)
 
     Concatenate transforms.
     '''
