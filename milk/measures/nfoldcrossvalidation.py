@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +28,9 @@ import numpy
 import numpy as np
 
 __all__ = ['foldgenerator', 'getfold', 'nfoldcrossvalidation']
-def foldgenerator(labels,nfolds=None):
+def foldgenerator(labels, nfolds=None):
     '''
-    for test,train in foldgenerator(labels,nfolds=None)
+    for train,test in foldgenerator(labels, nfolds=None)
         ...
 
     This generator breaks up the data into nfolds (default 10).
@@ -119,4 +120,3 @@ def nfoldcrossvalidation(features,labels,nfolds=None,classifier=None, return_pre
         return cmatrix, labelnames, predictions
     return cmatrix, labelnames
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
