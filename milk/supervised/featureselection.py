@@ -214,6 +214,9 @@ class filterfeatures(object):
     def apply(self, features):
         return features[self.idxs]
 
+    def __repr__(self):
+        return 'filterfeatures(%s)' % self.idxs
+
 class featureselector(object):
     '''
     selector = featureselector(function)
