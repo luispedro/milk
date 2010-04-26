@@ -6,7 +6,7 @@
 from __future__ import division
 from milk.supervised.classifier import normaliselabels
 try:
-    import libsvm
+    from libsvm import svm as libsvm
 except ImportError:
     try:
         import svm as libsvm
