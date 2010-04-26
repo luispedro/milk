@@ -31,6 +31,7 @@ On linux, the package is often called python-setuptools'''
     from sys import exit
     exit(1)
 from numpy.distutils.core import setup, Extension
+execfile('milk/milk_version.py')
 
 svm_ext = Extension('milk.supervised._svm', sources = ['milk/supervised/_svm.cpp'])
 ext_modules = [svm_ext]
@@ -64,7 +65,7 @@ Website: `http://luispedro.org/software/milk <http://luispedro.org/software/milk
 '''
 
 setup(name = 'milk',
-      version = '0.1-beta-0',
+      version = __version__,
       description = 'Machine Learning Toolkit',
       long_description = long_description,
       author = u'Luis Pedro Coelho',
