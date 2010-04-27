@@ -804,7 +804,7 @@ void LIBSVM_Solver::optimise()  {
 		const double old_alpha_j = Alphas[j];
 
 		if(Y[i]!=Y[j]) {
-			double quad_coef = Q_i[active_set[i]]+Q_j[active_set[j]]+2*Q_i[active_set[j]];
+			double quad_coef = Q_i[active_set[i]]+Q_j[active_set[j]]+2.0*Q_i[active_set[j]];
 			if (quad_coef <= 0) quad_coef = tau;
 			const double delta = (-G[i]-G[j])/quad_coef;
 			const double diff = Alphas[i] - Alphas[j];
