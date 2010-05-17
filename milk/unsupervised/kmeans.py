@@ -28,29 +28,6 @@ from .normalise import zscore
 
 __all__ = ['kmeans','repeated_kmeans']
 
-def _euclidean2(fmatrix, x, output=None):
-    if output is None:
-        output = np.zeros(N)
-    try:
-        from scipy import weave
-        from scipy.weave import converters
-        N,q = fmatrix.shape
-        output.fill(0)
-        code = '''
-        for (int i = 0; i != N; ++i) {
-            for (int j = 0; j != q; ++j) {
-                output(i) += (fmatrix(i,j) - x(j))*(fmatrix(i,j)-x(j));
-            }
-        }
-        '''
-        weave.inline(
-                code,
-                ['fmatrix','N','q','x','output'],
-                type_converters=converters.blitz)
-        return output
-    except:
-        output[:] = ((fmatrix - x)**2).sum(1)
-        return output
 
 def _mahalabonis2(fmatrix, x, icov, output=None):
     diff = (fmatrix-x)
@@ -88,11 +65,21 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
         * max_iter: Maximum number of iteration
     '''
     fmatrix = np.asanyarray(fmatrix)
-    if distance == 'euclidean':
-        distfunction=_euclidean2
-    elif distance == 'seuclidean':
+    if distance == 'seuclidean':
         fmatrix = zscore(fmatrix)
-        distfunction=_euclidean2
+        distance = 'euclidean'
+    if distance == 'euclidean':
+        base = np.array([np.dot(f,f) for f in fmatrix])
+        def distfunction(fmatrix, x, output):
+            N,q = fmatrix.shape
+            delta = np.dot(fmatrix,x)
+            delta *= -2
+            delta += np.dot(x,x)
+            delta += base
+            if output is not None:
+                output[:] = delta
+                return output
+            return delta
     elif distance == 'mahalanobis':
         icov = kwargs.get('icov',None)
         if icov is None:
@@ -115,7 +102,7 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
     for i in xrange(max_iter):
         assignments[:] = 0
         computed = False
-        if distfunction is _euclidean2:
+        if distance == 'euclidean2':
             try:
                 from scipy import weave
                 from scipy.weave import converters
@@ -125,7 +112,7 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
                     else:
                         type = 'double'
                     code = '''
-#line 129 "kmeans.py"
+#line 113 "kmeans.py"
                     for (int i = 0; i != N; ++i) {
                         %(type)s dist = std::numeric_limits<%(type)s>::infinity();
                         %(type)s* cd = centroids;
