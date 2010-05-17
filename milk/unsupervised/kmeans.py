@@ -35,7 +35,7 @@ def _euclidean2(fmatrix, x, output=None):
         from scipy import weave
         from scipy.weave import converters
         N,q = fmatrix.shape
-        output[:] = 0
+        output.fill(0)
         code = '''
         for (int i = 0; i != N; ++i) {
             for (int j = 0; j != q; ++j) {
