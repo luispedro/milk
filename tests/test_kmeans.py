@@ -15,5 +15,8 @@ def test_kmeans_centroids():
     for k in [2,3,5,10]:
         indices,centroids = milk.unsupervised.kmeans(features, k)
         for i in xrange(k):
-            assert np.allclose(centroids[i], features[indices == i].mean(0))
+            if np.any(indices == i):
+                assert np.allclose(centroids[i], features[indices == i].mean(0))
+
+
 

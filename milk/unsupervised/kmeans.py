@@ -29,17 +29,16 @@ from .normalise import zscore
 __all__ = ['kmeans','repeated_kmeans']
 
 
-def _mahalabonis2(fmatrix, x, icov, output=None):
-    diff = (fmatrix-x)
-    icov = (icov)
+def _mahalabonis2(fmatrix, x, icov):
+    diff = fmatrix-x
     # The expression below seems to be faster than looping over the elements and summing 
-    return dot(diff,dot(icov,diff.T)).diagonal()
+    return np.dot(diff, np.dot(icov, diff.T)).diagonal()
 
 def centroid_errors(fmatrix,assignments,centroids):
     errors = []
     for k in xrange(len(centroids)):
         errors.extend(fmatrix[assignments == k] - centroids[k])
-    return array(errors)
+    return np.array(errors)
 
 def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kwargs):
     if distance != 'euclidean':
@@ -70,26 +69,23 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
         distance = 'euclidean'
     if distance == 'euclidean':
         base = np.array([np.dot(f,f) for f in fmatrix])
-        def distfunction(fmatrix, x, output):
+        def distfunction(fmatrix, x):
             N,q = fmatrix.shape
             delta = np.dot(fmatrix,x)
             delta *= -2
             delta += np.dot(x,x)
             delta += base
-            if output is not None:
-                output[:] = delta
-                return output
             return delta
     elif distance == 'mahalanobis':
-        icov = kwargs.get('icov',None)
+        icov = kwargs.get('icov', None)
         if icov is None:
-            covmat = kwargs.get('covmat',None)
+            covmat = kwargs.get('covmat', None)
             if covmat is None:
                 covmat = cov(fmatrix.T)
             icov = linalg.inv(covmat)
-        distfunction = lambda f,x, out: _mahalabonis2(f, x, icov, output=out)
+        distfunction = (lambda f, x: _mahalabonis2(f, x, icov))
     else:
-        raise 'Distance argument unknown (%s)' % distance
+        raise ValueError('Distance argument unknown (%s)' % distance)
     R = get_pyrandom(R)
 
     N,q = fmatrix.shape
@@ -100,113 +96,21 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
     dists = np.zeros(N, fmatrix.dtype)
     ndists = np.zeros(N, fmatrix.dtype)
     for i in xrange(max_iter):
-        assignments[:] = 0
-        computed = False
-        if distance == 'euclidean2':
-            try:
-                from scipy import weave
-                from scipy.weave import converters
-                if fmatrix.flags['C_CONTIGUOUS'] and fmatrix.dtype in (np.float32,np.double):
-                    if fmatrix.dtype == np.float32:
-                        type = 'float'
-                    else:
-                        type = 'double'
-                    code = '''
-#line 113 "kmeans.py"
-                    for (int i = 0; i != N; ++i) {
-                        %(type)s dist = std::numeric_limits<%(type)s>::infinity();
-                        %(type)s* cd = centroids;
-                        for (int k = 0; k != K; ++k) {
-                            %(type)s ndist = 0.0;
-                            %(type)s* fd = fmatrix + i * q;
-                            for (int d = 0; d != q; ++d) {
-                                ndist += (*fd-*cd)*(*fd-*cd);
-                                ++fd;
-                                ++cd;
-                            }
-                            if (ndist < dist) {
-                                assignments[i] = k;
-                                dist = ndist;
-                            }
-                        }
-                    }
-                    ''' % { 'type' : type }
-                    weave.inline(code, ['fmatrix','N','q','K','assignments','centroids'], headers=['<limits>'])
-                else: 
-                    code = '''
-                    for (int i = 0; i != N; ++i) {
-                        float dist = std::numeric_limits<float>::infinity();
-                        for (int k = 0; k != K; ++k) {
-                            float ndist = 0.0;
-                            for (int d = 0; d != q; ++d) {
-                                ndist += (fmatrix(i,d) - centroids(k,d))*(fmatrix(i,d) - centroids(k,d));
-                            }
-                            if (ndist < dist) {
-                                assignments(i) = k;
-                                dist = ndist;
-                            }
-                        }
-                    }
-                    '''
-                    weave.inline(
-                        code,
-                        ['fmatrix','N','q','K','assignments','centroids'],
-                        type_converters=converters.blitz)
-                computed = True
-            except:
-                pass
-        if not computed:
-            dists[:] = np.inf
-            for ci,C in enumerate(centroids):
-                ndists = distfunction(fmatrix, C, output=ndists)
-                try:
-                    from scipy import weave
-                    from scipy.weave import converters
-                    code = '''
-                    for (int i = 0; i != N; ++i) {
-                        if (ndists(i) < dists(i)) {
-                            assignments(i) = ci;
-                            dists(i) = ndists(i);
-                        }
-                    }
-                    '''
-                    weave.inline(
-                        code,
-                        ['dists', 'ndists', 'N', 'assignments', 'ci'],
-                        type_converters=converters.blitz)
-                except Exception, e:
-                    print 'scipy.weave.inline failed. Resorting to Python code (Exception was "%s")' % e
-                    better = (ndists < dists)
-                    assignments[better] = ci
-                    dists[better] = ndists[better]
+        assignments.fill(0)
+        dists[:] = np.inf
+        for ci,C in enumerate(centroids):
+            ndists = distfunction(fmatrix, C)
+            better = (dists < ndists)
+            dists = np.minimum(dists, ndists)
+            assignments *= ~better
+            assignments += better*ci
         if np.all(assignments == prev):
             break
-        try:
-            from scipy import weave
-            from scipy.weave import converters
-            centroids[:] = 0
-            counts = np.zeros(K,np.uint32)
-            code = '''
-            for (int i = 0; i != N; ++i) {
-                int c = assignments(i);
-                ++counts(c);
-                for (int j = 0; j != q; ++j) {
-                    centroids(c,j) += fmatrix(i,j);
-                }
-            }
-            for (int i = 0; i != K; ++i) {
-                for (int j = 0; j != q; ++j) {
-                    centroids(i,j) /= counts(i);
-                }
-            }
-            '''
-            weave.inline(
-                    code,
-                    ['fmatrix','centroids','N','q','K','assignments','counts'],
-                    type_converters=converters.blitz)
-        except Exception, e:
-            print 'scipy.weave.inline failed. Resorting to Python code (Exception was "%s")' % e
-            centroids = array([fmatrix[assignments == C].mean(0) for C in xrange(K)])
+        for ci in xrange(K):
+            where = (assignments == ci)
+            mean = np.dot(fmatrix.T, where)
+            mean /= where.sum()
+            centroids[ci] = mean
         prev[:] = assignments
     return assignments, centroids
         
