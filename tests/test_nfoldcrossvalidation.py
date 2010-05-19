@@ -1,5 +1,5 @@
 import milk.measures.nfoldcrossvalidation
-from milk.measures.nfoldcrossvalidation import nfoldcrossvalidation
+from milk.measures.nfoldcrossvalidation import nfoldcrossvalidation, foldgenerator
 import tests.data.german.german
 import milk.supervised.tree
 import numpy as np
@@ -7,9 +7,9 @@ import numpy as np
 def test_foldgenerator():
     labels = np.array([1]*20+[2]*30+[3]*20)
     for nf in [None,2,3,5,10,15,20]:
-        assert np.array([test.copy() for _,test in milk.measures.nfoldcrossvalidation.foldgenerator(labels,nf)]).sum(0).max() == 1
-        assert np.array([test.copy() for _,test in milk.measures.nfoldcrossvalidation.foldgenerator(labels,nf)]).sum() == len(labels)
-        assert np.array([(test&train).sum() for train,test in milk.measures.nfoldcrossvalidation.foldgenerator(labels,nf)]).sum() == 0
+        assert np.array([test.copy() for _,test in foldgenerator(labels,nf)]).sum(0).max() == 1
+        assert np.array([test.copy() for _,test in foldgenerator(labels,nf)]).sum() == len(labels)
+        assert np.array([(test&train).sum() for train,test in foldgenerator(labels,nf)]).sum() == 0
 
 
 def test_nfoldcrossvalidation_simple():
@@ -63,3 +63,30 @@ def test_nfoldcrossvalidation_defaultclassifier():
     assert cmat.shape == (3,3)
     clabels.sort()
     assert np.all(clabels == [100,101,102])
+
+
+def test_foldgenerator_origins():
+    def test_origins(labels, origins):
+        for nf in (2,3,5,7):
+            assert np.array([test.copy() for _,test in foldgenerator(labels, nf, origins)]).sum(0).max() == 1
+            assert np.array([test.copy() for _,test in foldgenerator(labels, nf, origins)]).sum() == len(labels)
+            for Tr,Te in foldgenerator(labels, nf, origins):
+                assert not np.any(Tr&Te)
+                in_test = set(origins[Te])
+                in_train = set(origins[Tr])
+                assert len(in_train.intersection(in_test)) == 0
+            tested = np.zeros(len(labels))
+            for Tr,Te in foldgenerator(labels, nf, origins):
+                tested[Te] += 1
+            assert np.all(tested == 1)
+    labels = np.zeros(120, np.uint8)
+    labels[39:] += 1
+    labels[66:] += 1
+    origins = np.repeat(np.arange(40), 3)
+    yield test_origins, labels, origins
+    reorder = np.argsort(np.random.rand(len(labels)))
+
+    labels = labels[reorder]
+    origins = origins[reorder]
+    yield test_origins, labels, origins
+
