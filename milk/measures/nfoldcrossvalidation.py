@@ -71,9 +71,9 @@ def getfold(labels, fold, nfolds=None):
     trainingset,testingset = getfold(labels, fold, nfolds=None)
 
     '''
-    _nfolds = (10 if nfolds is None else nfolds)
-    assert fold < _nfolds, 'milk.getfold: Attempted to get fold %s out of %s' % (fold, nfolds)
-    for i,(t,s) in enumerate(foldgenerator(labels,nfolds)):
+    nfolds = (10 if nfolds is None else nfolds)
+    assert fold < nfolds, 'milk.getfold: Attempted to get fold %s out of %s' % (fold, nfolds)
+    for i,(t,s) in enumerate(foldgenerator(labels, nfolds)):
         if i == fold:
             return t,s
     assert False, 'milk.getfold: Attempted to get fold %s but the number of actual folds was too small' % fold
