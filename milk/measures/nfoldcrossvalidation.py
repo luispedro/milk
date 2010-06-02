@@ -141,24 +141,26 @@ def getfold(labels, fold, nfolds=None, origins=None, is_ordered=False):
             return t,s
     assert False, 'milk.getfold: Attempted to get fold %s but the number of actual folds was too small' % fold
 
-def nfoldcrossvalidation(features,labels,nfolds=None,classifier=None, return_predictions=False):
+def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins=None, return_predictions=False):
     '''
     Perform n-fold cross validation
 
-    cmatrix,labelnames = nfoldcrossvalidation(features, labels, nfolds=10, classifier=None, return_predictions=False)
-    cmatrix,labelnames,predictions = nfoldcrossvalidation(features, labels, nfolds=10, classifier=None, return_predictions=False)
+    cmatrix,labelnames = nfoldcrossvalidation(features, labels, nfolds=10, classifier={defaultclassifier()}, origins=None, return_predictions=False)
+    cmatrix,labelnames,predictions = nfoldcrossvalidation(features, labels, nfolds=10, classifier={defaultclassifier()}, origins=None, return_predictions=False)
 
     cmatrix will be a N x N matrix, where N is the number of classes
     cmatrix[i,j] will be the number of times that an element of class i was classified as class j
 
     labelnames[i] will correspond to the label name of class i
 
-    Arguments
-    ---------
-        * features: a feature matrix or list of feature vectors
-        * labels: an array of labels, where label[i] is the label corresponding to features[i]
-        * nfolds: Nr of folds.
-        * return_predictions: whether to return predictions
+    Parameters
+    ----------
+      features : a feature matrix or list of feature vectors
+      labels : an array of labels, where label[i] is the label corresponding to features[i]
+      nfolds : Nr of folds.
+      origins : Origin ID (see foldgenerator)
+      
+      return_predictions : whether to return predictions
 
     classifier should implement the train() method to return a model (something with an apply() method)
     '''
@@ -172,7 +174,7 @@ def nfoldcrossvalidation(features,labels,nfolds=None,classifier=None, return_pre
 
     nclasses = labels.max() + 1
     cmatrix = np.zeros((nclasses,nclasses))
-    for trainingset,testingset in foldgenerator(labels, nfolds):
+    for trainingset,testingset in foldgenerator(labels, nfolds, origins=origins):
         model = classifier.train(features[trainingset], labels[trainingset])
         prediction = np.array([model.apply(f) for f in features[testingset]])
         predictions[testingset] = prediction.astype(predictions.dtype)
