@@ -146,7 +146,7 @@ def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins
     Perform n-fold cross validation
 
     cmatrix,labelnames = nfoldcrossvalidation(features, labels, nfolds=10, classifier={defaultclassifier()}, origins=None, return_predictions=False)
-    cmatrix,labelnames,predictions = nfoldcrossvalidation(features, labels, nfolds=10, classifier={defaultclassifier()}, origins=None, return_predictions=False)
+    cmatrix,labelnames,predictions = nfoldcrossvalidation(features, labels, nfolds=10, classifier={defaultclassifier()}, origins=None, return_predictions=True)
 
     cmatrix will be a N x N matrix, where N is the number of classes
     cmatrix[i,j] will be the number of times that an element of class i was classified as class j
