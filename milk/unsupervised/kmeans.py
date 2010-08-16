@@ -21,8 +21,6 @@
 
 from __future__ import division
 import numpy as np
-import numpy
-from numpy import array, zeros, sqrt, inf, empty
 from ..utils import get_pyrandom
 from .normalise import zscore
 
@@ -68,14 +66,13 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
         fmatrix = zscore(fmatrix)
         distance = 'euclidean'
     if distance == 'euclidean':
-        base = np.array([np.dot(f,f) for f in fmatrix])
-        def distfunction(fmatrix, x):
-            N,q = fmatrix.shape
-            delta = np.dot(fmatrix,x)
-            delta *= -2
-            delta += np.dot(x,x)
-            delta += base
-            return delta
+        def distfunction(fmatrix, cs):
+            dists = np.dot(fmatrix, -2*cs.T)
+            dists += np.array([np.dot(c,c) for c in cs])
+            # For a distance, we'd need to add the fmatrix**2 components, but
+            # it doesn't matter because we are going to perform an argmin() on
+            # the result.
+            return dists
     elif distance == 'mahalanobis':
         icov = kwargs.get('icov', None)
         if icov is None:
@@ -83,37 +80,35 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
             if covmat is None:
                 covmat = cov(fmatrix.T)
             icov = linalg.inv(covmat)
-        distfunction = (lambda f, x: _mahalabonis2(f, x, icov))
+        def distfunction(fmatrix, cs):
+            return np.array([_mahalabonis2(fmatrix, c, icov) for c in cs])
     else:
         raise ValueError('Distance argument unknown (%s)' % distance)
     R = get_pyrandom(R)
 
-    N,q = fmatrix.shape
     centroids = np.array(R.sample(fmatrix,K), fmatrix.dtype)
-
-    prev = np.zeros(N,np.int32)
-    assignments = np.zeros(N,np.int32)
-    dists = np.zeros(N, fmatrix.dtype)
-    ndists = np.zeros(N, fmatrix.dtype)
+    prev = np.zeros(len(fmatrix), np.int32)
     for i in xrange(max_iter):
-        assignments.fill(0)
-        dists[:] = np.inf
-        for ci,C in enumerate(centroids):
-            ndists = distfunction(fmatrix, C)
-            better = (dists < ndists)
-            dists = np.minimum(dists, ndists)
-            assignments *= ~better
-            assignments += better*ci
+        dists = distfunction(fmatrix, centroids)
+        assignments = dists.argmin(1)
         if np.all(assignments == prev):
             break
+        empty = []
         for ci in xrange(K):
             where = (assignments == ci)
-            mean = np.dot(fmatrix.T, where)
-            mean /= where.sum()
-            centroids[ci] = mean
+            count = where.sum()
+            if count:
+                mean = np.dot(fmatrix.T, where)
+                mean /= count
+                centroids[ci] = mean
+            else:
+                empty.append(ci)
+        if empty:
+            centroids = np.delete(centroids, empty)
+            K = len(centroids)
         prev[:] = assignments
     return assignments, centroids
-        
+
 def repeated_kmeans(fmatrix,k,iterations,distance='euclidean',max_iter=1000,R=None,**kwargs):
     '''
     assignments,centroids = repeated_kmeans(fmatrix, k, repeats, distance='euclidean',max_iter=1000,**kwargs)
@@ -127,7 +122,7 @@ def repeated_kmeans(fmatrix,k,iterations,distance='euclidean',max_iter=1000,R=No
         distance = 'euclidean'
     if distance != 'euclidean':
         raise NotImplementedError, "repeated_kmeans is only implemented for 'euclidean' or 'seuclidean' distance"
-    best=+inf
+    best = np.inf
     for i in xrange(iterations):
         A,C = kmeans(fmatrix, k, distance, max_iter=max_iter, R=R,**kwargs)
         rss = residual_sum_squares(fmatrix,A,C,distance,**kwargs)
