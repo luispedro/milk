@@ -90,3 +90,14 @@ def test_foldgenerator_origins():
     origins = origins[reorder]
     yield test_origins, labels, origins
 
+
+def test_stringlabels():
+    np.random.seed(222)
+    D = np.random.rand(100,10)
+    D[:40] += np.random.rand(40,10)**2
+    labelnames = ['one'] * 40 + ['two'] * 60
+    cmat,Lo = nfoldcrossvalidation(D, labelnames)
+    assert Lo[0] in labelnames
+    assert Lo[1] in labelnames
+    assert Lo[0] != Lo[1] in labelnames
+
