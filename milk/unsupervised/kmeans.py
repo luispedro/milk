@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -45,13 +46,13 @@ def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kw
 
 def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
     '''
-    assignments, centroids = kmean(fmatrix, K, distance='euclidean', R=None, icov=None, covmat=None)
+    assignments, centroids = kmean(fmatrix, K, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None)
 
     K-Means Clustering
 
     Parameters
-    ==========
-        * distance can be one of:
+    ----------
+        distance: one of:
             - 'euclidean'   : euclidean distance (default)
             - 'seuclidean'  : standartised euclidean distance. This is equivalent to first normalising the features.
             - 'mahalanobis' : mahalanobis distance.
@@ -59,7 +60,11 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
                     + 'icov' (the inverse of the covariance matrix), 
                     + 'covmat' (the covariance matrix)
                 If neither is passed, then the function computes the covariance from the feature matrix
-        * max_iter: Maximum number of iteration
+        max_iter : Maximum number of iteration (default: 1000)
+    Returns
+    -------
+      assignments : An 1-D array of size `len(fmatrix)`
+      centroids : An array of `k'` centroids
     '''
     fmatrix = np.asanyarray(fmatrix)
     if distance == 'seuclidean':
@@ -115,7 +120,24 @@ def repeated_kmeans(fmatrix,k,iterations,distance='euclidean',max_iter=1000,R=No
 
     Runs kmeans repeats times and returns the best result as evaluated according to distance
 
-    @see kmeans
+    See Also
+    --------
+      `kmeans`
+
+    Parameters
+    ----------
+      fmatrix : feature matrix
+      k : nr of centroids
+      iterations : Nr of repetitions
+      distance : 'euclidean' (default) or 'seuclidean'
+      max_iter : Max nr of iterations per kmeans run
+      R : random source
+
+    Returns
+    -------
+      assignments : 1-D array of assignments
+      centroids : centroids
+    These are the same returns as `kmeans`
     '''
     if distance == 'seuclidean':
         fmatrix = zscore(fmatrix)
@@ -131,4 +153,3 @@ def repeated_kmeans(fmatrix,k,iterations,distance='euclidean',max_iter=1000,R=No
             best = rss
     return Ab,Cb
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
