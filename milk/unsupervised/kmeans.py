@@ -24,6 +24,7 @@ from __future__ import division
 import numpy as np
 from ..utils import get_pyrandom
 from .normalise import zscore
+import numpy as np
 
 __all__ = ['kmeans','repeated_kmeans']
 
@@ -130,16 +131,17 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
 
     centroids = np.array(R.sample(fmatrix,K), fmatrix.dtype)
     prev = np.zeros(len(fmatrix), np.int32)
+    bins = np.arange(K+1)
     for i in xrange(max_iter):
         dists = distfunction(fmatrix, centroids)
         assignments = dists.argmin(1)
         if np.all(assignments == prev):
             break
         empty = []
-        for ci in xrange(K):
-            where = (assignments == ci)
-            count = where.sum()
+        counts,_ = np.histogram(assignments, bins)
+        for ci,count in enumerate(counts):
             if count:
+                where = (assignments == ci)
                 mean = np.dot(fmatrix.T, where)
                 mean /= count
                 centroids[ci] = mean
@@ -148,6 +150,7 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
         if empty:
             centroids = np.delete(centroids, empty)
             K = len(centroids)
+            bins = np.arange(K+1)
         prev[:] = assignments
     return assignments, centroids
 
