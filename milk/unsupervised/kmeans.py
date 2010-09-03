@@ -30,19 +30,56 @@ __all__ = ['kmeans','repeated_kmeans']
 
 def _mahalabonis2(fmatrix, x, icov):
     diff = fmatrix-x
-    # The expression below seems to be faster than looping over the elements and summing 
+    # The expression below seems to be faster than looping over the elements and summing
     return np.dot(diff, np.dot(icov, diff.T)).diagonal()
 
-def centroid_errors(fmatrix,assignments,centroids):
+def centroid_errors(fmatrix, assignments, centroids):
+    '''
+    errors = centroid_errors(fmatrix, assignments, centroids)
+
+    Computes the following
+
+    for all i, j:
+        ci = assignments[i]
+        errors[i,j] = fmatrix[ci, j] - centroids[ci, j]
+
+    Parameters
+    ----------
+      fmatrix : feature matrix
+      assignments : Assignments array
+      centroids : centroids
+    Returns
+    -------
+      errors : Difference between fmatrix and corresponding centroid
+    '''
     errors = []
     for k in xrange(len(centroids)):
-        errors.extend(fmatrix[assignments == k] - centroids[k])
-    return np.array(errors)
+        errors.append(fmatrix[assignments == k] - centroids[k])
+    return np.concatenate(errors)
 
 def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kwargs):
+    '''
+    rss = residual_sum_squares(fmatrix, assignments, centroids, distance='euclidean', **kwargs)
+
+    Computes residual sum squares
+
+    Parameters
+    ----------
+      fmatrix : feature matrix
+      assignments : Assignments array
+      centroids : centroids
+    Returns
+    -------
+      rss : residual sum squares
+    '''
     if distance != 'euclidean':
         raise NotImplemented, "residual_sum_squares only implemented for 'euclidean' distance"
-    return (centroid_errors(fmatrix,assignments,centroids)**2).sum()
+    rss = 0.0
+    for k, c in enumerate(centroids):
+        diff = fmatrix[assignments == k] - c
+        diff = diff.ravel()
+        rss += np.dot(diff, diff)
+    return rss
 
 def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
     '''
@@ -57,7 +94,7 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
             - 'seuclidean'  : standartised euclidean distance. This is equivalent to first normalising the features.
             - 'mahalanobis' : mahalanobis distance.
                 This can make use of the following keyword arguments:
-                    + 'icov' (the inverse of the covariance matrix), 
+                    + 'icov' (the inverse of the covariance matrix),
                     + 'covmat' (the covariance matrix)
                 If neither is passed, then the function computes the covariance from the feature matrix
         max_iter : Maximum number of iteration (default: 1000)
