@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -84,10 +85,10 @@ def nr_parameters(fmatrix,k,model='one_variance'):
 
     raise ValueError, "nr_parameters: cannot handle model '%s'" % model
 
-def _compute(type, fmatrix, assignements, centroids, model='one_variance', covs=None):
+def _compute(type, fmatrix, assignments, centroids, model='one_variance', covs=None):
     N,q = fmatrix.shape
     k = len(centroids)
-    log_like = log_likelihood(fmatrix,assignements,centroids,model,covs)
+    log_like = log_likelihood(fmatrix, assignments, centroids, model, covs)
     n_param = nr_parameters(fmatrix,k,model)
     if type == 'BIC':
         return -2*log_like + n_param * log(N)
@@ -96,32 +97,57 @@ def _compute(type, fmatrix, assignements, centroids, model='one_variance', covs=
     else:
         assert False
 
-def BIC(fmatrix,assignements,centroids,model='one_variance',covs=None):
+def BIC(fmatrix, assignments, centroids, model='one_variance', covs=None):
     '''
-    B = BIC(fmatrix,assignements,centroids,model)
+    B = BIC(fmatrix, assignments, centroids, model='one_variance', covs={From Data})
 
     Compute Bayesian Information Criterion
 
-    model can be one of:
-        * 'one_variance': All features share the same variance parameter sigma^2
-        * 'full_covariance': Estimate a full covariance matrix or use covs[i] for centroid[i]
+    Parameters
+    ----------
+      fmatrix : feature matrix
+      assignments : Centroid assignments
+      centroids : Centroids
+      model : one of:
+                'one_variance': All features share the same variance parameter
+                    sigma^2. Default
+                'full_covariance': Estimate a full covariance matrix or use
+                    covs[i] for centroid[i]
+      covs : Covariance matrices
+    Returns
+    -------
+      B = BIC value
 
-    @see AIC
+    See Also
+    --------
+     `AIC`
     '''
-    return _compute('BIC', fmatrix, assignements, centroids, model, covs)
+    return _compute('BIC', fmatrix, assignments, centroids, model, covs)
 
-def AIC(fmatrix,assignements,centroids,model='one_variance',covs=None):
+def AIC(fmatrix,assignments,centroids,model='one_variance',covs=None):
     '''
-    A = AIC(fmatrix,assignements,centroids,model)
+    A = AIC(fmatrix,assignments,centroids,model)
 
     Compute Akaike Information Criterion
 
-    model can be one of:
-        * 'one_variance': All features share the same variance parameter sigma^2
-        * 'full_covariance': Estimate a full covariance matrix or use covs[i] for centroid[i]
+    Parameters
+    ----------
+      fmatrix : feature matrix
+      assignments : Centroid assignments
+      centroids : Centroids
+      model : one of:
+                'one_variance': All features share the same variance parameter
+                    sigma^2. Default
+                'full_covariance': Estimate a full covariance matrix or use
+                    covs[i] for centroid[i]
+      covs : Covariance matrices
+    Returns
+    -------
+      A = AIC value
 
-    @see BIC
+    See Also
+    --------
+     `BIC`
     '''
-    return _compute('AIC', fmatrix, assignements, centroids, model, covs)
+    return _compute('AIC', fmatrix, assignments, centroids, model, covs)
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
