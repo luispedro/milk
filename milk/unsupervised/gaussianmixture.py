@@ -75,6 +75,20 @@ def log_likelihood(fmatrix,assignments,centroids,model='one_variance',covs=None)
 
     
 def nr_parameters(fmatrix,k,model='one_variance'):
+    '''
+    nr_p = nr_parameters(fmatrix, k, model='one_variance')
+
+    Compute the number of parameters for a model of k clusters on
+
+    Parameters
+    ----------
+      fmatrix : feature matrix
+      k : nr of clusters
+      model : one of 'one_variance' (default), 'diagonal_covariance', or 'full_covariance'
+    Returns
+    -------
+      nr_p : Number of parameters
+    '''
     N,q = fmatrix.shape
     if model == 'one_variance':
         return k*q+1
@@ -83,7 +97,7 @@ def nr_parameters(fmatrix,k,model='one_variance'):
     elif model == 'full_covariance':
         return k*+q*q
 
-    raise ValueError, "nr_parameters: cannot handle model '%s'" % model
+    raise ValueError, "milk.unsupervised.gaussianmixture.nr_parameters: cannot handle model '%s'" % model
 
 def _compute(type, fmatrix, assignments, centroids, model='one_variance', covs=None):
     N,q = fmatrix.shape
