@@ -1,0 +1,43 @@
+# -*- coding: utf-8 -*-
+# Copyright (C) 2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
+# License: MIT. See COPYING.MIT file in the milk distribution
+
+from __future__ import division
+import numpy as np
+
+
+def pdist(X, Y=None, distance='euclidean2'):
+    '''
+    D = pdist(X, Y={X}, distance='euclidean2')
+
+    Compute distance matrix:
+
+    D[i,j] == np.sum( (X[i] - Y[j])**2 )
+
+    Parameters
+    ----------
+      X : feature matrix
+      Y : feature matrix (default: use `X`)
+      distance : one of 'euclidean' or 'euclidean2' (default)
+    Returns
+    -------
+      D : matrix of doubles
+    '''
+    # Use Dij = np.dot(Xi, Xi) + np.dot(Xj,Xj) - 2.*np.dot(Xi,Xj)
+    if Y is None:
+        D = np.dot(X, X.T)
+        x2 = D.diagonal().copy()
+        y2 = x2
+    else:
+        D = np.dot(X, Y.T)
+        x2 = np.array([np.dot(x,x) for x in X])
+        y2 = np.array([np.dot(y,y) for y in Y])
+    D *= -2.
+    D += x2
+    DT = D.T
+    DT += y2
+    np.maximum(D, 0, D)
+    if distance == 'euclidean':
+        np.sqrt(D, D)
+    return D
