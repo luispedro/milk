@@ -23,3 +23,4 @@ from kmeans import kmeans,repeated_kmeans
 from gaussianmixture import *
 from pca import pca
 from nnmf import *
+from pdist import pdist, plike

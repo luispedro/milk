@@ -41,3 +41,24 @@ def pdist(X, Y=None, distance='euclidean2'):
     if distance == 'euclidean':
         np.sqrt(D, D)
     return D
+
+
+def plike(X, sigma2=None):
+    '''
+    L = plike(X, sigma2={guess based on X})
+
+    Parameters
+    ----------
+      X : feature matrix
+      sigma2 : bandwidth
+    Returns
+    -------
+      L : likelihood matrix
+    '''
+
+    L = pdist(X)
+    if sigma2 is None:
+        sigma2 = np.median(L)
+    L /= -sigma2
+    np.exp(L, L)
+    return L
