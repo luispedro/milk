@@ -34,9 +34,8 @@ def pdist(X, Y=None, distance='euclidean2'):
         x2 = np.array([np.dot(x,x) for x in X])
         y2 = np.array([np.dot(y,y) for y in Y])
     D *= -2.
-    D += x2
-    DT = D.T
-    DT += y2
+    D += x2[:,np.newaxis]
+    D += y2
     np.maximum(D, 0, D)
     if distance == 'euclidean':
         np.sqrt(D, D)
