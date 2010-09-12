@@ -1,4 +1,4 @@
-"""Algorithms for clustering : Affinity propagation
+"""Algorithms for clustering : Meanshift and Affinity propagation
 
 Original Authors (for scikits.learn):
         Alexandre Gramfort alexandre.gramfort@inria.fr
@@ -8,7 +8,7 @@ Original Authors (for scikits.learn):
 import numpy as np
 
 
-def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True):
+def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True, R=0):
     """Perform Affinity Propagation Clustering of data
 
     Parameters
@@ -23,6 +23,7 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
     copy: boolean, optional
         If copy is False, the affinity matrix is modified inplace by the
         algorithm, for memory efficiency
+    R : source of randomness
 
     Returns
     -------
@@ -56,7 +57,7 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
     if damping < 0.5 or damping >= 1:
         raise ValueError('damping must be >= 0.5 and < 1')
 
-    random_state = np.random.RandomState(0)
+    random_state = np.random.RandomState(R)
 
     # Place preferences on the diagonal of S
     S.flat[::(n_points+1)] = p
@@ -65,9 +66,11 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
     R = np.zeros((n_points, n_points)) # Initialize messages
 
     # Remove degeneracies
-    S += (  np.finfo(np.double).eps*S
-          + np.finfo(np.double).tiny*100
-         )*random_state.randn(n_points, n_points)
+    noise = random_state.randn(n_points, n_points)
+    doubleinfo = np.finfo(np.double)
+    noise *= doubleinfo.tiny*100
+    S += noise
+    del noise
 
     # Execute parallel affinity propagation updates
     e = np.zeros((n_points, convit))
@@ -77,33 +80,37 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
     for it in range(maxit):
         # Compute responsibilities
         Rold = R.copy()
-        AS = A + S
+        A += S
 
-        I = np.argmax(AS, axis=1)
-        Y = AS[np.arange(n_points), I]#np.max(AS, axis=1)
+        I = np.argmax(A, axis=1)
+        Y = A[ind, I]#np.max(A, axis=1)
 
-        AS[ind, I[ind]] = - np.finfo(np.double).max
+        A[ind, I] = -doubleinfo.max
 
-        Y2 = np.max(AS, axis=1)
+        Y2 = np.max(A, axis=1)
         R = S - Y[:, np.newaxis]
 
-        R[ind, I[ind]] = S[ind, I[ind]] - Y2[ind]
+        R[ind, I[ind]] = S[ind, I] - Y2
 
         R = (1-damping)*R + damping*Rold # Damping
 
         # Compute availabilities
-        Aold = A
-        Rp = np.maximum(R, 0)
-        Rp.flat[::n_points+1] = R.flat[::n_points+1]
+        Aold *= damping
+        Rd = R.diagonal().copy()
+        np.maximum(R, 0, R)
+        R.flat[::n_points+1] = Rd
 
-        A = np.sum(Rp, axis=0)[np.newaxis, :] - Rp
+        Aold = A
+        Aold -= S
+        A = np.sum(R, axis=0)[np.newaxis, :] - R
 
         dA = np.diag(A)
         A = np.minimum(A, 0)
 
         A.flat[::n_points+1] = dA
 
-        A = (1-damping)*A + damping*Aold # Damping
+        A *= (1-damping)
+        A += Aold
 
         # Check for convergence
         E = (np.diag(A) + np.diag(R)) > 0
@@ -117,7 +124,7 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
                 print "Converged after %d iterations." % it
                 break
     else:
-        print "Did not converged"
+        print "Did not converge"
 
     I = np.where(np.diag(A+R) > 0)[0]
     K = I.size # Identify exemplars
@@ -143,4 +150,3 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
         labels.fill(np.nan)
 
     return cluster_centers_indices, labels
-
