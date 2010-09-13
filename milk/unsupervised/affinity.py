@@ -67,8 +67,8 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
 
     # Remove degeneracies
     noise = random_state.randn(n_points, n_points)
-    doubleinfo = np.finfo(np.double)
-    noise *= doubleinfo.tiny*100
+    typeinfo = np.finfo(S.dtype)
+    noise *= typeinfo.tiny*100
     S += noise
     del noise
 
@@ -85,7 +85,7 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
         I = np.argmax(A, axis=1)
         Y = A[ind, I]#np.max(A, axis=1)
 
-        A[ind, I] = -doubleinfo.max
+        A[ind, I] = typeinfo.min
 
         Y2 = np.max(A, axis=1)
         R = S - Y[:, np.newaxis]
