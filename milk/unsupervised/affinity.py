@@ -78,7 +78,7 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
     ind = np.arange(n_points)
 
     for it in range(maxit):
-        # Compute responsibilities
+        Aold = A.copy()
         Rold = R.copy()
         A += S
 
@@ -92,16 +92,15 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
 
         R[ind, I[ind]] = S[ind, I] - Y2
 
-        R = (1-damping)*R + damping*Rold # Damping
+        Rold *= damping
+        R *= (1-damping)
+        R += Rold
 
         # Compute availabilities
-        Aold *= damping
         Rd = R.diagonal().copy()
         np.maximum(R, 0, R)
         R.flat[::n_points+1] = Rd
 
-        Aold = A
-        Aold -= S
         A = np.sum(R, axis=0)[np.newaxis, :] - R
 
         dA = np.diag(A)
@@ -109,6 +108,7 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
 
         A.flat[::n_points+1] = dA
 
+        Aold *= damping
         A *= (1-damping)
         A += Aold
 
