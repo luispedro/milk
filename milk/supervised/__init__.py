@@ -20,5 +20,6 @@
 #  THE SOFTWARE.
 
 from .defaultclassifier import defaultclassifier
+from .classifier import normaliselabels
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
