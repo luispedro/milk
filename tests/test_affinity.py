@@ -7,6 +7,5 @@ def test_affinity():
     S = milk.unsupervised.pdist(X)
     clusters, labels = milk.unsupervised.affinity.affinity_propagation(S)
     assert labels.max()+1 == len(clusters)
-    assert len(labels) = len(X)
     assert len(labels) == len(X)
     assert clusters.max() < len(X)
