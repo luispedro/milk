@@ -51,11 +51,12 @@ def foldgenerator(labels, nfolds=None, origins=None, is_ordered=False):
     Returns
     -------
       iterator over `train, test`, two boolean arrays
+
     Bugs
     ----
     Algorithm is very naive w.r.t. unbalanced origins.
 
-    This is  slower than it could be if `origins is None`.
+    This is slower than it could be if `origins is None`.
     '''
 
     if origins is None:
@@ -69,6 +70,15 @@ def foldgenerator(labels, nfolds=None, origins=None, is_ordered=False):
         classcounts[L] += 1
         counted.add(orig)
     min_class_count = min(classcounts.values())
+    if min_class_count == 1:
+        raise ValueError('''
+milk.nfoldcrossvalidation.foldgenerator: nfolds was reduced to 1 because minimum class size was 1.
+
+If you passed in an origins parameter, it might be caused by having  a class come from a single origin.
+
+The class histogram (taking origins into account looks like):
+    %s''' % classcounts)
+
     if nfolds is None:
         nfolds = min(10, min_class_count)
     elif min_class_count < nfolds:
