@@ -27,11 +27,12 @@
 #include <memory>
 #include <cmath>
 #include <vector>
-#include <debug/vector>
-#include <debug/list>
+//#include <debug/vector>
+//#include <debug/list>
 //using __gnu_debug::vector;
-using std::vector;
 //using __gnu_debug::list;
+
+using std::vector;
 using std::list;
 extern "C" {
     #include <Python.h>
@@ -468,7 +469,7 @@ bool SMO::take_step(int i1, int i2) {
     }
     if (a2 < tol) a2 = 0;
     else if (a2 > C-tol) a2 = C;
-    if (abs(a2-alpha2) < eps*(a2+alpha2+eps)) return false;
+    if (std::abs(a2-alpha2) < eps*(a2+alpha2+eps)) return false;
 
     a1 = alpha1+s*(alpha2-a2);
     if (a1 < tol) a1 = 0;
