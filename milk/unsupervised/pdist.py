@@ -11,7 +11,7 @@ def pdist(X, Y=None, distance='euclidean2'):
     '''
     D = pdist(X, Y={X}, distance='euclidean2')
 
-    Compute distance matrix:
+    Compute distance matrix::
 
     D[i,j] == np.sum( (X[i] - Y[j])**2 )
 
@@ -20,6 +20,7 @@ def pdist(X, Y=None, distance='euclidean2'):
       X : feature matrix
       Y : feature matrix (default: use `X`)
       distance : one of 'euclidean' or 'euclidean2' (default)
+
     Returns
     -------
       D : matrix of doubles
@@ -27,7 +28,7 @@ def pdist(X, Y=None, distance='euclidean2'):
     # Use Dij = np.dot(Xi, Xi) + np.dot(Xj,Xj) - 2.*np.dot(Xi,Xj)
     if Y is None:
         D = np.dot(X, X.T)
-        x2 = D.diagonal().copy()
+        x2 = D.diagonal()
         y2 = x2
     else:
         D = np.dot(X, Y.T)
@@ -36,6 +37,9 @@ def pdist(X, Y=None, distance='euclidean2'):
     D *= -2.
     D += x2[:,np.newaxis]
     D += y2
+
+    # Because of numerical imprecision, we might get negative numbers
+    # (which cause problems down the road, .e.g., when doing the sqrt):
     np.maximum(D, 0, D)
     if distance == 'euclidean':
         np.sqrt(D, D)
@@ -50,6 +54,7 @@ def plike(X, sigma2=None):
     ----------
       X : feature matrix
       sigma2 : bandwidth
+
     Returns
     -------
       L : likelihood matrix
