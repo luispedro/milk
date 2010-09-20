@@ -148,7 +148,7 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
             else:
                 empty.append(ci)
         if empty:
-            centroids = np.delete(centroids, empty)
+            centroids = np.delete(centroids, empty, axis=0)
             K = len(centroids)
             bins = np.arange(K+1)
         prev[:] = assignments
