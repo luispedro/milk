@@ -36,9 +36,11 @@ class one_against_rest(object):
     Example
     -------
 
+    ::
+
         multi = one_against_rest(milk.supervised.simple_svm)
-        multi.train(training_features,labels)
-        print multi.apply(testing_features)
+        model = multi.train(training_features,labels)
+        print model.apply(testing_features)
 
     We are using a class as a base, but we can use any callable object:
 
