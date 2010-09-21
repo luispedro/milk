@@ -1,1 +1,1 @@
-from measures import *
+from measures import accuracy, waccuracy
