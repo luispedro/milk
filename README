@@ -4,7 +4,9 @@ MILK: MACHINE LEARNING TOOLKIT
 Machine Learning in Python
 --------------------------
 
-Milk is a machine learning toolkit in Python. Its focus is on supervised classification.
+Milk is a machine learning toolkit in Python. Its focus is on supervised
+classification and on enabling medium scale learning (defined as data that
+barely fits in main memory).
 
 milk wraps libsvm in a Pythonic way (the models learned have weight arrays that
 are accessible from Python directly, the models are pickle()able, you can pass
