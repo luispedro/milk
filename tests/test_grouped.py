@@ -19,16 +19,29 @@ def group(features, labels, step):
     return gfeatures, glabels
 
 
-base = lambda: ctransforms(milk.supervised.svm.svm_raw(C=2.,kernel=milk.supervised.svm.rbf_kernel(2.**-3)),milk.supervised.svm.svm_binary())
-base = milk.supervised.multi.one_against_rest(base)
-features,labels = milksets.wine.load()
-gfeatures, glabels = group(features, labels, 3)
-
 
 def test_voting():
+    base = lambda: ctransforms(milk.supervised.svm.svm_raw(C=2.,kernel=milk.supervised.svm.rbf_kernel(2.**-3)),milk.supervised.svm.svm_binary())
+    base = milk.supervised.multi.one_against_rest(base)
+    features,labels = milksets.wine.load()
+    gfeatures, glabels = group(features, labels, 3)
+
     learner = milk.supervised.grouped.voting_classifier(base)
     learner.train(gfeatures, glabels)
     model = learner.train(gfeatures, glabels)
     assert len(model.apply(gfeatures)) == len(glabels)
     assert (model.apply(gfeatures) == np.array(glabels)).mean() > .8
+
+
+def test_filter_outliers():
+    np.random.seed(22)
+    features = [np.random.randn(10,10) for i in xrange(20)]
+    for f in features:
+        f[0] *= 10
+        
+
+    trainer = milk.supervised.grouped.filter_outliers(.9)
+    model = trainer.train(features, [0] * len(features))
+    for ff,f in zip(model.apply(features), features):
+        assert np.all(ff == f[1:])
 

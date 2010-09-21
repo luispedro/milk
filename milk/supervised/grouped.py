@@ -54,3 +54,41 @@ class voting_model(object):
             res.append(best)
         return res
 
+
+def remove_outliers(features, limit, min_size):
+    '''
+    features = remove_outliers(features, limit, min_size)
+
+    '''
+    nsize = int(limit * len(features))
+    if nsize < min_size:
+        return features
+
+    normed = features - features.mean(0)
+    std = normed.std(0)
+    std[std == 0] = 1
+    normed /= std
+    f2_sum1 = (normed**2).mean(1)
+    values = f2_sum1.copy()
+    values.sort()
+    top = values[nsize]
+    selected = f2_sum1 < top
+    return features[selected]
+
+
+class filter_outliers_model(object):
+    def __init__(self, limit, min_size):
+        self.limit = limit
+        self.min_size = min_size
+
+    def apply(self, features):
+        return [remove_outliers(f, self.limit, self.min_size) for f in features]
+
+class filter_outliers(object):
+    def __init__(self, limit=.9, min_size=3):
+        self.limit = limit
+        self.min_size = min_size
+
+    def train(self, features, labels):
+        return filter_outliers_model(self.limit, self.min_size)
+
