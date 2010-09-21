@@ -11,6 +11,14 @@ def test_foldgenerator():
         assert np.array([test.copy() for _,test in foldgenerator(labels,nf)]).sum() == len(labels)
         assert np.array([(test&train).sum() for train,test in foldgenerator(labels,nf)]).sum() == 0
 
+def test_foldgenerator_not_empty():
+    for nf in (None, 2, 3, 5, 10, 15, 20):
+        for Tr,Te in foldgenerator([0] * 10 + [1] *10, nf, None):
+            assert not np.all(Tr)
+            assert not np.all(Te)
+
+
+
 
 def test_nfoldcrossvalidation_simple():
     data = tests.data.german.german.load()
