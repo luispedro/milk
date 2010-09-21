@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
-# 
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
 #  in the Software without restriction, including without limitation the rights
 #  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 #  copies of the Software, and to permit persons to whom the Software is
 #  furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 #  all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 #  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 #  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,12 +34,21 @@ def defaultclassifier(mode='medium'):
         speed accuracy trade-off. It essentially defines how large the
         SVM parameter range is.
     '''
+    # These cannot be imported at module scope!
+    # The reason is that they introduce a dependency loop:
+    # gridsearch depends on nfoldcrossvalidation
+    #   nfoldcrossvalidation depends on defaultclassifier
+    #   which cannot depend on gridsearch
+    #
+    # Importing at function level keeps all these issues at bay
+    #
     from .classifier import ctransforms
     from .gridsearch import gridsearch
     from . import svm
     from .normalise import chkfinite, interval_normalise
     from .featureselection import sda_filter, featureselector, linear_independent_features
     from .multi import one_against_one
+
     assert mode in ('really-slow', 'slow', 'medium', 'fast'), \
         "milk.supervised.defaultclassifier: mode must be one of 'fast','slow','medium'."
     if mode == 'fast':
@@ -68,4 +78,40 @@ def defaultclassifier(mode='medium'):
                         ))
 
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
+def feature_selection_simple():
+    '''
+    selector = feature_selection_simple()
+
+    Standard feature normalisation and selection
+    '''
+    from .classifier import ctransforms
+    from .normalise import chkfinite, interval_normalise
+    from .featureselection import sda_filter, featureselector, linear_independent_features
+    return ctransforms(
+            chkfinite(),
+            interval_normalise(),
+            featureselector(linear_independent_features),
+            sda_filter(),
+            )
+
+def svm_simple(C, kernel):
+    '''
+    classif = svm_simple(C, kernel)
+
+    Returns a one-against-one SVM based classifier with `C` and `kernel`
+
+    Parameters
+    ----------
+    C : double
+        C parameter
+    kernel : kernel
+        Kernel to use
+
+    Returns
+    -------
+    classif : classifier object
+    '''
+    from . import svm
+    from .multi import one_against_one
+    return one_against_one(lambda: svm.svm_to_binary(svm.svm_raw(C=C, kernel=kernel)))
+
