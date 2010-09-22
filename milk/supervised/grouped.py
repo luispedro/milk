@@ -6,6 +6,7 @@
 from __future__ import division
 import numpy as np
 from collections import defaultdict
+from .classifier import normaliselabels
 
 class voting_classifier(object):
     '''
@@ -28,6 +29,8 @@ class voting_classifier(object):
         self.base = base
 
     def train(self, gfeatures, glabels):
+        if type(gfeatures) == np.ndarray and gfeatures.dtype == object:
+            gfeatures = list(gfeatures)
         features = np.concatenate(gfeatures)
         labels = []
         for feats,label in zip(gfeatures, glabels):
@@ -40,19 +43,16 @@ class voting_model(object):
         self.base = base
 
     def apply(self, gfeatures):
-        res = []
-        for features in gfeatures:
-            votes = defaultdict(int)
-            for feats in features:
-                votes[self.base.apply(feats)] += 1
-            best = None
-            most_votes = 0
-            for k,v in votes.iteritems():
-                if v > most_votes:
-                    best = k
-                    most_votes = v
-            res.append(best)
-        return res
+        votes = defaultdict(int)
+        for feats in gfeatures:
+            votes[self.base.apply(feats)] += 1
+        best = None
+        most_votes = 0
+        for k,v in votes.iteritems():
+            if v > most_votes:
+                best = k
+                most_votes = v
+        return best
 
 
 def remove_outliers(features, limit, min_size):
@@ -82,7 +82,7 @@ class filter_outliers_model(object):
         self.min_size = min_size
 
     def apply(self, features):
-        return [remove_outliers(f, self.limit, self.min_size) for f in features]
+        return remove_outliers(features, self.limit, self.min_size)
 
 class filter_outliers(object):
     def __init__(self, limit=.9, min_size=3):

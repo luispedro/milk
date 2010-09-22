@@ -1,5 +1,6 @@
 import numpy as np
 import milk.supervised.svm
+from milk.supervised.svm import rbf_kernel
 import milk.supervised.multi
 import milk.supervised.grouped
 from milk.supervised.classifier import ctransforms
@@ -29,8 +30,7 @@ def test_voting():
     learner = milk.supervised.grouped.voting_classifier(base)
     learner.train(gfeatures, glabels)
     model = learner.train(gfeatures, glabels)
-    assert len(model.apply(gfeatures)) == len(glabels)
-    assert (model.apply(gfeatures) == np.array(glabels)).mean() > .8
+    assert ([model.apply(f) for f in gfeatures] == np.array(glabels)).mean() > .8
 
 
 def test_filter_outliers():
@@ -39,9 +39,21 @@ def test_filter_outliers():
     for f in features:
         f[0] *= 10
         
-
     trainer = milk.supervised.grouped.filter_outliers(.9)
     model = trainer.train(features, [0] * len(features))
-    for ff,f in zip(model.apply(features), features):
+    for f in features:
+        ff = model.apply(f)
         assert np.all(ff == f[1:])
+
+
+
+def test_nfoldcrossvalidation():
+    np.random.seed(22)
+    features = np.array([np.random.rand(8+(i%3), 12)*(i//20) for i in xrange(40)], dtype=object)
+    labels = np.zeros(40, int)
+    labels[20:] = 1
+    classifier = milk.supervised.grouped.voting_classifier(milk.supervised.svm_simple(C=1., kernel=rbf_kernel(1./12)))
+    cmat, names = milk.nfoldcrossvalidation.nfoldcrossvalidation(features, labels, classifier=classifier)
+    assert cmat.shape == (2,2)
+    assert sorted(names) == range(2)
 
