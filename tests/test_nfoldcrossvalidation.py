@@ -60,12 +60,12 @@ def test_getfold():
 
 def test_nfoldcrossvalidation_defaultclassifier():
     np.random.seed(2233)
-    X = np.random.rand(120,5)
-    X[:40] += .6
-    X[-40:] -= .6
-    Y = np.ones(120)
-    Y[:40] = 0
-    Y[-40:] = 2
+    X = np.random.rand(60,5)
+    X[:20] += 4.
+    X[-20:] -= 4.
+    Y = np.ones(60)
+    Y[:20] = 0
+    Y[-20:] = 2
     Y += 100
     cmat,clabels = milk.measures.nfoldcrossvalidation.nfoldcrossvalidation(X,Y)
     assert cmat.shape == (3,3)
@@ -106,7 +106,7 @@ def test_stringlabels():
     D = np.random.rand(100,10)
     D[:40] += np.random.rand(40,10)**2
     labelnames = ['one'] * 40 + ['two'] * 60
-    cmat,Lo = nfoldcrossvalidation(D, labelnames)
+    cmat,Lo = nfoldcrossvalidation(D, labelnames, classifier=fast_classifier())
     assert Lo[0] in labelnames
     assert Lo[1] in labelnames
     assert Lo[0] != Lo[1] in labelnames
