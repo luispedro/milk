@@ -42,7 +42,7 @@ class test_classifier(object):
         return np.zeros_like(features)
     def train(self,f,l):
         return self
-    
+
 def test_nfoldcrossvalidation_testall():
     N = 121
     C = test_classifier(N)
@@ -78,6 +78,8 @@ def test_foldgenerator_origins():
         for nf in (2,3,5,7):
             assert np.array([test.copy() for _,test in foldgenerator(labels, nf, origins)]).sum(0).max() == 1
             assert np.array([test.copy() for _,test in foldgenerator(labels, nf, origins)]).sum() == len(labels)
+            assert np.min([test.sum() for _,test in foldgenerator(labels, nf, origins)]) > 0
+            assert np.min([train.sum() for train,_ in foldgenerator(labels, nf, origins)]) > 0
             for Tr,Te in foldgenerator(labels, nf, origins):
                 assert not np.any(Tr&Te)
                 in_test = set(origins[Te])
@@ -108,4 +110,5 @@ def test_stringlabels():
     assert Lo[0] in labelnames
     assert Lo[1] in labelnames
     assert Lo[0] != Lo[1] in labelnames
+
 
