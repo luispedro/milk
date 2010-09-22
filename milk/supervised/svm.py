@@ -450,7 +450,12 @@ def sigma_value_fisher(features,labels):
 
     Parameters
     -----------
-        * features: the feature matrix.
+    features : features matrix as 2-ndarray.
+
+    Returns
+    -------
+    f : a function: float -> float
+        this function should be minimised for a good `sigma`
 
     Reference
     ----------
@@ -481,38 +486,9 @@ def sigma_value_fisher(features,labels):
         N2 = C2.shape[0]
         if C12.shape != (N1,N2):
             raise ValueError
-        N1 = int(N1)
-        N2 = int(N2)
-        try:
-            from scipy import weave
-            from scipy.weave import converters
-            res = np.empty(3,np.double)
-            code = '''
-#line 400 "svm.py"
-            double C1v = 0.;
-            double C2v = 0.;
-            double C12v = 0.;
-            for (int i = 0; i != N1; ++i)
-                for (int j = 0; j != N1; ++j)
-                    C1v += std::exp(C1(i,j)/sigma);
-            for (int i = 0; i != N2; ++i)
-                for (int j = 0; j != N2; ++j)
-                    C2v += std::exp(C2(i,j)/sigma);
-            for (int i = 0; i != N1; ++i)
-                for (int j = 0; j != N2; ++j)
-                    C12v += std::exp(C12(i,j)/sigma);
-            res(0) = C1v/N1;
-            res(1) = C2v/N2;
-            res(2) = C12v/N1/N2;
-            '''
-            weave.inline(code, ['C1','C2','C12','N1','N2','res','sigma'],type_converters = converters.blitz)
-            C1v = res[0]
-            C2v = res[1]
-            C12v = res[2]
-        except Exception, e:
-            C1v = np.sum(np.exp(C1/sigma))/N1
-            C2v = np.sum(np.exp(C2/sigma))/N2
-            C12v = np.sum(np.exp(C12/sigma))/N1/N2
+        C1v = np.sum(np.exp(C1/sigma))/N1
+        C2v = np.sum(np.exp(C2/sigma))/N2
+        C12v = np.sum(np.exp(C12/sigma))/N1/N2
         return (N1 + N2 - C1v - C2v)/(C1v/N1+C2v/N2 - 2.*C12v)
     return f
 
