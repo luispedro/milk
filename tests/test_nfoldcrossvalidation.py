@@ -3,6 +3,7 @@ from milk.measures.nfoldcrossvalidation import nfoldcrossvalidation, foldgenerat
 import tests.data.german.german
 import milk.supervised.tree
 import numpy as np
+from fast_classifier import fast_classifier
 
 def test_foldgenerator():
     labels = np.array([1]*20+[2]*30+[3]*20)
@@ -22,11 +23,10 @@ def test_foldgenerator_not_empty():
 
 def test_nfoldcrossvalidation_simple():
     data = tests.data.german.german.load()
-    features = data['data']
-    labels = data['label']
-    C = milk.supervised.tree.tree_classifier()
+    features = data['data'][::2]
+    labels = data['label'][::2]
 
-    cmat,clabels = nfoldcrossvalidation(features, labels, classifier=C)
+    cmat,clabels = nfoldcrossvalidation(features, labels, classifier=fast_classifier())
     assert cmat.shape == (2,2)
     assert len(clabels) == 2
 
