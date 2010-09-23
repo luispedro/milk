@@ -1,16 +1,15 @@
 import numpy as np
 import milk.supervised.defaultclassifier
 import pickle
-import tests.data.german.german
 
 def test_defaultclassifier():
-    data = tests.data.german.german.load()
-    features = data['data']
-    labels = data['label']
+    from milksets import wine
+    features, labels = wine.load()
     C = milk.supervised.defaultclassifier()
     model = C.train(features,labels)
+    labelset = set(labels)
     for f in features:
-        assert model.apply(f) in (0,1)
+        assert model.apply(f) in labelset
 test_defaultclassifier.slow = True
 
 def test_pickle():

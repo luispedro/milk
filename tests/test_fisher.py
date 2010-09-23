@@ -1,11 +1,7 @@
 import milk.supervised.svm
-import tests.data.german.german
 import milk.supervised.normalise
 import numpy as np
 import milk.supervised.svm
-data = tests.data.german.german.load()
-features = data['data']
-labels = data['label']
 
 def _slow_f(features,labels,kernel_or_sigma):
     try:
@@ -39,6 +35,8 @@ def _slow_f(features,labels,kernel_or_sigma):
 
 
 def test_fisher_approx():
+    from milksets import wine
+    features,labels = wine.load()
     f = milk.supervised.svm.sigma_value_fisher(features,labels)
     for sigma in (2.**-4,2.,16.,32.):
         assert abs(f(sigma) - _slow_f(features,labels,sigma)) < 1e-6
