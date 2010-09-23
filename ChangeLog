@@ -1,0 +1,7 @@
+Version 0.3 2010-09-23
+	* no scipy.weave dependency
+	* flatter namespace
+	* faster kmeans
+	* affinity propagation (borrowed from scikits-learn & slightly improved)
+	* pdist()
+
