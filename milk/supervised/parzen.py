@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -22,20 +23,6 @@
 from __future__ import division
 import numpy as np
 
-def slow_parzen(features, labels, sigma):
-    correct = 0
-    N = len(features)
-    labels = 2*labels - 1
-    def kernel(fi, fj):
-        return np.exp(-((fi-fj)**2).sum()/sigma)
-    for i in xrange(N):
-        C = 0.
-        for j in xrange(N):
-            if i == j: continue
-            C += labels[j] * kernel(features[i],features[j])
-        if (C*labels[i] > 0): correct += 1
-    return correct/N
-
 def get_parzen_rbf_loocv(features,labels):
     xij = np.dot(features,features.T)
     f2 = np.sum(features**2,1)
@@ -54,4 +41,3 @@ def get_parzen_rbf_loocv(features,labels):
     return f
 
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
