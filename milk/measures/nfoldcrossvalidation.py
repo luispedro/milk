@@ -141,7 +141,7 @@ def getfold(labels, fold, nfolds=None, origins=None):
     origins : sequence, optional
         if given, then objects with same origin are *not* scattered across folds
     '''
-    if fold < nfolds:
+    if nfolds < fold:
         raise ValueError('milk.getfold: Attempted to get fold %s out of %s' % (fold, nfolds))
     for i,(t,s) in enumerate(foldgenerator(labels, nfolds, origins)):
         if i == fold:
