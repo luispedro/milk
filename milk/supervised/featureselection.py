@@ -93,39 +93,12 @@ def sda(features,labels):
     labels,labelsu = normaliselabels(labels)
     q = len(labelsu)
 
-    mus = np.array([features[labels==i,:].mean(0) for i in xrange(q)])
-    mu = features.mean(0)
-    
-    W = np.zeros((m,m))
-    T = np.zeros((m,m))
-    try:
-        from scipy import weave
-        from scipy.weave import converters
-        code='''
-#line 106 "featureselection.py"
-        for (int i = 0; i != m; ++i) {
-            for (int j = 0; j != m; ++j) {
-                for (int n = 0; n != N; ++n) {
-                    int g=labels(n);
-                    W(i,j) += (features(n,i)-mus(g,i))*(features(n,j)-mus(g,j));
-                    T(i,j) += (features(n,i)-mu(i))*(features(n,j)-mu(j));
-                }
-            }
-        }
-        '''
-        weave.inline(
-                code,
-                ['N','m','W','T','features','mu','mus','labels'],
-                type_converters=converters.blitz)
-    except ImportError:
-        import warnings
-        warnings.warn('scipy.weave failed. Resorting to (slow) Python code')
-        for i in xrange(m):
-            for j in xrange(m):
-                for n in xrange(N):
-                    g = labels[n]
-                    W[i,j] += (features[n,i]-mus[g,i])*(features[n,j]-mus[g,j])
-                    T[i,j] += (features[n,i]-mu[i])*(features[n,j]-mu[j])
+    df = features - features.mean(0)
+    T = np.dot(df.T, df)
+
+    dfs = [(features[labels == i] - features[labels == i].mean(0)) for i in xrange(q)]
+    W = np.sum(np.dot(d.T, d) for d in dfs)
+
     ignoreidx = ( W.diagonal() == 0 )
     if ignoreidx.any():
         idxs, = np.where(~ignoreidx)
