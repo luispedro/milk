@@ -13,5 +13,14 @@ Indices and tables
 
 
 .. automodule:: milk
+    :members: nfoldcrossvalidation, defaultclassifier, kmeans
+
+.. automodule:: milk.supervised
+    :members:
+
+.. automodule:: milk.unsupervised
+    :members:
+
+.. automodule:: milk.measures
     :members:
 
