@@ -53,7 +53,7 @@ def test_nfoldcrossvalidation():
     labels = np.zeros(40, int)
     labels[20:] = 1
     classifier = milk.supervised.grouped.voting_classifier(milk.supervised.svm_simple(C=1., kernel=rbf_kernel(1./12)))
-    cmat, names = milk.nfoldcrossvalidation.nfoldcrossvalidation(features, labels, classifier=classifier)
+    cmat, names = milk.nfoldcrossvalidation(features, labels, classifier=classifier)
     assert cmat.shape == (2,2)
     assert sorted(names) == range(2)
 

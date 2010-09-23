@@ -20,7 +20,9 @@
 #  THE SOFTWARE.
 
 from __future__ import division
-import measures.nfoldcrossvalidation as nfoldcrossvalidation
+from .nfoldcrossvalidation import nfoldcrossvalidation
+from .supervised.defaultclassifier import defaultclassifier
+from .unsupervised.kmeans import kmeans
 from milk_version import __version__
 
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
