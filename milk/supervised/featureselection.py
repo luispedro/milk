@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
 #  in the Software without restriction, including without limitation the rights
 #  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 #  copies of the Software, and to permit persons to whom the Software is
 #  furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 #  all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 #  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 #  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,47 +30,17 @@ _SIGNIFICANCE_IN = .15
 _SIGNIFICANCE_OUT = .15
 
 def _sweep(A, k, flag):
-    N,_ = A.shape
     Akk = A[k,k]
-    B = np.zeros_like(A)
-    try:
-        from scipy import weave
-        from scipy.weave import converters
-        k = int(k)
-        code = '''
-#line 42 "featureselection.py"
-        for (int i = 0; i != N; ++i) {
-            for (int j = 0; j != N; ++j) {
-                if (i == k) {
-                    if (j == k) {
-                        B(i,j) =  - 1./A(k,k);
-                    } else {
-                        B(i,j)=flag*A(i,j)/A(k,k);
-                    }
-                } else if (j == k) {
-                    B(i,j)=flag*A(i,j)/A(k,k);
-                } else { 
-                    B(i,j)=A(i,j) - A(i,k)*A(k,j)/A(k,k);
-                }
-            }
-        }
-        '''
-        weave.inline(
-                code,
-                ['A','B','k','Akk','flag','N'],
-                type_converters=converters.blitz)
-    except:
-        for i in xrange(N):
-            for j in xrange(N):
-                if i == k:
-                    if j == k:
-                        B[i,j] = -1./Akk
-                    else:
-                        B[i,j] = flag*A[i,j]/Akk
-                elif j == k:
-                    B[i,j] = flag*A[i,j]/Akk
-                else:
-                    B[i,j] = A[i,j] - A[i,k]*A[k,j]/Akk
+
+    # cross[i,j] = A[i,k] * A[k,j]
+    cross = (A[:,k][:, np.newaxis] * A[k])
+    B = A - cross/Akk
+
+    # currently: B[i,j] = A[i,j] - A[i,k]*A[k,j]/Akk
+    # Now fix row k and col k, followed by Bkk
+    B[k] = flag * A[k]/A[k,k]
+    B[:,k] = flag * A[:,k]/A[k,k]
+    B[k,k] = -1./Akk
     return B
 
 def sda(features,labels):
@@ -82,9 +52,9 @@ def sda(features,labels):
     Pre filter the feature matrix to remove linearly dependent features
     before calling this function. Behaviour is undefined otherwise.
 
-    This implements the algorithm described in 
+    This implements the algorithm described in
     Jennrich, R.I. (1977), "Stepwise Regression" & "Stepwise Discriminant Analysis,"
-    both in Statistical Methods for Digital Computers, eds. 
+    both in Statistical Methods for Digital Computers, eds.
     K. Enslein, A. Ralston, and H. Wilf, New York; John Wiley & Sons, Inc.
     '''
 
@@ -109,11 +79,11 @@ def sda(features,labels):
     df1 = q-1
     last_enter_k = -1
     while True:
-        V = W.diagonal()/T.diagonal() 
+        V = W.diagonal()/T.diagonal()
         W_d = W.diagonal()
         V_neg = (W_d < 0)
         p = V_neg.sum()
-        if V_neg.any(): 
+        if V_neg.any():
             V_m = V[V_neg].min()
             k, = np.where(V == V_m)
             k = k[0]
