@@ -12,3 +12,12 @@ def test_gm():
     assert np.abs(gaussianmixture.residual_sum_squares(fmatrix, assignments, centroids) - rss) < 1.e-12
     assert gaussianmixture.BIC(fmatrix, assignments, centroids) > 0
     assert gaussianmixture.AIC(fmatrix, assignments, centroids) > 0
+
+    assert gaussianmixture.BIC(fmatrix, assignments, centroids, model='full_covariance') > \
+        gaussianmixture.BIC(fmatrix, assignments, centroids, model='diagonal_covariance') > \
+        gaussianmixture.BIC(fmatrix, assignments, centroids, model='one_variance')
+
+    assert gaussianmixture.AIC(fmatrix, assignments, centroids, model='full_covariance') > \
+        gaussianmixture.AIC(fmatrix, assignments, centroids, model='diagonal_covariance') > \
+        gaussianmixture.AIC(fmatrix, assignments, centroids, model='one_variance')
+

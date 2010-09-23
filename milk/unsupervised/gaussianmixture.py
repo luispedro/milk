@@ -59,13 +59,13 @@ def log_likelihood(fmatrix,assignments,centroids,model='one_variance',covs=None)
         for k in xrange(len(centroids)):
             diff = (fmatrix[assignments == k] - centroids[k])
             if covs is None:
-                covm = cov(diff.T)
+                covm = np.cov(diff.T)
             else:
                 covm = covs[k]
             if covm.shape == ():
-                covm = mat([[covm]])
-            icov = mat(inv(covm))
-            diff = mat(diff)
+                covm = np.matrix([[covm]])
+            icov = np.matrix(inv(covm))
+            diff = np.matrix(diff)
             Nk = diff.shape[0]
             res += -Nk/2.*log(det(covm)) + \
                  -.5 * (diff * icov * diff.T).diagonal().sum() 
