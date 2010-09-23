@@ -124,20 +124,29 @@ The class histogram %s looks like:
         start = end
 
 
-def getfold(labels, fold, nfolds=None, origins=None, is_ordered=False):
+def getfold(labels, fold, nfolds=None, origins=None):
     '''
-    trainingset,testingset = getfold(labels, fold, nfolds=None, origins=None, is_ordered=False)
+    trainingset,testingset = getfold(labels, fold, nfolds=None, origins=None)
 
     Get the training and testing set for fold `fold` in `nfolds`
 
     Arguments are the same as for `foldgenerator`
+
+    Parameters
+    ----------
+    labels : ndarray of labels
+    fold : integer
+    nfolds : integer
+        number of folds (default 10 or size of smallest class)
+    origins : sequence, optional
+        if given, then objects with same origin are *not* scattered across folds
     '''
-    nfolds = (10 if nfolds is None else nfolds)
-    assert fold < nfolds, 'milk.getfold: Attempted to get fold %s out of %s' % (fold, nfolds)
-    for i,(t,s) in enumerate(foldgenerator(labels, nfolds, origins, is_ordered)):
+    if fold < nfolds:
+        raise ValueError('milk.getfold: Attempted to get fold %s out of %s' % (fold, nfolds))
+    for i,(t,s) in enumerate(foldgenerator(labels, nfolds, origins)):
         if i == fold:
             return t,s
-    assert False, 'milk.getfold: Attempted to get fold %s but the number of actual folds was too small' % fold
+    raise ValueError('milk.getfold: Attempted to get fold %s but the number of actual folds was too small (%s)' % (fold,i))
 
 def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins=None, return_predictions=False):
     '''
