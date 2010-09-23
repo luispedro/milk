@@ -1,11 +1,13 @@
 import milk.supervised.gridsearch
 import milk.supervised.svm
-import tests.data.german.german
 
 def test_gridsearch():
-    data = tests.data.german.german.load()
-    features = data['data']
-    labels = data['label']
+    from milksets import wine
+    features, labels = wine.load()
+    selected = (labels < 2)
+    features = features[selected]
+    labels = labels[selected]
+
     G = milk.supervised.gridsearch.gridsearch(
             milk.supervised.svm.svm_raw(),
             params={'C':[.01,.1,1.,10.],
