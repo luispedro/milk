@@ -1,6 +1,5 @@
 import milk.measures.nfoldcrossvalidation
 from milk.measures.nfoldcrossvalidation import nfoldcrossvalidation, foldgenerator
-import tests.data.german.german
 import milk.supervised.tree
 import numpy as np
 from fast_classifier import fast_classifier
@@ -22,13 +21,14 @@ def test_foldgenerator_not_empty():
 
 
 def test_nfoldcrossvalidation_simple():
-    data = tests.data.german.german.load()
-    features = data['data'][::2]
-    labels = data['label'][::2]
+    from milksets import wine
+    features, labels = wine.load()
+    features = features[::2]
+    labels = labels[::2]
 
     cmat,clabels = nfoldcrossvalidation(features, labels, classifier=fast_classifier())
-    assert cmat.shape == (2,2)
-    assert len(clabels) == 2
+    assert cmat.shape == (3,3)
+    assert len(clabels) == 3
 
 class test_classifier(object):
     def __init__(self,N):

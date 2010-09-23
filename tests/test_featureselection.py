@@ -1,10 +1,8 @@
 import milk.supervised.featureselection
-import tests.data.german.german
 import numpy as np
-data = tests.data.german.german.load()
-features = data['data']
-labels = data['label']
 def test_sda():
+    from milksets import wine
+    features, labels = wine.load()
     selected = milk.supervised.featureselection.sda(features,labels)
     for sel in selected:
         assert sel <= features.shape[1]
