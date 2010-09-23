@@ -6,7 +6,7 @@ Play Well With Others
 
 This is the basic principle of milk: it should play well with others. It means that its interfaces should, as much as possible, be flexible.
 
-Be Liberal With What you Accept. Be Conservative With What Your Produce.
+Be Liberal With What you Accept. Be Conservative With What Your Produce
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Don't be fussy about input parameters, but specified very careful your outputs.
@@ -16,13 +16,9 @@ Work Interactively
 
 This means that building a classifier should look like this::
 
-::
-
     classifier = milk.default_classifier(data,labels)
 
 and not like this::
-
-::
 
     classifier = milk.concattransforms(
                 milk.chkfinite(),
