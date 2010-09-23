@@ -159,7 +159,7 @@ def test_smart_rbf():
     C = milk.supervised.svm.svm_raw(C=2.,kernel=kernel)
     model = C.train(features,labels)
     dumbkernel = [model.apply(f) for f in features]
-    assert smartkernel == dumbkernel
+    np.allclose(smartkernel, dumbkernel)
 
 
 def test_preprockernel():
