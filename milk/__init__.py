@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -19,10 +20,39 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from __future__ import division
+'''
+Milk
+
+Machine learning in Python
+
+Toplevel functions
+------------------
+- nfoldcrossvalidation: n-fold crossvalidation
+- defaultclassifier: get a general purpose classifier
+- kmeans: kmeans clustering
+
+Modules
+-------
+- supervised
+- unsupervised
+- measures
+
+Example
+-------
+::
+
+    features = np.random.randn(100,20)
+    features[:50] *= 2
+    labels = np.repeat((0,1), 50)
+
+    classifier = milk.defaultclassifier()
+    model = classifier.train(features, labels)
+    new_label = model.apply(np.random.randn(100))
+    new_label2 = model.apply(np.random.randn(100)*2)
+'''
+
 from .nfoldcrossvalidation import nfoldcrossvalidation
 from .supervised.defaultclassifier import defaultclassifier
 from .unsupervised.kmeans import kmeans
 from milk_version import __version__
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:

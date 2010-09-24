@@ -19,6 +19,17 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
+'''
+milk.unsupervised
+
+Unsupervised Learning
+---------------------
+
+- kmeans: This is a highly optimised implementation of kmeans
+- PCA: Simple implementation
+- Non-negative matrix factorisation: both direct and with sparsity constraints
+'''
+
 from kmeans import kmeans,repeated_kmeans
 from gaussianmixture import *
 from pca import pca

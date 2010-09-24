@@ -5,6 +5,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   supervised
+
 Indices and tables
 ==================
 
