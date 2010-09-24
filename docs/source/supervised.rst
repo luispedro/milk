@@ -26,8 +26,8 @@ Example
     new_label = model.apply(np.random.randn(100))
     new_label2 = model.apply(np.random.randn(100)*2)
 
-Submodules
-----------
+supervised Submodules
+---------------------
 
 - defaultclassifier: contains a default "good enough" classifier
 - svm: related to SVMs
