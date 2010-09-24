@@ -12,7 +12,7 @@ random.shuffle(A)
 features = features[A]
 labels = labels[A]
 labelset = set(labels)
-base = lambda : ctransforms(milk.supervised.svm.svm_raw(C=2.,kernel=milk.supervised.svm.rbf_kernel(2.**-3)),milk.supervised.svm.svm_binary())
+base = ctransforms(milk.supervised.svm.svm_raw(C=2.,kernel=milk.supervised.svm.rbf_kernel(2.**-3)),milk.supervised.svm.svm_binary())
 
 def test_one_against_rest():
     M = milk.supervised.multi.one_against_rest(base)

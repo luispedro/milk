@@ -68,9 +68,7 @@ def defaultclassifier(mode='medium'):
             interval_normalise(),
             featureselector(linear_independent_features),
             sda_filter(),
-            gridsearch(one_against_one(
-                            lambda: svm.svm_to_binary(svm.svm_raw())
-                            ),
+            gridsearch(one_against_one(svm.svm_to_binary(svm.svm_raw())),
                         params={
                             'C': 2.**c_range,
                             'kernel': [svm.rbf_kernel(2.**i) for i in sigma_range],
@@ -113,5 +111,5 @@ def svm_simple(C, kernel):
     '''
     from . import svm
     from .multi import one_against_one
-    return one_against_one(lambda: svm.svm_to_binary(svm.svm_raw(C=C, kernel=kernel)))
+    return one_against_one(svm.svm_to_binary(svm.svm_raw(C=C, kernel=kernel)))
 

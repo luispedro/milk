@@ -22,7 +22,7 @@ def group(features, labels, step):
 
 
 def test_voting():
-    base = lambda: ctransforms(milk.supervised.svm.svm_raw(C=2.,kernel=milk.supervised.svm.rbf_kernel(2.**-3)),milk.supervised.svm.svm_binary())
+    base = ctransforms(milk.supervised.svm.svm_raw(C=2.,kernel=milk.supervised.svm.rbf_kernel(2.**-3)),milk.supervised.svm.svm_binary())
     base = milk.supervised.multi.one_against_rest(base)
     features,labels = milksets.wine.load()
     gfeatures, glabels = group(features, labels, 3)

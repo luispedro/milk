@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -31,24 +32,20 @@ class one_against_rest(object):
 
     classifier = one_against_rest(base)
 
-    base must be a callable object that provides the base classifier to use.
+    base must obey the classifier interface
 
     Example
     -------
 
     ::
 
-        multi = one_against_rest(milk.supervised.simple_svm)
+        multi = one_against_rest(milk.supervised.simple_svm())
         model = multi.train(training_features,labels)
         print model.apply(testing_features)
 
-    We are using a class as a base, but we can use any callable object:
-
-        multi = one_against_rest(lambda : milk.supervised.tree(purity_measure='gini'))
-    ...
 
     See Also
-    -------
+    --------
     one_against_one
     '''
 
@@ -65,10 +62,9 @@ class one_against_rest(object):
         nclasses = labels.max() + 1
         models  = []
         for i in xrange(nclasses):
-            s = self.base()
             for k,v in self.options.iteritems():
-                s.set_option(k, v)
-            model = s.train(features, labels == i)
+                self.base.set_option(k, v)
+            model = self.base.train(features, labels == i)
             models.append(model)
         return one_against_rest_model(models, names)
 
@@ -97,22 +93,20 @@ class one_against_one(object):
 
     classifier = one_against_one(base)
 
-    base must be a callable object that provides the base classifier to use.
+    base must obey the classifier interface
 
     Example
     -------
+    ::
 
-        multi = one_against_one(milk.supervised.simple_svm)
+        multi = one_against_one(milk.supervised.simple_svm())
         multi.train(training_features,labels)
         print multi.apply(testing_features)
 
-    We are using a class as a base, but we can use any callable object:
 
-        multi = one_against_one(lambda : milk.supervised.tree(purity_measure='gini'))
-    ...
 
     See Also
-    -------
+    --------
     one_against_rest
     '''
 
@@ -135,13 +129,12 @@ class one_against_one(object):
         models = [ [None for i in xrange(nclasses)] for j in xrange(nclasses)]
         for i in xrange(nclasses):
             for j in xrange(i+1, nclasses):
-                s = self.base()
                 for k,v in self.options.iteritems():
-                    s.set_option(k, v)
+                    self.base.set_option(k, v)
                 idxs = (labels == i) | (labels == j)
                 assert idxs.sum() > 0, 'milk.multi.one_against_one: Pair-wise classifier has no data'
                 # Fixme: here I could add a Null model or something
-                model = s.train(features[idxs],labels[idxs]==i)
+                model = self.base.train(features[idxs],labels[idxs]==i)
                 models[i][j] = model
         return one_against_one_model(models, names)
 
@@ -168,4 +161,3 @@ class one_against_one_model(object):
                     votes[j] += 1
         return self.names[votes.argmax(0)]
     
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
