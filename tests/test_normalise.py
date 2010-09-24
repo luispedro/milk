@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -61,4 +62,15 @@ def test_sample_to_2min():
     A[129:] = 2
     yield test_one, A
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
+from collections import defaultdict
+def test_sample_to_2min_list():
+    def count(xs):
+        counts = defaultdict(int)
+        for x in xs:
+            counts[x] += 1
+        return counts
+    labels = ["A"]*8 + ["B"]*12 + ["C"]*16 + ["D"] * 24 + ["E"] * 1000
+    selected = sample_to_2min(labels)
+    before = count(labels)
+    after = count(np.array(labels)[selected])
+    assert max(after.values()) == min(before.values())*2

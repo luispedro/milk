@@ -33,6 +33,7 @@ __all__ = [
     'zscore_normalise',
     'interval_normalise',
     'chkfinite',
+    'sample_to_2min',
 ]
 
 def zscore(features):
@@ -103,6 +104,7 @@ def sample_to_2min(labels):
     for n in labels:
         counts[n] += 1
 
+    labels = np.asanyarray(labels)
     max_entries = np.min(counts.values())*2
     selected = np.zeros(len(labels), bool)
     for c in counts.iterkeys():
