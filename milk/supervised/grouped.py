@@ -8,33 +8,39 @@ import numpy as np
 from collections import defaultdict
 from .classifier import normaliselabels
 
-class voting_classifier(object):
-    '''
-    Implements a voting scheme for multiple sub-examples per example.
-    
-    classifier = voting_classifier(base)
-
-    Example
-    -------
-    
-    ::
-    
-        voterlearn = voting_classifier(milk.supervised.simple_svm())
-        voter = voterlearn.train(training_groups,  labeled_groups)
-        res = voter.apply([ [f0, f1, f3] ])
-    
-    '''
-
-    def __init__(self, base):
-        self.base = base
-
-    def train(self, gfeatures, glabels):
+def _concatenate_features_labels(gfeatures, glabels):
         if type(gfeatures) == np.ndarray and gfeatures.dtype == object:
             gfeatures = list(gfeatures)
         features = np.concatenate(gfeatures)
         labels = []
         for feats,label in zip(gfeatures, glabels):
             labels.extend( [label] * len(feats) )
+        return features, labels
+
+class voting_classifier(object):
+    '''
+    Implements a voting scheme for multiple sub-examples per example.
+
+    classifier = voting_classifier(base)
+
+    base should be a binary classifier
+
+    Example
+    -------
+
+    ::
+
+        voterlearn = voting_classifier(milk.supervised.simple_svm())
+        voter = voterlearn.train(training_groups,  labeled_groups)
+        res = voter.apply([ [f0, f1, f3] ])
+
+    '''
+
+    def __init__(self, base):
+        self.base = base
+
+    def train(self, gfeatures, glabels):
+        features, labels = _concatenate_features_labels(gfeatures, glabels)
         return voting_model(self.base.train(features, labels))
 
 
@@ -53,6 +59,41 @@ class voting_model(object):
                 best = k
                 most_votes = v
         return best
+
+class mean_classifier(object):
+    '''
+    Implements a summing scheme for multiple sub-examples per example.
+
+    classifier = mean_classifier(base)
+
+    `base` should be a classifier that returns a numeric confidence value
+    `classifier` will return the **mean**
+
+    Example
+    -------
+
+    ::
+
+        sumlearner = mean_classifier(milk.supervised.raw_svm())
+        model = sumlearn.train(training_groups,  labeled_groups)
+        res = model.apply([ [f0, f1, f3] ])
+
+    '''
+
+    def __init__(self, base):
+        self.base = base
+
+    def train(self, gfeatures, glabels):
+        features, labels = _concatenate_features_labels(gfeatures, glabels)
+        return mean_model(self.base.train(features, labels))
+
+
+class mean_model(object):
+    def __init__(self, base):
+        self.base = base
+
+    def apply(self, gfeatures):
+        return np.mean([self.base.apply(feats) for feats in gfeatures])
 
 
 def remove_outliers(features, limit, min_size):

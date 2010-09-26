@@ -57,3 +57,22 @@ def test_nfoldcrossvalidation():
     assert cmat.shape == (2,2)
     assert sorted(names) == range(2)
 
+
+
+class identity_classifier(object):
+    def train(self, features, labels):
+        return identity_model()
+
+class identity_model(object):
+    def apply(self, f):
+        return f
+    
+
+def test_meanclassif():
+    gfeatures = [np.arange(10), np.arange(10)%2]
+    glabels = [0,1]
+    meanclassif = milk.supervised.grouped.mean_classifier(identity_classifier())
+    model = meanclassif.train(gfeatures, glabels)
+    assert model.apply(gfeatures[0]) == np.arange(10).mean()
+    assert model.apply(gfeatures[1]) == .5
+
