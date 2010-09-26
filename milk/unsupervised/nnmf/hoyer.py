@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +28,7 @@ from ...utils import get_nprandom
 __all__ = ['hoyer_sparse_nnmf']
 
 def _norm2(x):
-    return (x**2).sum()
+    return np.dot(x,x)
 
 def _solve_alpha(s,m,L2):
     sm = s-m
@@ -69,13 +70,34 @@ def _L1for(s,x,L2):
     sn = np.sqrt(len(x))
     return L2*s*((sn-1)-1)
 
-def sparse_nnmf(V, r, sparsenessW = None, sparsenessH = None, max_iter=10000,R=None):
+def sparse_nnmf(V, r, sparsenessW=None, sparsenessH=None, max_iter=10000, R=None):
     '''
     W,H = hoyer.sparse_nnmf(V, r, sparsenessW = None, sparsenessH = None, max_iter=10000, R=None)
 
     Implement sparse nonnegative matrix factorisation.
 
-    Reference:
+    Parameters
+    ----------
+    V : 2-D matrix
+        input feature matrix
+    r : integer
+        number of latent features
+    sparsenessW : double, optional
+        sparseness contraint on W (default: no sparsity contraint)
+    sparsenessH : double, optional
+        sparseness contraint on H (default: no sparsity contraint)
+    max_iter : integer, optional
+        maximum nr of iterations (default: 10000)
+    R : integer, optional
+        source of randomness
+
+    Returns
+    -------
+    W : 2-ndarray
+    H : 2-ndarray
+
+    Reference
+    ---------
     "Non-negative Matrix Factorisation with Sparseness Constraints"
     by Patrik Hoyer
     in Journal of Machine Learning Research 5 (2004) 1457--1469
@@ -118,4 +140,3 @@ def sparse_nnmf(V, r, sparsenessW = None, sparsenessH = None, max_iter=10000,R=N
             H *= updateH
     return W,H
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
