@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -30,19 +31,30 @@ __all__ = [
 
 def get_nprandom(R):
     '''
-    R = get_nprandom(R)
+    R' = get_nprandom(R)
 
     Returns a numpy.RandomState from R
-    @param R can be one of:
-        * None          : Returns the default numpy global state
-        * integer       : Uses it as a seed for constructing a new random generator
-        * RandomState   : returns R
+
+    Parameters
+    ----------
+    R : can be one of:
+        None          : Returns the default numpy global state
+        integer       : Uses it as a seed for constructing a new random generator
+        RandomState   : returns R
+
+    Returns
+    -------
+    R' : np.RandomState
     '''
     if R is None:
         return np.random.mtrand._rand
     if type(R) == int:
         return np.random.RandomState(R)
-    return R
+    if type(R) is random.Random:
+        return np.random.RandomState(R.randint(0, 2**30))
+    if type(R) is np.random.RandomState:
+        return R
+    raise TypeError,"get_nprandom() does not know how to handle type %s." % type(R)
 
 def get_pyrandom(R):
     '''
@@ -50,10 +62,16 @@ def get_pyrandom(R):
 
     Returns a random.Random object based on R
 
-    @param R can be one of:
-        * None          : Returns the default python Random object
-        * integer       : Uses it as seed for constructing a new random generator
-        * RandomState   : Uses it as to generate a seed for a new random generator
+    Parameters
+    ----------
+    R : can be one of:
+        None          : Returns the default numpy global state
+        integer       : Uses it as a seed for constructing a new random generator
+        RandomState   : returns R
+
+    Returns
+    -------
+    R' : random.Random
     '''
     if R is None:
         return random
@@ -61,7 +79,8 @@ def get_pyrandom(R):
         return random.Random(R)
     if type(R) is np.random.RandomState:
         return random.Random(R.randint(2**30))
+    if type(R) is random.Random:
+        return R
     raise TypeError,"get_pyrandom() does not know how to handle type %s." % type(R)
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 
