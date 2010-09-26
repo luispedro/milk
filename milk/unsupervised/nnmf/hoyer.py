@@ -27,16 +27,20 @@ from ...utils import get_nprandom
 
 __all__ = ['hoyer_sparse_nnmf']
 
-def _norm2(x):
-    return np.dot(x,x)
+
+def sp(s):
+    L2 = np.sqrt(np.dot(s,s))
+    L1 = np.abs(s).sum()
+    sn = np.sqrt(len(s))
+    return (sn-L1/L2)/(sn-1)
 
 def _solve_alpha(s,m,L2):
     sm = s-m
-    s2 = _norm2(s)
-    sm2 = _norm2(sm)
-    m2 = _norm2(m)
-    dot = (m*sm).sum()
-    alpha = (-dot + np.sqrt(dot**2 - sm2*(m2-L2)))/sm2
+    s2 = np.dot(s,s)
+    sm2 = np.dot(sm, sm)
+    m2 = np.dot(m, m)
+    dot = np.dot(m, sm)
+    alpha = (-dot + np.sqrt(dot**2 - sm2*(m2-L2**2)))/sm2
     return alpha
 
 def _project(x,L1,L2):
@@ -57,18 +61,17 @@ def _project(x,L1,L2):
             return s
         Z |= negs
         s[Z] = 0
-        c = (s.sum() - L1)/(n-Z.sum())
-        s = s - c*(~Z)
+        c = (s.sum() - L1)/(~Z).sum()
+        s -= c*(~Z)
 
 def _L1for(s,x,L2):
     '''
     Solve for L1 in
 
-    s = [ sqrt(n) - L1/sqrt(L2)] / [sqrt(n) - 1]
+    s = [ sqrt(n) - L1/L2] / [sqrt(n) - 1]
     '''
-    L2 = np.sqrt(L2)
     sn = np.sqrt(len(x))
-    return L2*s*((sn-1)-1)
+    return L2*(s+sn-s*sn)
 
 def sparse_nnmf(V, r, sparsenessW=None, sparsenessH=None, max_iter=10000, R=None):
     '''
@@ -111,17 +114,16 @@ def sparse_nnmf(V, r, sparsenessW=None, sparsenessH=None, max_iter=10000, R=None
     W = R.standard_normal((n,r))**2
     H = R.standard_normal((r,m))**2
 
-    def fixW():
+    def fix(X):
         for i in xrange(r):
-            col = W[:,i]
-            L2 = _norm2(col)
-            W[:,i] = _project(col,_L1for(sparsenessW,col,L2),L2)
+            row = X[i]
+            L2 = np.sqrt(np.dot(row, row))
+            X[i] = _project(row, _L1for(sparsenessH, row, L2), L2)
 
+    def fixW():
+        fix(W.T)
     def fixH():
-        for i in xrange(r):
-            row = H[i,:]
-            L2 = _norm2(row)
-            H[i,:] = _project(row,_L1for(sparsenessH,col,L2),L2)
+        fix(H)
 
     if sparsenessW is not None: fixW()
     if sparsenessH is not None: fixH()
