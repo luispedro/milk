@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -33,15 +34,30 @@ def nnmf(V, r, cost='norm2', max_iter=int(1e4), tol=1e-8, R=None):
 
     Implement Lee & Seung's algorithm
 
-    @param cost can be one of:
-        'norm2' : minimise || X - AS ||_2
+    Parameters
+    ----------
+    V : 2-ndarray
+        input matrix
+    r : integer
+        nr of latent features
+    cost : one of:
+        'norm2' : minimise || X - AS ||_2 (default)
         'i-div' : minimise D(X||AS), where D is I-divergence (generalisation of K-L divergence)
+    max_iter : integer, optional
+        maximum number of iterations (default: 10000)
+    tol : double
+        tolerance threshold for early exit (when the update factor is with tol
+        of 1., the function exits)
+    R : integer, optional
+        random seed
 
-    @param max_iter Maximum number of iterations
-    @param tol tolerance Threshold for early exit (when the update factor is with tol of 1., the function exits)
-    @param R random seed @see get_nprandom
+    Returns
+    -------
+    A : 2-ndarray
+    S : 2-ndarray
 
-    Reference:
+    Reference
+    ---------
     "Algorithms for Non-negative Matrix Factorization"
     by Daniel D Lee, Sebastian H Seung
     (available at http://citeseer.ist.psu.edu/lee01algorithms.html)
@@ -66,4 +82,3 @@ def nnmf(V, r, cost='norm2', max_iter=int(1e4), tol=1e-8, R=None):
                 break
     return W,H
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
