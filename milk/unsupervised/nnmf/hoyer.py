@@ -114,16 +114,17 @@ def sparse_nnmf(V, r, sparsenessW=None, sparsenessH=None, max_iter=10000, R=None
     W = R.standard_normal((n,r))**2
     H = R.standard_normal((r,m))**2
 
-    def fix(X):
+    def fix(X, sparseness):
         for i in xrange(r):
             row = X[i]
             L2 = np.sqrt(np.dot(row, row))
-            X[i] = _project(row, _L1for(sparsenessH, row, L2), L2)
+            row /= L2
+            X[i] = _project(row, _L1for(sparseness, row, 1.), 1.)
 
     def fixW():
-        fix(W.T)
+        fix(W.T, sparsenessW)
     def fixH():
-        fix(H)
+        fix(H, sparsenessH)
 
     if sparsenessW is not None: fixW()
     if sparsenessH is not None: fixH()

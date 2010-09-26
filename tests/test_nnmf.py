@@ -14,6 +14,7 @@ def test_nnmf():
     yield test3, milk.unsupervised.sparse_nnmf
 
 def test_sparse_nnmf():
+    # This is really just a smoke test because the test case is not sparse!!
     from milk.unsupervised import sparse_nnmf
     np.random.seed(8)
     X3 = np.random.rand(20,3)
@@ -23,7 +24,8 @@ def test_sparse_nnmf():
     W,V = sparse_nnmf(X, 3, sparsenessW=.7, sparsenessH=.7, R=7)
     assert not np.any(np.isnan(W))
     assert not np.any(np.isnan(V))
-    assert np.sum((np.dot(W,V)-X)**2)/np.sum(X**2) < .5
+    error = np.dot(W,V)-X
+    assert error.var() < X.var()
 
 
 
