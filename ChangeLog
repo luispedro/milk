@@ -1,3 +1,8 @@
+Version 0.3.1 2010-09-25
+	* fix sparse non-negative matrix factorisation
+	* mean grouped classifier
+	* update multi classifier to newer interface
+
 Version 0.3 2010-09-23
 	* no scipy.weave dependency
 	* flatter namespace
