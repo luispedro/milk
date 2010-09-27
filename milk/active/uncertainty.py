@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -37,9 +38,9 @@ Functions
 from __future__ import division
 import numpy
 
-def entropy(classifier, pool):
+def entropy(model, pool):
     '''
-    entropies = entropy(classifier,pool)
+    entropies = entropy(model, pool)
 
     Returns the entropy of each classification output for
     members in the pool.
@@ -50,11 +51,11 @@ def entropy(classifier, pool):
             if p > 1e-9:
                 H += p * np.log(p)
         return H
-    return [_entropy(classifier.apply(u)) for u in pool]
+    return [_entropy(model.apply(u)) for u in pool]
 
-def one_minus_max(classifier,pool):
+def one_minus_max(model,pool):
     '''
-    oneminus = one_minus_max(classifier,pool)
+    oneminus = one_minus_max(model,pool)
 
     oneminus[i] = 1 - max_L { P(pool_i == L) }
 
@@ -62,7 +63,6 @@ def one_minus_max(classifier,pool):
     '''
     def _minus1(labels, ps):
         return 1. - np.max(ps)
-    return [_minus1(classifier.apply(u)) for u in pool]
+    return [_minus1(model.apply(u)) for u in pool]
 
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
