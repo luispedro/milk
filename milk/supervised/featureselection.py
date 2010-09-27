@@ -22,7 +22,6 @@
 from __future__ import division
 import numpy as np
 from numpy.linalg import det
-import scipy.stats
 from . classifier import normaliselabels
 
 _TOLERANCE = 0
@@ -43,7 +42,7 @@ def _sweep(A, k, flag):
     B[k,k] = -1./Akk
     return B
 
-def sda(features,labels):
+def sda(features, labels, tolerance=None, significance_in=None, significance_out=None):
     '''
     features_idx = sda(features,labels)
 
@@ -57,6 +56,14 @@ def sda(features,labels):
     both in Statistical Methods for Digital Computers, eds.
     K. Enslein, A. Ralston, and H. Wilf, New York; John Wiley & Sons, Inc.
     '''
+    import scipy.stats
+
+    if tolerance is None:
+        tolerance = _TOLERANCE
+    if significance_in is None:
+        significance_in = _SIGNIFICANCE_IN
+    if significance_out is None:
+        significance_out = _SIGNIFICANCE_OUT
 
     assert len(features) == len(labels), 'milk.supervised.featureselection.sda: length of features not the same as length of labels'
     N, m = features.shape
@@ -90,7 +97,7 @@ def sda(features,labels):
             Fremove = (N-p-q+1)/(q-1)*(V_m-1)
             df2 = N-p-q+1
             PrF = 1 - scipy.stats.f.cdf(Fremove,df1,df2)
-            if PrF > _SIGNIFICANCE_OUT:
+            if PrF > significance_out:
                 #print 'removing ',k, 'V(k)', 1./V_m, 'Fremove', Fremove, 'df1', df1, 'df2', df2, 'PrF', PrF
                 if k == last_enter_k:
                     # We are going into an infinite loop.
@@ -100,7 +107,7 @@ def sda(features,labels):
                 W = _sweep(W,k,1)
                 T = _sweep(T,k,1)
                 continue
-        ks = ( (W_d / D) > _TOLERANCE)
+        ks = ( (W_d / D) > tolerance)
         if ks.any():
             V_m = V[ks].min()
             k, = np.where(V==V_m)
@@ -108,7 +115,7 @@ def sda(features,labels):
             Fenter = (N-p-q)/(q-1) * (1-V_m)/V_m
             df2 = N-p-q
             PrF = 1 - scipy.stats.f.cdf(Fenter,df1,df2)
-            if PrF < _SIGNIFICANCE_IN:
+            if PrF < significance_in:
                 #print 'adding ',k, 'V(k)', 1./V_m, 'Fenter', Fenter, 'df1', df1, 'df2', df2, 'PrF', PrF
                 W = _sweep(W,k,-1)
                 T = _sweep(T,k,-1)
