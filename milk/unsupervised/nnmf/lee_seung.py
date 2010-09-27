@@ -24,7 +24,6 @@ from __future__ import division
 import numpy as np
 from numpy import dot
 from ...utils import get_nprandom
-import scipy
 
 __all__ = ['nnmf']
 

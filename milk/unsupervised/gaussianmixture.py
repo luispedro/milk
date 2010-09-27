@@ -25,7 +25,6 @@ import numpy as np
 from numpy import log, pi, array
 from numpy.linalg import det, inv
 from kmeans import residual_sum_squares, centroid_errors
-import scipy
 
 __all__ = ['BIC','AIC','log_likelihood','nr_parameters']
 

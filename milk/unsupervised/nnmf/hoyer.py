@@ -22,7 +22,6 @@
 
 from __future__ import division
 import numpy as np
-import scipy
 from ...utils import get_nprandom
 
 __all__ = ['hoyer_sparse_nnmf']
