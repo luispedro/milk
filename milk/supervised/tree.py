@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +32,6 @@ Decision tree based classifier
 from __future__ import division
 import numpy as np
 from collections import defaultdict
-import scipy.stats
 
 class _Leaf(object):
     def __init__(self, v, s):
@@ -56,10 +56,11 @@ def _split(features, labels, criterion):
 
 
 def _entropy_set(labels):
+    from scipy.stats import entropy
     counts = defaultdict(float)
     for l in counts:
         counts[l] += 1.
-    return scipy.stats.entropy(counts.values())
+    return entropy(counts.values())
 
 
 def information_gain(*args,**kwargs):
@@ -162,4 +163,3 @@ class tree_model(object):
             return value > .5
         return value
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
