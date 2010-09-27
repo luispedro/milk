@@ -22,14 +22,15 @@
 
 from __future__ import division
 import numpy as np
+from numpy import linalg
+
 from ..utils import get_pyrandom
 from .normalise import zscore
-import numpy as np
 
 __all__ = ['kmeans','repeated_kmeans']
 
 
-def _mahalabonis2(fmatrix, x, icov):
+def _mahalanobis2(fmatrix, x, icov):
     diff = fmatrix-x
     # The expression below seems to be faster than looping over the elements and summing
     return np.dot(diff, np.dot(icov, diff.T)).diagonal()
@@ -121,10 +122,10 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
         if icov is None:
             covmat = kwargs.get('covmat', None)
             if covmat is None:
-                covmat = cov(fmatrix.T)
+                covmat = np.cov(fmatrix.T)
             icov = linalg.inv(covmat)
         def distfunction(fmatrix, cs):
-            return np.array([_mahalabonis2(fmatrix, c, icov) for c in cs])
+            return np.array([_mahalanobis2(fmatrix, c, icov) for c in cs]).T
     else:
         raise ValueError('Distance argument unknown (%s)' % distance)
     R = get_pyrandom(R)
