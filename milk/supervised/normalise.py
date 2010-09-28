@@ -22,11 +22,6 @@
 from __future__ import division
 from collections import defaultdict
 import numpy as np
-try:
-    import ncreduce
-    _std = ncreduce.std
-except:
-    _std = np.std
 
 __all__ = [
     'zscore',
@@ -43,7 +38,7 @@ def zscore(features):
     Returns a copy of features which has been normalised to zscores 
     """
     mu = features.mean(0)
-    sigma = _std(features,0)
+    sigma = np.std(features,0)
     sigma[sigma == 0] = 1
     return (features - mu) / sigma
 
@@ -66,7 +61,7 @@ class zscore_normalise(object):
 
     def train(self,features,labels):
         shift = features.mean(0)
-        factor = _std(features,0)
+        factor = np.std(features,0)
         return subtract_divide_model(shift, factor)
 
 class interval_normalise(object):
