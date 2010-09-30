@@ -34,7 +34,8 @@ from numpy.distutils.core import setup, Extension
 execfile('milk/milk_version.py')
 
 svm_ext = Extension('milk.supervised._svm', sources = ['milk/supervised/_svm.cpp'])
-ext_modules = [svm_ext]
+som_ext = Extension('milk.unsupervised._som', sources = ['milk/unsupervised/_som.cpp'])
+ext_modules = [svm_ext, som_ext]
 
 packages = filter(lambda p: p.startswith('milk'), setuptools.find_packages())
 

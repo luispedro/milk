@@ -1,5 +1,6 @@
 *.pyc
 milk/supervised/_svm.so
+milk/unsupervised/_som.so
 build
 dist/
 milk.egg-info
