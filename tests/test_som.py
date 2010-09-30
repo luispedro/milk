@@ -5,7 +5,7 @@ import milk.unsupervised.som
 
 def test_som():
     data = np.arange(100000, dtype=np.float32)
-    grid = np.array([data.flat[np.random.randint(0, data.size)] for i in xrange(64*64)]).reshape((64,64,1))
+    grid = np.array([data.flat[np.random.randint(0, data.size)] for i in xrange(64*64)]).reshape((64,64))
     points = data[:100].copy().astype(np.float32).reshape((-1,1))
     grid2 = grid.copy()
     milk.unsupervised.som.putpoints(grid, points, L=0., R=1)

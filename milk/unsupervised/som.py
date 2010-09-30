@@ -16,8 +16,12 @@ def putpoints(grid, points, L=.2, iterations=1, R=None, radius=None):
         raise TypeError("milk.unsupervised.som: L should be floating point")
     if type(radius) != int:
         raise TypeError("milk.unsupervised.som: radius should be an integer")
-    grid = grid.astype(np.float32)
-    points = points.astype(np.float32)
+    if grid.dtype != np.float32:
+        raise TypeError('milk.unsupervised.som: only float32 arrays are accepted')
+    if points.dtype != np.float32:
+        raise TypeError('milk.unsupervised.som: only float32 arrays are accepted')
+    if len(grid.shape) == 2:
+        grid = grid.reshape(grid.shape+(1,))
     random = get_pyrandom(R)
     for i in xrange(iterations):
         random.shuffle(points)
