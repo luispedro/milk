@@ -31,6 +31,11 @@ class multi_view_classifier(object):
         features = zip(*features)
         if len(features) != len(self.bases):
             raise ValueError('milk.supervised.two_view: Nr of features does not match classifiser construction (got %s, expected %s)' % (len(features) ,len(self.bases)))
-        return multi_view_model([
-                    basis.train(f, labels) for basis,f in zip(self.bases, features)
-                    ])
+        models = []
+        for basis,f in zip(self.bases, features):
+            try:
+                f = np.array(f)
+            except:
+                f = np.array(f, dtype=object)
+            models.append(basis.train(f, labels))
+        return multi_view_model(models)
