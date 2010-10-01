@@ -35,3 +35,4 @@ from gaussianmixture import *
 from pca import pca
 from nnmf import *
 from pdist import pdist, plike
+from .som import som

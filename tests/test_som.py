@@ -1,6 +1,7 @@
 import numpy as np
 import random
-import milk.unsupervised.som
+from milk.unsupervised import som
+from milk.unsupervised.som import putpoints
 
 
 def _slow_putpoints(grid, points, L=.2):
@@ -31,15 +32,15 @@ def test_putpoints():
     grid, points = data_grid()
     points = points[:100]
     grid2 = grid.copy()
-    milk.unsupervised.som.putpoints(grid, points, L=0., R=1)
+    putpoints(grid, points, L=0., R=1)
     assert np.all(grid == grid2)
-    milk.unsupervised.som.putpoints(grid, points, L=.5, R=1)
+    putpoints(grid, points, L=.5, R=1)
     assert not np.all(grid == grid2)
 
 def test_against_slow():
     grid, points = data_grid()
     grid2 = grid.copy()
-    milk.unsupervised.som.putpoints(grid, points[:10], shuffle=False)
+    putpoints(grid, points[:10], shuffle=False)
     _slow_putpoints(grid2.reshape((64,64)), points[:10])
     assert np.allclose(grid, grid2)
 
@@ -49,7 +50,7 @@ def test_som():
     np.random.seed(2)
     data = np.array([np.arange(N), N/4.*np.random.randn(N)])
     data = data.transpose().copy()
-    grid = milk.unsupervised.som.som(data, (8,8), iterations=3, R=4)
+    grid = som(data, (8,8), iterations=3, R=4)
     assert grid.shape == (8,8,2)
 
     grid2 = grid.copy()
