@@ -286,6 +286,8 @@ def learn_sigmoid_constants(F,Y,
     Machine Learning, Vol. 68, No. 3. (23 October 2007), pp. 267-276
     '''
     # the deci[i] array is called F[i] in this code
+    F = np.asanyarray(F)
+    Y = np.asanyarray(Y)
     assert len(F) == len(Y)
     assert numpy.all( (Y == 1) | (Y == 0) )
     from numpy import log, exp
