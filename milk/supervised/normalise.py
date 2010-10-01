@@ -79,6 +79,9 @@ class interval_normalise(object):
         factor = D/2.
         return subtract_divide_model(shift, factor)
 
+    def __repr__(self):
+        return 'interval_normalise()'
+
 
 def sample_to_2min(labels):
     '''
