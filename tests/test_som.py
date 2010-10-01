@@ -27,7 +27,7 @@ def data_grid():
     data = data.reshape((-1,1))
     return grid, data
 
-def test_som():
+def test_putpoints():
     grid, points = data_grid()
     points = points[:100]
     grid2 = grid.copy()
@@ -42,3 +42,20 @@ def test_against_slow():
     milk.unsupervised.som.putpoints(grid, points[:10], shuffle=False)
     _slow_putpoints(grid2.reshape((64,64)), points[:10])
     assert np.allclose(grid, grid2)
+
+
+def test_som():
+    N = 10000
+    np.random.seed(2)
+    data = np.array([np.arange(N), N/4.*np.random.randn(N)])
+    data = data.transpose().copy()
+    grid = milk.unsupervised.som.som(data, (8,8), iterations=3, R=4)
+    assert grid.shape == (8,8,2)
+
+    grid2 = grid.copy()
+    np.random.shuffle(grid2)
+    full = np.abs(np.diff(grid2[:,:,0], axis=0)).mean()
+    obs = np.abs(np.diff(grid[:,:,0], axis=0)).mean()
+    obs2 = np.abs(np.diff(grid[:,:,0], axis=1)).mean()
+    assert obs + 4*np.abs(obs-obs2) < full
+

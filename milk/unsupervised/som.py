@@ -49,3 +49,36 @@ def putpoints(grid, points, L=.2, radius=4, iterations=1, shuffle=True, R=None):
         if shuffle:
             random.shuffle(points)
         _som.putpoints(grid, points, L, radius)
+
+def som(data, shape, iterations=1000, L=.2, radius=4, R=None):
+    '''
+    grid = som(data, shape, iterations=1000, L=.2, radius=4, R=None):
+
+    Self-organising maps
+
+    Parameters
+    ----------
+    points : ndarray
+        data to feed to array
+    shape : tuple
+        Desired shape of output. Must be 2-dimensional.
+    L : float, optional
+        How much to influence neighbouring points (default: .2)
+    radius : integer, optional
+        Maximum radius of influence (in L_1 distance, default: 4)
+    iterations : integer, optional
+        Number of iterations
+    R : source of randomness
+
+    Returns
+    -------
+    grid : ndarray
+        Map
+    '''
+    R = get_pyrandom(R)
+    d = data.shape[1]
+    if data.dtype != np.float32:
+        data = data.astype(np.float32)
+    grid = np.array(R.sample(data, np.product(shape))).reshape(shape + (d,))
+    putpoints(grid, data, L=L, radius=radius, iterations=iterations, shuffle=True, R=R)
+    return grid
