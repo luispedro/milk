@@ -54,7 +54,7 @@ class subtract_divide_model(object):
         return (features - self.shift)/self.factor
 
     def __repr__(self):
-        return 'subtract_divide_model(%s, %s)' % (self.shift, self.model)
+        return 'subtract_divide_model(%s, %s)' % (self.shift, self.factor)
 
 class zscore_normalise(object):
     '''
