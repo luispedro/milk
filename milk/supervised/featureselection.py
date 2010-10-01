@@ -181,6 +181,9 @@ class featureselector(object):
         idxs = self.selector(features, labels)
         return filterfeatures(idxs)
 
+    def __repr__(self):
+        return 'featureselector(%s)' % self.selector
+
 def sda_filter():
     return featureselector(sda)
 

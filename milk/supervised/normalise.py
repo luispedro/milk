@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -51,6 +52,9 @@ class subtract_divide_model(object):
 
     def apply(self, features):
         return (features - self.shift)/self.factor
+
+    def __repr__(self):
+        return 'subtract_divide_model(%s, %s)' % (self.shift, self.model)
 
 class zscore_normalise(object):
     '''
@@ -129,5 +133,6 @@ class chkfinite(object):
             features[nans] = 0
         return features
 
+    def __repr__(self):
+        return 'chkfinite()'
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
