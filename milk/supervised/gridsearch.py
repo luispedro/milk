@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
-# 
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
 #  in the Software without restriction, including without limitation the rights
 #  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 #  copies of the Software, and to permit persons to whom the Software is
 #  furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 #  all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 #  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 #  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,23 +22,63 @@
 
 from __future__ import division
 import numpy as np
-from ..measures.nfoldcrossvalidation import nfoldcrossvalidation
 
-def _allassignments(D):
-    def allassignmentslist(L):
-        if len(L) == 0:
-            yield []
-            return
-        key0,vals0 = L[0]
-        for v in vals0:
-            for rest in allassignmentslist(L[1:]):
-                yield [(key0,v)]+rest
-    for A in allassignmentslist(list(D.items())):
-        yield A
+def _allassignments(options):
+    try:
+        from itertools import product
+    except ImportError:
+        def product(*args, **kwds):
+            # from http://docs.python.org/library/itertools.html#itertools.product
+            pools = map(tuple, args) * kwds.get('repeat', 1)
+            result = [[]]
+            for pool in pools:
+                result = [x+[y] for x in result for y in pool]
+            for prod in result:
+                yield tuple(prod)
+    from itertools import repeat, izip
+    for ks,vs in izip(repeat(options.keys()), product(*options.values())):
+        yield izip(ks,vs)
 
 def _set_assignment(obj,assignments):
     for k,v in assignments:
         obj.set_option(k,v)
+
+def gridmaximise(learner, features, labels, params, measure=None, initial_value=-1):
+    '''
+    best = gridmaximise(learner, features, labels, params, measure={accuracy} initial_value=-1)
+
+    Grid search for the settings of parameters that maximises a given measure
+
+    Parameters
+    ----------
+    learner : a classifier object
+    features : sequence of features
+    labels : sequence of labels
+    params : dictionary of sequences
+        keys are the options to change,
+        values are sequences of corresponding elements to try
+    measure : function, optional
+        This function should take a confusion matrix and return a measure of how good it is.
+        By default, measure accuracy
+    initial_value : any, optional
+
+    Returns
+    -------
+    best : a sequence of assignments
+    '''
+    from ..measures.nfoldcrossvalidation import nfoldcrossvalidation
+
+    best_val = initial_value
+    best = None
+    for assignement in _allassignments(params):
+        _set_assignment(learner, assignement)
+        S,_ = nfoldcrossvalidation(features, labels, classifier=learner)
+        cur = measure(S)
+        if cur > best_val:
+            best = assignement
+            best_val = cur
+    return best
+
 
 class gridsearch(object):
     '''
@@ -76,17 +117,7 @@ class gridsearch(object):
         return self.base.is_multi_class()
 
     def train(self,features,labels):
-        best_val = -1
-        for assignement in _allassignments(self.params):
-            _set_assignment(self.base, assignement)
-            #print 'gridsearch:', assignement
-            S,_ = nfoldcrossvalidation(features, labels, classifier=self.base)
-            cur = self.measure(S)
-            if cur > best_val:
-                self.best = assignement
-                best_val = cur
+        self.best = gridmaximise(self.base, features, labels, self.params, self.measure)
         _set_assignment(self.base, self.best)
         return self.base.train(features, labels)
 
-
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
