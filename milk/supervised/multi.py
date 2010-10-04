@@ -138,6 +138,7 @@ class one_against_one(object):
                 models[i][j] = model
         return one_against_one_model(models, names)
 
+
 class one_against_one_model(object):
     def __init__(self, models, names):
         self.models = models
@@ -160,4 +161,34 @@ class one_against_one_model(object):
                 else:
                     votes[j] += 1
         return self.names[votes.argmax(0)]
-    
+
+class one_against_rest_multi_model(object):
+    def __init__(self, models):
+        self.models = models
+
+    def apply(self, feats):
+        return [lab for lab,model in self.models.iteritems() if model.apply(feats)]
+
+class one_against_rest_multi(object):
+    '''
+    learner = one_against_rest_multi()
+    model = learner.train(features, labels)
+    classes = model.apply(f_test)
+    '''
+
+    def __init__(self, base):
+        self.base = base
+        self.set_option = base.set_option
+
+    def train(self, features, labels):
+        '''
+        '''
+        import operator
+        all_labels = set()
+        for ls in labels:
+            all_labels.update(ls)
+        models = {}
+        for label in all_labels:
+            models[label] = self.base.train(features, [(label in ls) for ls in labels])
+        return one_against_rest_multi_model(models)
+

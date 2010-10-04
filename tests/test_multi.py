@@ -41,3 +41,13 @@ def test_two_thirds():
     Y_ = np.array([model.apply(x) for x in X])
     assert (Y_ == Y).mean() * 3 > 2
 
+def test_multi_labels():
+    clabels = [[lab, lab+7] for lab in labels]
+    multi_label = milk.supervised.multi.one_against_rest_multi(base)
+    model = multi_label.train(features[::2], clabels[::2])
+    test_vals = [model.apply(f) for f in features[1::2]]
+    for ts in test_vals:
+        if 0.0 in ts: assert 7.0 in ts
+        if 1.0 in ts: assert 8.0 in ts
+        if 2.0 in ts: assert 9.0 in ts
+
