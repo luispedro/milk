@@ -265,22 +265,20 @@ def learn_sigmoid_constants(F,Y,
 
     This is a very low-level interface look into the svm_classifier class.
 
-    Major Arguments
-    ---------------
+    Parameters
+    ----------
+    F : Values of the function F
+    Y : Labels (in boolean format, ie, in (0,1))
 
-    * F: Values of the function F
-    * Y: Labels (in boolean format, ie, in (0,1))
+    Other Parameters
+    ----------------
+    max_iters : Maximum nr. of iterations
+    min_step :  Minimum step
+    sigma :     sigma
+    eps :       A small number
 
-    Minor Arguments
-    ---------------
-
-    * max_iters: Maximum nr. of iterations
-    * min_step:  Minimum step
-    * sigma:     sigma
-    * eps:       A small number
-
-    REFERENCE
-    ---------
+    Reference for Implementation
+    ----------------------------
     Implements the algorithm from "A Note on Platt's Probabilistic Outputs for
     Support Vector Machines" by Lin, Lin, and Weng.
     Machine Learning, Vol. 68, No. 3. (23 October 2007), pp. 267-276
