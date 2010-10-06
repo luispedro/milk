@@ -23,7 +23,6 @@
 from __future__ import division
 from .classifier import normaliselabels
 import numpy as np
-import random
 
 class one_against_rest(object):
     '''
@@ -76,13 +75,13 @@ class one_against_rest_model(object):
 
     def apply(self, feats):
         vals = np.array([c.apply(feats) for c in self.models])
-        idxs, = np.where(vals == 1)
+        (idxs,) = np.where(vals)
         if len(idxs) == 1:
-            label = idxs[0]
+            (label,) = idxs
         elif len(idxs) == 0:
-            label = random.randint(0, self.nclasses - 1)
+            label = 0
         else:
-            label = random.choice(idxs)
+            label = idxs[0]
         return self.names[label]
 
 
@@ -125,6 +124,7 @@ class one_against_one(object):
         one_against_one.train(objs,labels)
         '''
         labels, names = normaliselabels(labels)
+        features = np.asanyarray(features)
         nclasses = labels.max() + 1
         models = [ [None for i in xrange(nclasses)] for j in xrange(nclasses)]
         for i in xrange(nclasses):
