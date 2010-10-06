@@ -62,7 +62,7 @@ class voting_model(object):
 
 class mean_classifier(object):
     '''
-    Implements a summing scheme for multiple sub-examples per example.
+    Implements a mean scheme for multiple sub-examples per example.
 
     classifier = mean_classifier(base)
 
@@ -74,8 +74,8 @@ class mean_classifier(object):
 
     ::
 
-        sumlearner = mean_classifier(milk.supervised.raw_svm())
-        model = sumlearn.train(training_groups,  labeled_groups)
+        meanlearner = mean_classifier(milk.supervised.raw_svm())
+        model = meanlearner.train(training_groups,  labeled_groups)
         res = model.apply([ [f0, f1, f3] ])
 
     '''
