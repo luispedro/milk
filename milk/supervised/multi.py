@@ -178,7 +178,8 @@ class one_against_rest_multi(object):
 
     def __init__(self, base):
         self.base = base
-        self.set_option = base.set_option
+        if hasattr(base, 'set_option'):
+            self.set_option = base.set_option
 
     def train(self, features, labels):
         '''

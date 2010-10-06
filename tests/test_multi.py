@@ -3,6 +3,7 @@ import random
 import milk.supervised.svm
 import milk.supervised.multi
 from milk.supervised.classifier import ctransforms
+from fast_classifier import fast_classifier
 
 import milksets.wine
 features,labels = milksets.wine.load()
@@ -30,7 +31,7 @@ def test_one_against_one():
 
 def test_two_thirds():
     np.random.seed(2345)
-    C = milk.supervised.defaultclassifier()
+    C = milk.supervised.defaultclassifier('fast')
     X = np.random.rand(120,4)
     X[:40] += np.random.rand(40,4)
     X[:40] += np.random.rand(40,4)
@@ -50,4 +51,11 @@ def test_multi_labels():
         if 0.0 in ts: assert 7.0 in ts
         if 1.0 in ts: assert 8.0 in ts
         if 2.0 in ts: assert 9.0 in ts
+
+
+def test_classifier_no_set_options():
+    # Basically these should not raise an exception
+    milk.supervised.multi.one_against_rest_multi(fast_classifier())
+    milk.supervised.multi.one_against_rest(fast_classifier())
+    milk.supervised.multi.one_against_one(fast_classifier())
 
