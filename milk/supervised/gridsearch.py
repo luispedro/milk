@@ -67,6 +67,8 @@ def gridmaximise(learner, features, labels, params, measure=None, initial_value=
     best : a sequence of assignments
     '''
     from ..measures.nfoldcrossvalidation import nfoldcrossvalidation
+    if measure is None:
+        measure = np.trace
 
     best_val = initial_value
     best = None
@@ -109,8 +111,6 @@ class gridsearch(object):
         self.params = params
         self.base = base
         self.best = None
-        if measure is None:
-            measure = np.trace
         self.measure = measure
 
     def is_multi_class(self):
