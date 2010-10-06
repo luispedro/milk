@@ -37,11 +37,12 @@ def test_interval_normalise():
 def test_zscore_normalise():
     I=milk.supervised.normalise.zscore_normalise()
     numpy.random.seed(1234)
-    features=numpy.random.rand(20,100)
-    L=numpy.zeros(100)
-    I = I.train(features,L)
-    assert numpy.all( I.apply(features).mean(0)**2 < 1e-7 )
-    assert numpy.all( I.apply(features).std(0) - 1 < 1e-3 )
+    features = numpy.random.rand(20,100)
+    L = numpy.zeros(100)
+    model = I.train(features, L)
+    transformed = np.array([model.apply(f) for f in features])
+    assert np.all( transformed.mean(0)**2 < 1e-7 )
+    assert np.all( np.abs(transformed.std(0) - 1) < 1e-3 )
 
         
 def test_sample_to_2min():
@@ -62,8 +63,8 @@ def test_sample_to_2min():
     A[129:] = 2
     yield test_one, A
 
-from collections import defaultdict
 def test_sample_to_2min_list():
+    from collections import defaultdict
     def count(xs):
         counts = defaultdict(int)
         for x in xs:
