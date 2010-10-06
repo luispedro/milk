@@ -37,7 +37,7 @@ def _allassignments(options):
                 yield tuple(prod)
     from itertools import repeat, izip
     for ks,vs in izip(repeat(options.keys()), product(*options.values())):
-        yield izip(ks,vs)
+        yield zip(ks,vs)
 
 def _set_assignment(obj,assignments):
     for k,v in assignments:

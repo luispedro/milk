@@ -1,5 +1,7 @@
 import milk.supervised.gridsearch
 import milk.supervised.svm
+import milk.supervised.gridsearch
+import numpy as np
 
 def test_gridsearch():
     from milksets import wine
@@ -21,4 +23,13 @@ test_gridsearch.slow = True
 
 def test_all_assignements():
     assert len(list(milk.supervised.gridsearch._allassignments({'C': [0,1], 'kernel' : ['a','b','c']}))) == 2 * 3
+
+
+
+def test_gridmaximise():
+    from milksets.wine import load
+    features, labels = load()
+    x = milk.supervised.gridsearch.gridmaximise(milk.supervised.svm_simple(kernel=np.dot, C=2.), features[::2], labels[::2] == 0, {'C' : (0.5,) })
+    cval, = x
+    assert cval == ('C', .5)
 
