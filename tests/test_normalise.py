@@ -26,13 +26,6 @@ import numpy as np
 from milk.supervised.normalise import sample_to_2min
 import milk.supervised.normalise
 
-def test_interval_normalise():
-    I=milk.supervised.normalise.interval_normalise()
-    numpy.random.seed(1234)
-    features=numpy.random.rand(20,100)
-    L=numpy.zeros(100)
-    I = I.train(features,L)
-    assert numpy.all(numpy.abs( ( I.apply(features).max(0)-I.apply(features).min(0) ) - 2) < 1e-4)
 
 def test_zscore_normalise():
     I=milk.supervised.normalise.zscore_normalise()
@@ -75,3 +68,14 @@ def test_sample_to_2min_list():
     before = count(labels)
     after = count(np.array(labels)[selected])
     assert max(after.values()) == min(before.values())*2
+
+
+def test_interval_normalise():
+    interval = milk.supervised.normalise.interval_normalise()
+    np.random.seed(105)
+    features = np.random.randn(100, 5)
+    model = interval.train(features, features[0] > 0)
+    transformed = np.array([model.apply(f) for f in features])
+    assert np.allclose(transformed.min(0), -1)
+    assert np.allclose(transformed.max(0), +1)
+

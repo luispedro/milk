@@ -74,9 +74,9 @@ class interval_normalise(object):
 
     '''
     def train(self,features,labels):
-        D = features.ptp(0)
-        shift = features.mean(0) + D/2.
-        factor = D/2.
+        ptp = features.ptp(0)
+        shift = features.min(0) + ptp/2.
+        factor = ptp/2.
         return subtract_divide_model(shift, factor)
 
     def __repr__(self):
