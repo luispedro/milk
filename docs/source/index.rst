@@ -6,6 +6,7 @@ Contents:
    :maxdepth: 2
 
    supervised
+   randomnumbers
 
 Indices and tables
 ==================
