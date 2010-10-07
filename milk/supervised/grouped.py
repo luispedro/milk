@@ -82,6 +82,8 @@ class mean_classifier(object):
 
     def __init__(self, base):
         self.base = base
+        if hasattr(base, 'set_option'):
+            self.set_option = base.set_option
 
     def train(self, gfeatures, glabels):
         features, labels = _concatenate_features_labels(gfeatures, glabels)
