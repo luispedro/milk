@@ -25,14 +25,28 @@ import numpy as np
 
 def defaultclassifier(mode='medium'):
     '''
-    C = defaultclassifier(mode='medium')
+    learner = defaultclassifier(mode='medium')
+
+    Return the default classifier learner
+
+    This is an SVM based classifier using the 1-vs-1 technique for multi-class
+    problems. The features will be first cleaned up (normalised to [-1, +1])
+    and go through SDA feature selection.
 
     Parameters
     -----------
+    mode : string, optional
+        One of ('fast','medium','slow', 'really-slow'). This defines the speed
+        accuracy trade-off. It essentially defines how large the SVM parameter
+        range is.
 
-        * mode: One of ('fast','medium','slow'). This defines the
-        speed accuracy trade-off. It essentially defines how large the
-        SVM parameter range is.
+    Returns
+    -------
+    learner : classifier learner object
+
+    See Also
+    --------
+    `feature_selection_simple` and `svm_simple`
     '''
     # These cannot be imported at module scope!
     # The reason is that they introduce a dependency loop:
@@ -81,6 +95,17 @@ def feature_selection_simple():
     selector = feature_selection_simple()
 
     Standard feature normalisation and selection
+
+    This fills in NaNs and Infs (to 0 and large numbers),  normalises features
+    to [-1, +1] and uses SDA for feature selection.
+
+    Returns
+    -------
+    selector : supervised learner
+
+    See Also
+    --------
+    `defaultclassifier` and `svm_simple`
     '''
     from .classifier import ctransforms
     from .normalise import chkfinite, interval_normalise
@@ -94,7 +119,7 @@ def feature_selection_simple():
 
 def svm_simple(C, kernel):
     '''
-    classif = svm_simple(C, kernel)
+    learner = svm_simple(C, kernel)
 
     Returns a one-against-one SVM based classifier with `C` and `kernel`
 
@@ -107,7 +132,11 @@ def svm_simple(C, kernel):
 
     Returns
     -------
-    classif : classifier object
+    learner : supervised learner
+
+    See Also
+    --------
+    `defaultclassifier` and `feature_selection_simple`
     '''
     from . import svm
     from .multi import one_against_one
