@@ -159,25 +159,27 @@ def repeated_kmeans(fmatrix,k,iterations,distance='euclidean',max_iter=1000,R=No
     '''
     assignments,centroids = repeated_kmeans(fmatrix, k, repeats, distance='euclidean',max_iter=1000,**kwargs)
 
-    Runs kmeans repeats times and returns the best result as evaluated according to distance
+    Runs kmeans repeats times and returns the best result as evaluated
+    according to distance
 
     See Also
     --------
-      `kmeans`
+    `kmeans`
 
     Parameters
     ----------
-      fmatrix : feature matrix
-      k : nr of centroids
-      iterations : Nr of repetitions
-      distance : 'euclidean' (default) or 'seuclidean'
-      max_iter : Max nr of iterations per kmeans run
-      R : random source
+    fmatrix : feature matrix
+    k : nr of centroids
+    iterations : Nr of repetitions
+    distance : 'euclidean' (default) or 'seuclidean'
+    max_iter : Max nr of iterations per kmeans run
+    R : random source
 
     Returns
     -------
-      assignments : 1-D array of assignments
-      centroids : centroids
+    assignments : 1-D array of assignments
+    centroids : centroids
+
     These are the same returns as `kmeans`
     '''
     if distance == 'seuclidean':
@@ -186,6 +188,7 @@ def repeated_kmeans(fmatrix,k,iterations,distance='euclidean',max_iter=1000,R=No
     if distance != 'euclidean':
         raise NotImplementedError, "repeated_kmeans is only implemented for 'euclidean' or 'seuclidean' distance"
     best = np.inf
+    R = get_pyrandom(R)
     for i in xrange(iterations):
         A,C = kmeans(fmatrix, k, distance, max_iter=max_iter, R=R,**kwargs)
         rss = residual_sum_squares(fmatrix,A,C,distance,**kwargs)
