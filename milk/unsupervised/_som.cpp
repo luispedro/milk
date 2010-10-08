@@ -1,6 +1,7 @@
 #include <limits>
 #include <iostream>
 #include <cstdlib>
+
 extern "C" {
     #include <Python.h>
     #include <numpy/ndarrayobject.h>
@@ -29,7 +30,9 @@ void putpoints(PyArrayObject* grid, PyArrayObject* points, float L, int radius) 
     const int n = PyArray_DIM(points, 0);
     if (PyArray_DIM(points, 1) != d) throw SOM_Exception("second dimension of points is not third dimension of grid");
 
-    for (int i = 0; i != n; ++i){
+    Py_BEGIN_ALLOW_THREADS
+
+    for (int i = 0; i != n; i++){
         const float* p = static_cast<float*>(PyArray_GETPTR1(points, i));
         int min_y = 0;
         int min_x = 0;
@@ -64,6 +67,7 @@ void putpoints(PyArrayObject* grid, PyArrayObject* points, float L, int radius) 
             }
         }
     }
+    Py_END_ALLOW_THREADS
 }
 
 
