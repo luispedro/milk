@@ -768,8 +768,8 @@ void LIBSVM_Solver::optimise()  {
 	int counter = min(N,1000)+1;
     const int max_iters = 10*1000;
 
-    int iter;
-    for (iter = 0; iter != max_iters; ++iter) {
+    for (int iter = 0; iter != max_iters; ++iter) {
+        if (!(iter % 16)) check_for_interrupts();
 		// show progress and do shrinking
 		if(--counter == 0) {
 			counter = min(N,1000);
@@ -792,7 +792,6 @@ void LIBSVM_Solver::optimise()  {
 		
 		assert((i >= 0) && (i < active_size));
 		assert((j >= 0) && (j < active_size));
-        if (!(iter % 16)) check_for_interrupts();
 
 		// update alpha[i] and alpha[j], handle bounds carefully
 		
