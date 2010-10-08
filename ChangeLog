@@ -1,6 +1,9 @@
-Version 0.3.2 
+Version 0.3.2
 	* kmeans() for distance=mahalanobis
 	* minimise dependency on scipy
+	* self-organising maps
+	* important bug fix in repeated_kmeans
+	* faster feature selection
 
 Version 0.3.1 2010-09-25
 	* fix sparse non-negative matrix factorisation
