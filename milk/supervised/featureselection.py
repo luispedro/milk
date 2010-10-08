@@ -128,28 +128,72 @@ def sda(features, labels, tolerance=None, significance_in=None, significance_out
     output.sort(reverse=True)
     return np.array([x[1] for x in output])
 
-def _rank(A,tol=1e-8):
-    s = np.linalg.svd(A,compute_uv=0)
-    return (s > tol).sum()
 
-def linear_independent_features(featmatrix, labels = None):
+def linearly_independent_subset(V, threshold=1.e-5, return_orthogonal_basis=False):
     '''
+    subset = linearly_independent_subset(V, threshold=1.e-5)
+    subset,U = linearly_independent_subset(V, threshold=1.e-5, return_orthogonal_basis=True)
+
+    Discover a linearly independent subset of `V`
+
+    Parameters
+    ----------
+    V : sequence of input vectors
+    threshold : float, optional
+        vectors with 2-norm smaller or equal to this are considered zero
+        (default: 1e.-5)
+    return_orthogonal_basis : Boolean, optional
+        whether to return orthogonal basis set
+
+    Returns
+    -------
+    subset : ndarray of integers
+        indices used for basis
+    U : 2-array
+        orthogonal basis into span{V}
+
+    Implementation Reference
+    ------------------------
+    Use Gram-Schmidt with a check for when the v_k is close enough to zero to ignore
+
+    See http://en.wikipedia.org/wiki/Gram-Schmidt_process
+    '''
+    V = np.array(V, copy=True)
+    orthogonal = []
+    used = []
+    for i,u in enumerate(V):
+        for v in orthogonal:
+            u -= np.dot(u,v)/np.dot(v,v) * v
+        if np.dot(u,u) > threshold:
+            orthogonal.append(u)
+            used.append(i)
+    if return_orthogonal_basis:
+        return np.array(used),np.array(orthogonal)
+    return np.array(used)
+
+
+def linear_independent_features(features):
+    '''
+    indices = linear_independent_features(features)
+
     Returns the indices of a set of linearly independent features (columns).
 
-    indices = linear_independent_features(features)
+    Parameters
+    ----------
+    features : ndarray
+
+    Returns
+    -------
+    indices : ndarray of integers
+        indices of features to keep
+
+    See Also
+    --------
+    `linearly_independent_subset` :
+        this function is equivalent to `linearly_independent_subset(features.T)`
     '''
-    independent = [0,]
-    rank = 1
-    feat = [featmatrix[:,0]]
-    for i,col in enumerate(featmatrix.T):
-        feat.append(col)
-        nrank = _rank(np.array(feat))
-        if nrank == rank:
-            del feat[-1]
-        else:
-            rank = nrank
-            independent.append(i)
-    return np.array(independent)
+    return linearly_independent_subset(features.T)
+
 
 class filterfeatures(object):
     '''
