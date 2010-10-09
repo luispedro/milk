@@ -198,14 +198,14 @@ class svm_raw(object):
 
     classifier = svm_raw(kernel, C, eps=1e-3, tol=1e-8)
 
-    MAJOR PARAMETERS:
-    -----------------
+    Parameters
+    ----------
     kernel : the kernel to use.
              This should be a function that takes two data arguments
              see rbf_kernel and polynomial_kernel.
     C : the C parameter
 
-    MINOR PARAMETERS:
+    Other Parameters
     ----------------
     eps : the precision to which to solve the problem (default 1e-3)
     tol : (|x| < tol) is considered zero
@@ -365,6 +365,12 @@ class svm_binary_model(object):
     def apply(self,f):
         return self.classes[f >= 0.]
 class svm_binary(object):
+    '''
+    classifier = svm_binary()
+
+    model = classifier.train(features, labels)
+    assert model.apply(f) in labels
+    '''
 
     def train(self, features, labels):
         assert len(labels) >= 2, 'Cannot train from a single example'
@@ -385,11 +391,9 @@ class svm_to_binary(object):
 
     is a model that takes the base_svm classifier and then binarises its model output.
 
-    NOTE:  THis class does the same job as
+    NOTE:  This class does the same job as::
 
         ctransforms(base_svm, svm_binary())
-
-    but is slightly more efficient in that it recognises that svm_binary does not need any training.
     '''
     def __init__(self, svm_base):
         '''
