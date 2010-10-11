@@ -50,6 +50,34 @@ def putpoints(grid, points, L=.2, radius=4, iterations=1, shuffle=True, R=None):
             random.shuffle(points)
         _som.putpoints(grid, points, L, radius)
 
+def closest(grid, f):
+    '''
+    y,x = closest(grid, f)
+
+    Finds the coordinates of the closest point in the `grid` to `f`
+
+    ::
+
+        y,x = \\argmin_{y,x} { || grid[y,x] - f ||^2 }
+
+    Parameters
+    ----------
+    grid : ndarray of shape Y,X,J
+        self-organised map
+    f : ndarray of shape J
+        point
+
+    Returns
+    -------
+    y,x : integers
+        coordinates into `grid`
+    '''
+    delta = grid - f
+    delta **= 2
+    delta = delta.sum(2)
+    return np.unravel_index(delta.argmin(), delta.shape)
+
+
 def som(data, shape, iterations=1000, L=.2, radius=4, R=None):
     '''
     grid = som(data, shape, iterations=1000, L=.2, radius=4, R=None):

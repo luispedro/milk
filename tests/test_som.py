@@ -1,7 +1,7 @@
 import numpy as np
 import random
 from milk.unsupervised import som
-from milk.unsupervised.som import putpoints
+from milk.unsupervised.som import putpoints, closest
 
 
 def _slow_putpoints(grid, points, L=.2):
@@ -52,6 +52,9 @@ def test_som():
     data = data.transpose().copy()
     grid = som(data, (8,8), iterations=3, R=4)
     assert grid.shape == (8,8,2)
+    y,x = closest(grid, data[0])
+    assert 0 <= y < grid.shape[0]
+    assert 0 <= x < grid.shape[1]
 
     grid2 = grid.copy()
     np.random.shuffle(grid2)
