@@ -45,6 +45,34 @@ used for both, so in the documentation, we always refer to *models* and
 
 Both learners and models are pickle()able.
 
+Composition and Defaults
+------------------------
+
+The style of milk involves many small objects,each providing one step of the pipeline. For example:
+
+1. remove NaNs and Infs from features
+2. bring features to the [-1, 1] interval
+3. feature selection by removing linearly dependent features and then SDA
+4. one-vs-rest classifier based on a grid search for parameters for an svm
+   classifier
+
+To get this you can use::
+
+    classifier = ctransforms(
+                    chkfinite(),
+                    interval_normalise(),
+                    featureselector(linear_independent_features),
+                    sda_filter(),
+                    gridsearch(one_against_one(svm.svm_to_binary(svm.svm_raw())),
+                                params={
+                                    'C': 2.**np.arange(-9,5),
+                                    'kernel': [svm.rbf_kernel(2.**i) for i in np.arange(-7,4)],
+                                }
+                                ))
+
+As you can see, this is very flexible, but can be tedious. Therefore, milk
+provides the above as a single function call: ``defaultclassifier()``
+
 
 supervised Submodules
 ---------------------
