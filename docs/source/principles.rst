@@ -4,7 +4,8 @@ Principles of Milk
 Play Well With Others
 ~~~~~~~~~~~~~~~~~~~~~
 
-This is the basic principle of milk: it should play well with others. It means that its interfaces should, as much as possible, be flexible.
+This is the basic principle of milk: it should play well with others. It means
+that its interfaces should, as much as possible, be flexible.
 
 Be Liberal With What you Accept. Be Conservative With What Your Produce
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -40,7 +41,9 @@ and not like this::
 
     classifier.train(container,labelcontainer)
 
-This often means that one might have a more complete interface internally and another interface for interactive use on top (see Matplotlib_ for a good example of this).
+This often means that one might have a more complete interface internally and
+another interface for interactive use on top (see Matplotlib_ for a good
+example of this).
 
 .. _Matplotlib: http://matplotlib.sourceforge.net/
 
@@ -48,7 +51,8 @@ This often means that one might have a more complete interface internally and an
 Don't Impose Yourself
 ~~~~~~~~~~~~~~~~~~~~~
 
-Don't assume that people are writing their software around your library, which translates into:
+Don't assume that people are writing their software around your library, which
+translates into:
 
     * Don't impose your file format.
     * Don't impose your in-memory data format.
@@ -56,12 +60,17 @@ Don't assume that people are writing their software around your library, which t
 Be Pythonic
 ~~~~~~~~~~~
 
-In general, be a true Python library (and not just a wrapper around something else). For example:
+In general, be a true Python library (and not just a wrapper around something
+else). For example:
 
-    * If an SVM classifier takes a kernel as a parameter, then it should accept any 2-argument Python function (in fact, anything that's callable in Python).
-    * Objects (like classifiers) should be pickle-able.
+- If an SVM classifier takes a kernel as a parameter, then it should accept any
+2-argument Python function (in fact, anything that's callable in Python).
+- Objects (like classifiers) should be pickle-able.
 
 You Don't Pay For What You Don't Use
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Flexibility should come with the lowest-possible cost. If a cost is unavoidable, it should be paid by those who use the flexibility and not by everybody else.
+Flexibility should come with the lowest-possible cost. If a cost is
+unavoidable, it should be paid by those who use the flexibility and not by
+everybody else.
+
