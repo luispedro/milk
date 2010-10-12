@@ -172,15 +172,17 @@ def linearly_independent_subset(V, threshold=1.e-5, return_orthogonal_basis=Fals
     return np.array(used)
 
 
-def linear_independent_features(features):
+def linear_independent_features(features, labels=None):
     '''
-    indices = linear_independent_features(features)
+    indices = linear_independent_features(features, labels=None)
 
     Returns the indices of a set of linearly independent features (columns).
 
     Parameters
     ----------
     features : ndarray
+    labels : ignored
+        This argument is only here to conform to the learner interface.
 
     Returns
     -------
