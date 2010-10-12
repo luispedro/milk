@@ -2,12 +2,15 @@
 
 import sys, os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../sphinxext')))
-
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.pngmath', 'numpydoc',
-              'sphinx.ext.intersphinx', 'sphinx.ext.coverage',
-              'sphinx.ext.doctest',
-              'plot_directive']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.pngmath',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.coverage',
+    'sphinx.ext.doctest',
+    'numpydoc',
+    'matplotlib.sphinxext.plot_directive',
+    ]
 
 # If your extensions (or modules documented by autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
