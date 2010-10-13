@@ -8,6 +8,7 @@ Contents:
    supervised
    featureselection
    randomnumbers
+   api
 
 Indices and tables
 ==================
@@ -15,16 +16,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`search`
 
-
-.. automodule:: milk
-    :members: nfoldcrossvalidation, defaultclassifier, kmeans
-
-.. automodule:: milk.supervised
-    :members:
-
-.. automodule:: milk.unsupervised
-    :members:
-
-.. automodule:: milk.measures
-    :members:
 
