@@ -67,4 +67,13 @@ Example
 
 from .defaultclassifier import defaultclassifier, svm_simple
 from .classifier import normaliselabels
+from .gridsearch import gridsearch
+from .tree import tree_learner
 
+__all__ = [
+    'normaliselabels',
+    'defaultclassifier',
+    'svm_simple',
+    'gridsearch',
+    'tree_learner',
+    ]

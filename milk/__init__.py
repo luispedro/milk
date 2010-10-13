@@ -56,3 +56,9 @@ from .supervised.defaultclassifier import defaultclassifier
 from .unsupervised.kmeans import kmeans
 from milk_version import __version__
 
+__all__ = [
+    '__version__',
+    'kmeans',
+    'defaultclassifier',
+    'nfoldcrossvalidation',
+    ]
