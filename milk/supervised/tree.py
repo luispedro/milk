@@ -128,9 +128,9 @@ def apply_tree(tree, features):
     return apply_tree(right, features)
 
 
-class tree_classifier(object):
+class tree_learner(object):
     '''
-    tree = tree_classifier()
+    tree = tree_learner()
     tree.train(features,labels)
     predicted = tree.apply(testfeatures)
 
@@ -151,6 +151,8 @@ class tree_classifier(object):
 
     def train(self, features, labels):
         return tree_model(build_tree(features, labels, self.criterion, self.min_split), self.return_label)
+
+tree_classifier = tree_learner
 
 class tree_model(object):
     def __init__(self, tree, return_label):
