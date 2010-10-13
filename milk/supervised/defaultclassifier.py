@@ -46,7 +46,7 @@ def defaultclassifier(mode='medium'):
 
     See Also
     --------
-    `feature_selection_simple` and `svm_simple`
+    feature_selection_simple and svm_simple
     '''
     # These cannot be imported at module scope!
     # The reason is that they introduce a dependency loop:
