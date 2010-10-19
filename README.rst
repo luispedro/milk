@@ -29,4 +29,4 @@ Features
 License: MIT
 Author: Luis Pedro Coelho (with code from LibSVM and scikits.learn)
 Website: http://luispedro.org/software/milk
-
+API Documentation: `http://packages.python.org/milk/ <http://packages.python.org/milk/>`_
