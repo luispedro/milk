@@ -1,3 +1,6 @@
+Version 0.3.3 2010-10-22
+	* Missing file added to distribution
+
 Version 0.3.2
 	* kmeans() for distance=mahalanobis
 	* minimise dependency on scipy
