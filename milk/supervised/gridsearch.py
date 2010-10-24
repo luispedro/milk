@@ -22,6 +22,7 @@
 
 from __future__ import division
 import numpy as np
+from .classifier import normaliselabels
 
 def _allassignments(options):
     try:
@@ -43,11 +44,14 @@ def _set_assignment(obj,assignments):
     for k,v in assignments:
         obj.set_option(k,v)
 
-def gridmaximise(learner, features, labels, params, measure=None, initial_value=-1):
+def gridminimise(learner, features, labels, params, measure=None):
     '''
-    best = gridmaximise(learner, features, labels, params, measure={accuracy} initial_value=-1)
+    best = gridminimise(learner, features, labels, params, measure={0/1 loss})
 
     Grid search for the settings of parameters that maximises a given measure
+
+    This function is equivalent to searching the grid, but does not actually
+    search the whole grid.
 
     Parameters
     ----------
@@ -58,28 +62,53 @@ def gridmaximise(learner, features, labels, params, measure=None, initial_value=
         keys are the options to change,
         values are sequences of corresponding elements to try
     measure : function, optional
-        This function should take a confusion matrix and return a measure of how good it is.
-        By default, measure accuracy
-    initial_value : any, optional
+              a function that takes labels and outputs and returns the loss.
+              Default: 0/1 loss. This must be an *additive* function.
 
     Returns
     -------
     best : a sequence of assignments
     '''
-    from ..measures.nfoldcrossvalidation import nfoldcrossvalidation
-    if measure is None:
-        measure = np.trace
+    # The algorithm is as follows:
+    #
+    # for all assignments: error = 0, next_iteration = 0
+    #
+    # at each iteration:
+    #    look for assignment with smallest error
+    #    if that is done: return it
+    #    else: perform one more iteration
+    #
+    # When the function returns, that assignment has the lowest error of all
+    # assignments and all the iterations are done. Therefore, other assignments
+    # could only be worse even if we never computed the whole error!
 
-    best_val = initial_value
-    best = None
-    for assignement in _allassignments(params):
-        _set_assignment(learner, assignement)
-        S,_ = nfoldcrossvalidation(features, labels, classifier=learner)
-        cur = measure(S)
-        if cur > best_val:
-            best = assignement
-            best_val = cur
-    return best
+    from ..measures.nfoldcrossvalidation import foldgenerator
+    nfolds = 10
+    if measure is None:
+        def measure(real, preds):
+            return np.sum(np.asarray(real) != np.asarray(preds))
+
+    labels,_ = normaliselabels(labels)
+    allassignments = list(_allassignments(params))
+    N = len(allassignments)
+    iteration = np.zeros(N, int)
+    error = np.zeros(N, float)
+    folds = [(Tr.copy(), Te.copy()) for Tr,Te in foldgenerator(labels, nfolds)]
+    while True:
+        next_pos = (error == error.min())
+        iter = iteration[next_pos].max()
+        if iter == nfolds:
+            (besti,) = np.where(next_pos & (iteration == iter))
+            besti = besti[0]
+            return allassignments[besti]
+        (ps,) = np.where(next_pos & (iteration == iter))
+        p = ps[0]
+        _set_assignment(learner, allassignments[p])
+        train, test = folds[iter]
+        model = learner.train(features[train], labels[train], normalisedlabels=True)
+        preds = [model.apply(f) for f in features[test]]
+        error[p] += measure(labels[test], preds)
+        iteration[p] += 1
 
 
 class gridsearch(object):
@@ -103,9 +132,10 @@ class gridsearch(object):
 
     Parameters
     -----------
-      base_classifier : classifier to use
-      measure : a function which takes a confusion matrix and outputs
-                 how good the matrix is
+    base_classifier : classifier to use
+    measure : function, optional
+              a function that takes labels and outputs and returns the loss.
+              Default: 0/1 loss. This must be an *additive* function.
     '''
     def __init__(self, base, measure=None, params={}):
         self.params = params
@@ -117,7 +147,7 @@ class gridsearch(object):
         return self.base.is_multi_class()
 
     def train(self, features, labels, normalisedlabels=False):
-        self.best = gridmaximise(self.base, features, labels, self.params, self.measure)
+        self.best = gridminimise(self.base, features, labels, self.params, self.measure)
         _set_assignment(self.base, self.best)
         return self.base.train(features, labels, normalisedlabels=normalisedlabels)
 
