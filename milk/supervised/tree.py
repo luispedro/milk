@@ -149,7 +149,7 @@ class tree_learner(object):
         self.min_split = 4
         self.return_label = return_label
 
-    def train(self, features, labels):
+    def train(self, features, labels, normalisedlabels=False):
         return tree_model(build_tree(features, labels, self.criterion, self.min_split), self.return_label)
 
 tree_classifier = tree_learner

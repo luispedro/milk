@@ -39,7 +39,7 @@ class voting_classifier(object):
     def __init__(self, base):
         self.base = base
 
-    def train(self, gfeatures, glabels):
+    def train(self, gfeatures, glabels, normalisedlabels=False):
         features, labels = _concatenate_features_labels(gfeatures, glabels)
         return voting_model(self.base.train(features, labels))
 
@@ -85,7 +85,7 @@ class mean_classifier(object):
         if hasattr(base, 'set_option'):
             self.set_option = base.set_option
 
-    def train(self, gfeatures, glabels):
+    def train(self, gfeatures, glabels, normalisedlabels=False):
         features, labels = _concatenate_features_labels(gfeatures, glabels)
         return mean_model(self.base.train(features, labels))
 
@@ -132,6 +132,6 @@ class filter_outliers(object):
         self.limit = limit
         self.min_size = min_size
 
-    def train(self, features, labels):
+    def train(self, features, labels, normalisedlabels=False):
         return filter_outliers_model(self.limit, self.min_size)
 

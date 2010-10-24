@@ -27,7 +27,7 @@ class multi_view_classifier(object):
     def __init__(self, bases):
         self.bases = bases
 
-    def train(self, features, labels):
+    def train(self, features, labels, normalisedlabels=False):
         features = zip(*features)
         if len(features) != len(self.bases):
             raise ValueError('milk.supervised.two_view: Nr of features does not match classifiser construction (got %s, expected %s)' % (len(features) ,len(self.bases)))

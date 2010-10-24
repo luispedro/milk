@@ -56,14 +56,14 @@ class one_against_rest(object):
     def set_option(self, k, v):
         self.options[k] = v
 
-    def train(self,features,labels):
+    def train(self, features, labels, normalisedlabels=False):
         labels, names = normaliselabels(labels)
         nclasses = labels.max() + 1
         models  = []
         for i in xrange(nclasses):
             for k,v in self.options.iteritems():
                 self.base.set_option(k, v)
-            model = self.base.train(features, labels == i)
+            model = self.base.train(features, (labels == i).astype(int), normalisedlabels=True)
             models.append(model)
         return one_against_rest_model(models, names)
 
@@ -119,7 +119,7 @@ class one_against_one(object):
     def set_option(self, k, v):
         self.options[k] = v
 
-    def train(self, features, labels):
+    def train(self, features, labels, **kwargs):
         '''
         one_against_one.train(objs,labels)
         '''
@@ -134,7 +134,7 @@ class one_against_one(object):
                 idxs = (labels == i) | (labels == j)
                 assert idxs.sum() > 0, 'milk.multi.one_against_one: Pair-wise classifier has no data'
                 # Fixme: here I could add a Null model or something
-                model = self.base.train(features[idxs],labels[idxs]==i)
+                model = self.base.train(features[idxs], (labels[idxs]==i).astype(int), normalisedlabels=True)
                 models[i][j] = model
         return one_against_one_model(models, names)
 
@@ -181,7 +181,7 @@ class one_against_rest_multi(object):
         if hasattr(base, 'set_option'):
             self.set_option = base.set_option
 
-    def train(self, features, labels):
+    def train(self, features, labels, normalisedlabels=False):
         '''
         '''
         import operator

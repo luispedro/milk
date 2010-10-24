@@ -223,7 +223,7 @@ class featureselector(object):
     def __init__(self, selector):
         self.selector = selector
 
-    def train(self, features, labels):
+    def train(self, features, labels, normalisedlabels=False):
         idxs = self.selector(features, labels)
         return filterfeatures(idxs)
 

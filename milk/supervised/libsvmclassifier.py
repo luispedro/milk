@@ -45,7 +45,7 @@ class libsvmClassifier(object):
     def set_option(self,optname,value):
         setattr(self.param,optname,value)
 
-    def train(self,features,labels):
+    def train(self, features, labels, normalisedlabels=False):
         problem = _svm.svm_problem(labels,features)
         return libsvmClassifier_model(_svm.svm_model(problem,self.param))
 

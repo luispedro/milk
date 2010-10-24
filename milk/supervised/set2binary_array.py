@@ -38,7 +38,7 @@ class set2binary_array_model(object):
         return res
 
 class set2binary_array(object):
-    def train(self, features, labels):
+    def train(self, features, labels, normalisedlabels=False):
         allfeatures = set()
         for f in features:
             allfeatures.update(f)

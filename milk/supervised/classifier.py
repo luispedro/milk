@@ -44,7 +44,7 @@ def normaliselabels(labels):
     normalised : a numpy ndarray of integers 0 .. N-1
     names : list of label names
     '''
-    names = sorted(set(labels), key=list(labels).index)
+    names = sorted(set(labels))
     normalised = map(names.index, labels)
     return np.array(normalised), names
 
@@ -76,13 +76,13 @@ class ctransforms(object):
         self.transforms = args
 
 
-    def train(self,features,labels):
+    def train(self, features, labels, normalisedlabels=False):
         models = []
         model = None
         for T in self.transforms:
             if model is not None:
                 features = numpy.array([model.apply(f) for f in features])
-            model = T.train(features,labels)
+            model = T.train(features, labels, normalisedlabels=normalisedlabels)
             models.append(model)
         return ctransforms_model(models)
 

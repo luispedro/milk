@@ -63,7 +63,7 @@ class zscore_normalise(object):
     A preprocessor that normalises features to z scores.
     '''
 
-    def train(self,features,labels):
+    def train(self, features, labels, normalisedlabels=False):
         shift = features.mean(0)
         factor = np.std(features,0)
         return subtract_divide_model(shift, factor)
@@ -73,7 +73,7 @@ class interval_normalise(object):
     Linearly scale to the interval [-1,1] (per libsvm recommendation)
 
     '''
-    def train(self,features,labels):
+    def train(self, features, labels, normalisedlabels=False):
         ptp = features.ptp(0)
         shift = features.min(0) + ptp/2.
         factor = ptp/2.
@@ -126,7 +126,7 @@ class chkfinite(object):
     def __init__(self):
         pass
 
-    def train(self,features,labels):
+    def train(self, features, labels, normalisedlabels=False):
         return self
 
     def apply(self, features):

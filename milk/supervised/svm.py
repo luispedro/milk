@@ -218,13 +218,16 @@ class svm_raw(object):
         self.algorithm = 'libsvm'
 
 
-    def train(self,features,labels):
+    def train(self, features, labels, normalisedlabels=False):
         assert self.kernel is not None, 'milk.supervised.svm_raw.train: kernel not set!'
         assert self.algorithm in ('libsvm','smo'), 'milk.supervised.svm_raw: unknown algorithm (%s)' % self.algorithm
         assert not (np.isinf(self.C) or np.isnan(self.C)), 'milk.supervised.svm_raw: setting C to NaN or Inf causes problems.'
         features = np.asanyarray(features)
-        Y,_ = normaliselabels(labels)
-        assert numpy.all( (Y == 0) | (Y  == 1) ), 'milk.supervised.svm_raw can only handle binary problems'
+        if normalisedlabels:
+            Y = labels
+        else:
+            Y,_ = normaliselabels(labels)
+        assert Y.max() == 1, 'milk.supervised.svm_raw can only handle binary problems'
         Y *= 2
         Y -= 1
         kernel = self.kernel
@@ -372,14 +375,13 @@ class svm_binary(object):
     assert model.apply(f) in labels
     '''
 
-    def train(self, features, labels):
+    def train(self, features, labels, normalisedlabels=False):
+        if normalisedlabels:
+            return svm_binary_model( (0,1) )
         assert len(labels) >= 2, 'Cannot train from a single example'
-        labelset = set(labels)
-        assert len(labelset) == 2, 'milk.supervised.svm.svm_binary.train: Can only handle two class problems'
-        c0,c1 = labelset
-        if c0 != labels[0]:
-            c0,c1 = c1, c0
-        return svm_binary_model( (c0,c1) )
+        names = sorted(set(labels))
+        assert len(names) == 2, 'milk.supervised.svm.svm_binary.train: Can only handle two class problems'
+        return svm_binary_model(names)
 
 class svm_to_binary(object):
     '''
@@ -403,10 +405,10 @@ class svm_to_binary(object):
         '''
         self.base = svm_base
 
-    def train(self, features, labels):
-        model = self.base.train(features, labels)
+    def train(self, features, labels, normalisedlabels=False):
+        model = self.base.train(features, labels, normalisedlabels=normalisedlabels)
         binary = svm_binary()
-        binary_model = binary.train(features, labels)
+        binary_model = binary.train(features, labels, normalisedlabels=normalisedlabels)
         return ctransforms_model([model, binary_model])
 
     def set_option(self, opt, value):
@@ -432,7 +434,7 @@ class svm_sigmoidal_correction(object):
     def __init__(self):
         self.max_iters = None
     
-    def train(self,features,labels):
+    def train(self, features, labels, normalisedlabels=False):
         A,B = learn_sigmoid_constants(features,labels,self.max_iters)
         return svm_sigmoidal_correction_model(A, B)
 
@@ -508,7 +510,7 @@ class fisher_tuned_rbf_svm(object):
         self.sigmas = sigmas
         self.base = base
 
-    def train(self, features, labels):
+    def train(self, features, labels, normalisedlabels=False):
         f = sigma_value_fisher(features, labels)
         fs = [f(s) for s in self.sigmas]
         self.sigma = self.sigmas[np.argmin(fs)]

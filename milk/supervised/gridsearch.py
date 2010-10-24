@@ -116,8 +116,8 @@ class gridsearch(object):
     def is_multi_class(self):
         return self.base.is_multi_class()
 
-    def train(self,features,labels):
+    def train(self, features, labels, normalisedlabels=False):
         self.best = gridmaximise(self.base, features, labels, self.params, self.measure)
         _set_assignment(self.base, self.best)
-        return self.base.train(features, labels)
+        return self.base.train(features, labels, normalisedlabels=normalisedlabels)
 

@@ -41,7 +41,7 @@ class kNN(object):
     def __init__(self, k=1):
         self.k = k
 
-    def train(self, features, labels, copy_features=False):
+    def train(self, features, labels, normalisedlabels=False, copy_features=False):
         features = np.asanyarray(features)
         labels = np.asanyarray(labels)
         if copy_features:
