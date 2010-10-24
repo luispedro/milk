@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +22,7 @@
 
 from __future__ import division
 import numpy
+import numpy as np
 
 __all__ = ['normaliselabels', 'ctransforms']
 
@@ -30,29 +32,21 @@ def normaliselabels(labels):
 
     Normalises the labels to be integers from 0 through N-1
 
-    normalised is a numpy.array, while names is a list mapping the indices
-    to the old names.
+    `normalised` is a np.array, while `names` is a list mapping the indices to
+    the old names.
 
     Parameters
     ----------
-      labels : any iterable of labels
+    labels : any iterable of labels
+
     Returns
     ------
-      normalised : a numpy ndarray of integers 0 .. N-1
-      names : list of label names
+    normalised : a numpy ndarray of integers 0 .. N-1
+    names : list of label names
     '''
-    labelnames={}
-    normalised=[]
-    names=[]
-    N=0
-    for L in labels:
-        nr=labelnames.get(L,N)
-        if nr == N:
-            labelnames[L]=N
-            names.append(L)
-            N += 1
-        normalised.append(nr) 
-    return numpy.array(normalised),names
+    names = sorted(set(labels), key=list(labels).index)
+    normalised = map(names.index, labels)
+    return np.array(normalised), names
 
 
 class ctransforms_model(object):
@@ -97,4 +91,3 @@ class ctransforms(object):
         idx, opt = opt
         self.transforms[idx].set_option(opt,val)
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
