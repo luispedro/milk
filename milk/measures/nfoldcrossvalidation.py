@@ -152,30 +152,47 @@ def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins
     '''
     Perform n-fold cross validation
 
-    cmatrix,labelnames = nfoldcrossvalidation(features, labels, nfolds=10, classifier={defaultclassifier()}, origins=None, return_predictions=False)
-    cmatrix,labelnames,predictions = nfoldcrossvalidation(features, labels, nfolds=10, classifier={defaultclassifier()}, origins=None, return_predictions=True)
+    cmatrix,names = nfoldcrossvalidation(features, labels, nfolds=10, classifier={defaultclassifier()}, origins=None, return_predictions=False)
+    cmatrix,names,predictions = nfoldcrossvalidation(features, labels, nfolds=10, classifier={defaultclassifier()}, origins=None, return_predictions=True)
 
     cmatrix will be a N x N matrix, where N is the number of classes
-    cmatrix[i,j] will be the number of times that an element of class i was classified as class j
 
-    labelnames[i] will correspond to the label name of class i
+    cmatrix[i,j] will be the number of times that an element of class i was
+    classified as class j
+
+    names[i] will correspond to the label name of class i
 
     Parameters
     ----------
-      features : a feature matrix or list of feature vectors
-      labels : an array of labels, where label[i] is the label corresponding to features[i]
-      nfolds : Nr of folds.
-      origins : Origin ID (see foldgenerator)
+    features : a sequence
+    labels : an array of labels, where label[i] is the label corresponding to features[i]
+    nfolds : integer, optional
+        Nr of folds. Default: 10
+    classifier : learner object, optional
+        classifier should implement the train() method to return a model
+        (something with an apply() method). defaultclassifier() by default
 
-      return_predictions : whether to return predictions
+    origins : sequence, optional
+        Origin ID (see foldgenerator)
+    return_predictions : bool, optional
+        whether to return predictions (default: False)
 
-    classifier should implement the train() method to return a model (something with an apply() method)
+    Returns
+    -------
+    cmatrix : ndarray
+        confusion matrix
+    names : sequence
+        sequence of labels so that cmatrix[i,j] corresponds to names[i], names[j]
+    predictions : sequence
+        predicted output for each element
     '''
     assert len(features) == len(labels), 'milk.measures.nfoldcrossvalidation: len(features) should match len(labels)'
     if classifier is None:
         classifier = defaultclassifier()
-    labels,labelnames = normaliselabels(labels)
-    predictions = np.zeros_like(labels)-1
+    labels,names = normaliselabels(labels)
+    if return_predictions:
+        predictions = np.empty_like(labels)
+        predictions.fill(-1) # This makes it clearer if there are bugs in the programme
 
     features = numpy.asanyarray(features)
 
@@ -184,11 +201,12 @@ def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins
     for trainingset,testingset in foldgenerator(labels, nfolds, origins=origins):
         model = classifier.train(features[trainingset], labels[trainingset])
         prediction = np.array([model.apply(f) for f in features[testingset]])
-        predictions[testingset] = prediction.astype(predictions.dtype)
+        if return_predictions:
+            predictions[testingset] = prediction.astype(predictions.dtype)
         for p, r in zip(prediction,labels[testingset]):
             cmatrix[r,p] += 1
 
     if return_predictions:
-        return cmatrix, labelnames, predictions
-    return cmatrix, labelnames
+        return cmatrix, names, predictions
+    return cmatrix, names
 
