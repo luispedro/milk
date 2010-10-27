@@ -54,8 +54,9 @@ class Node(object): # This could be replaced by a namedtuple
 def _split(features, labels, criterion, subsample, R):
     N,f = features.shape
     if subsample is not None:
-        samples = np.array(R.sample(xrange(features.shape[1], subsample)))
+        samples = np.array(R.sample(xrange(features.shape[1]), subsample))
         features = features[:, samples]
+        f = subsample
     best = None
     best_val = -1.
     for i in xrange(f):
@@ -66,8 +67,10 @@ def _split(features, labels, criterion, subsample, R):
             if value > best_val:
                 best_val = value
                 if subsample is not None:
-                    i = samples[i]
-                best = i,d
+                    ti = samples[i]
+                else:
+                    ti = i
+                best = ti,d
     return best
 
 
@@ -180,13 +183,16 @@ class tree_learner(object):
     min_split : integer, optional
         minimum size to split on (default: 4).
     '''
-    def __init__(self, criterion=information_gain, min_split=4, return_label=True):
+    def __init__(self, criterion=information_gain, min_split=4, return_label=True, subsample=None, R=None):
         self.criterion = criterion
         self.min_split = min_split
         self.return_label = return_label
+        self.subsample = subsample
+        self.R = R
 
     def train(self, features, labels, normalisedlabels=False):
-        return tree_model(build_tree(features, labels, self.criterion, self.min_split), self.return_label)
+        tree = build_tree(features, labels, self.criterion, self.min_split, self.subsample, self.R)
+        return tree_model(tree, self.return_label)
 
 tree_classifier = tree_learner
 
