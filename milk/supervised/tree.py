@@ -34,11 +34,15 @@ import numpy as np
 from collections import defaultdict
 
 class Leaf(object):
-    def __init__(self, v, s):
+    '''
+    v : value
+    w : weight
+    '''
+    def __init__(self, v, w):
         self.v = v
-        self.s = s
+        self.w = w
     def __repr__(self):
-        return 'Leaf(%s,%s)' % (self.v, self.s)
+        return 'Leaf(%s,%s)' % (self.v, self.w)
 
 class Node(object): # This could be replaced by a namedtuple
     def __init__(self, featid, featval, left, right):
@@ -47,8 +51,11 @@ class Node(object): # This could be replaced by a namedtuple
         self.left = left
         self.right = right
 
-def _split(features, labels, criterion):
+def _split(features, labels, criterion, subsample, R):
     N,f = features.shape
+    if subsample is not None:
+        samples = np.array(R.sample(xrange(features.shape[1], subsample)))
+        features = features[:, samples]
     best = None
     best_val = -1.
     for i in xrange(f):
@@ -58,6 +65,8 @@ def _split(features, labels, criterion):
             value = criterion(labels[cur_split],labels[~cur_split])
             if value > best_val:
                 best_val = value
+                if subsample is not None:
+                    i = samples[i]
                 best = i,d
     return best
 
@@ -94,9 +103,9 @@ def information_gain(*args,**kwargs):
     return H        
 
 
-def build_tree(features, labels, criterion, min_split=4):
+def build_tree(features, labels, criterion, min_split=4, subsample=None, R=None):
     '''
-    tree = build_tree(features, labels, criterion, min_split=4)
+    tree = build_tree(features, labels, criterion, min_split=4, subsample=None, R=None)
 
     Parameters
     ----------
@@ -108,6 +117,8 @@ def build_tree(features, labels, criterion, min_split=4):
         function to measure goodness of split
     min_split : integer
         minimum size to split on
+    subsample : integer, optional
+        if given, then, at each step, choose
 
     Returns
     -------
@@ -116,22 +127,26 @@ def build_tree(features, labels, criterion, min_split=4):
     assert len(features) == len(labels), 'build_tree: Nr of labels does not match nr of features'
     features = np.asanyarray(features)
     labels = np.asanyarray(labels)
-    N = float(len(labels))
-    if len(labels) < min_split:
-        return Leaf(labels.sum()/N, N)
-    S = _split(features, labels, criterion)
-    if S is None:
-        return Leaf(labels.sum()/N, N)
-    i,thresh = S
-    split = features[:,i] < thresh
-    data0 = features[split]
-    data1 = features[~split]
-    labels0 = labels[split]
-    labels1 = labels[~split]
-    return Node(featid=i,
-                featval=thresh,
-                left=build_tree(data0, labels0, criterion, min_split),
-                right=build_tree(data1, labels1, criterion, min_split))
+    if subsample is not None:
+        if subsample <= 0:
+            raise ValueError('milk.supervised.tree.build_tree: `subsample` must be > 0.\nDid you mean to use None to signal no subsample?')
+        from ..utils import get_pyrandom
+        R = get_pyrandom(R)
+
+    def recursive(features, labels):
+        N = float(len(labels))
+        if N < min_split:
+            return Leaf(labels.sum()/N, N)
+        S = _split(features, labels, criterion, subsample, R)
+        if S is None:
+            return Leaf(labels.sum()/N, N)
+        i,thresh = S
+        split = features[:,i] < thresh
+        return Node(featid=i,
+                    featval=thresh,
+                    left =recursive(features[ split], labels[ split]),
+                    right=recursive(features[~split], labels[~split]))
+    return recursive(features, labels)
 
 def apply_tree(tree, features):
     '''
