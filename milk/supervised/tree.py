@@ -74,12 +74,6 @@ def _split(features, labels, criterion, subsample, R):
     return best
 
 
-def _entropy_set(labels):
-    from ._tree import set_entropy
-    counts = np.empty(labels.max()+1, np.double)
-    return set_entropy(labels, counts)
-
-
 def information_gain(*args,**kwargs):
     '''
     ig = information_gain(labels0, labels1, ..., include_entropy=False)
@@ -90,9 +84,12 @@ def information_gain(*args,**kwargs):
     The function calculated here does not include the original entropy unless
     you explicitly ask for it (by passing include_entropy=True)
     '''
+    from ._tree import set_entropy
     assert len(args) > 1, 'information_gain: only defined for two or more labels'
     H = 0.
     N = sum(len(A) for A in args)
+    nlabels = 1+max(max(A) for A in args)
+    counts = np.empty(nlabels, np.double)
     if kwargs.get('include_entropy',False):
         from collections import defaultdict
         counts = defaultdict(float)
@@ -101,7 +98,7 @@ def information_gain(*args,**kwargs):
                 counts[L] += 1.
         H = scipy.stats.entropy(counts.values())
     for arg in args:
-        H -= len(arg)/N * _entropy_set(arg)
+        H -= len(arg)/N * set_entropy(arg, counts)
     return H        
 
 
