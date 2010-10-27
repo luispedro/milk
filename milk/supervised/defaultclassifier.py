@@ -46,7 +46,8 @@ def defaultclassifier(mode='medium'):
 
     See Also
     --------
-    feature_selection_simple and svm_simple
+    feature_selection_simple : Just perform the feature selection
+    svm_simple : Perform classification
     '''
     # These cannot be imported at module scope!
     # The reason is that they introduce a dependency loop:
@@ -105,7 +106,7 @@ def feature_selection_simple():
 
     See Also
     --------
-    `defaultclassifier` and `svm_simple`
+    defaultclassifier : perform feature selection *and* classification
     '''
     from .classifier import ctransforms
     from .normalise import chkfinite, interval_normalise
@@ -136,7 +137,8 @@ def svm_simple(C, kernel):
 
     See Also
     --------
-    `defaultclassifier` and `feature_selection_simple`
+    feature_selection_simple : Perform feature selection
+    defaultclassifier : feature selection and gridsearch for SVM parameters
     '''
     from . import svm
     from .multi import one_against_one

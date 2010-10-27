@@ -16,4 +16,8 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`search`
 
+.. automodule:: milk
+    :members:
+
+
 
