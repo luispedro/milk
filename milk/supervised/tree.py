@@ -31,7 +31,6 @@ Decision tree based classifier
 
 from __future__ import division
 import numpy as np
-from collections import defaultdict
 
 class Leaf(object):
     '''
@@ -76,6 +75,7 @@ def _split(features, labels, criterion, subsample, R):
 
 def _entropy_set(labels):
     from scipy.stats import entropy
+    from collections import defaultdict
     counts = defaultdict(float)
     for l in counts:
         counts[l] += 1.
@@ -96,6 +96,7 @@ def information_gain(*args,**kwargs):
     H = 0.
     N = sum(len(A) for A in args)
     if kwargs.get('include_entropy',False):
+        from collections import defaultdict
         counts = defaultdict(float)
         for arg in args:
             for L in arg:
@@ -167,8 +168,8 @@ def apply_tree(tree, features):
 class tree_learner(object):
     '''
     tree = tree_learner()
-    tree.train(features,labels)
-    predicted = tree.apply(testfeatures)
+    model = tree.train(features,labels)
+    predicted = model.apply(testfeatures)
 
     A decision tree classifier (currently, implements the greedy ID3 
     algorithm without any pruning.
@@ -197,6 +198,9 @@ class tree_learner(object):
 tree_classifier = tree_learner
 
 class tree_model(object):
+    '''
+    tree model
+    '''
     def __init__(self, tree, return_label):
         self.tree = tree
         self.return_label = return_label
