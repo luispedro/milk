@@ -33,12 +33,19 @@ from __future__ import division
 import numpy as np
 from collections import defaultdict
 
-class _Leaf(object):
+class Leaf(object):
     def __init__(self, v, s):
-        self.v = v/float(s)
+        self.v = v
         self.s = s
     def __repr__(self):
         return 'Leaf(%s,%s)' % (self.v, self.s)
+
+class Node(object): # This could be replaced by a namedtuple
+    def __init__(self, featid, featval, left, right):
+        self.featid = featid
+        self.featval = featval
+        self.left = left
+        self.right = right
 
 def _split(features, labels, criterion):
     N,f = features.shape
@@ -93,26 +100,38 @@ def build_tree(features, labels, criterion, min_split=4):
 
     Parameters
     ----------
-        * features: features to use
-        * labels: labels
-        * criterion: function to measure goodness of split
-        * min_split: minimum size to split on
+    features : sequence
+        features to use
+    labels : sequence
+        labels
+    criterion : function {labels} x {labels} -> float
+        function to measure goodness of split
+    min_split : integer
+        minimum size to split on
+
+    Returns
+    -------
+    tree : Tree
     '''
     assert len(features) == len(labels), 'build_tree: Nr of labels does not match nr of features'
     features = np.asanyarray(features)
     labels = np.asanyarray(labels)
+    N = float(len(labels))
     if len(labels) < min_split:
-        return _Leaf(labels.sum(), float(len(labels)))
+        return Leaf(labels.sum()/N, N)
     S = _split(features, labels, criterion)
     if S is None:
-        return _Leaf(labels.sum(), float(len(labels)))
+        return Leaf(labels.sum()/N, N)
     i,thresh = S
     split = features[:,i] < thresh
     data0 = features[split]
     data1 = features[~split]
     labels0 = labels[split]
     labels1 = labels[~split]
-    return (i, thresh, build_tree(data0, labels0, criterion, min_split), build_tree(data1, labels1, criterion, min_split))
+    return Node(featid=i,
+                featval=thresh,
+                left=build_tree(data0, labels0, criterion, min_split),
+                right=build_tree(data1, labels1, criterion, min_split))
 
 def apply_tree(tree, features):
     '''
@@ -120,12 +139,11 @@ def apply_tree(tree, features):
 
     Applies the decision tree to a set of features.
     '''
-    if type(tree) is _Leaf:
+    if type(tree) is Leaf:
         return tree.v
-    i,c,left,right = tree
-    if features[i] < c:
-        return apply_tree(left, features)
-    return apply_tree(right, features)
+    if features[tree.featid] < tree.featval:
+        return apply_tree(tree.left, features)
+    return apply_tree(tree.right, features)
 
 
 class tree_learner(object):
@@ -139,14 +157,17 @@ class tree_learner(object):
 
     Attributes
     ----------
-        * criterion: criterion to use for tree construction,
-            this should be a function that receives a set of labels
-            (default: information_gain).
-        * min_split: minimum size to split on (default: 4).
+    criterion : function, optional
+        criterion to use for tree construction,
+        this should be a function that receives a set of labels
+        (default: information_gain).
+
+    min_split : integer, optional
+        minimum size to split on (default: 4).
     '''
     def __init__(self, criterion=information_gain, min_split=4, return_label=True):
         self.criterion = criterion
-        self.min_split = 4
+        self.min_split = min_split
         self.return_label = return_label
 
     def train(self, features, labels, normalisedlabels=False):
