@@ -44,7 +44,7 @@ def _set_assignment(obj,assignments):
     for k,v in assignments:
         obj.set_option(k,v)
 
-def gridminimise(learner, features, labels, params, measure=None):
+def gridminimise(learner, features, labels, params, measure=None, nfolds=10):
     '''
     best = gridminimise(learner, features, labels, params, measure={0/1 loss})
 
@@ -62,8 +62,10 @@ def gridminimise(learner, features, labels, params, measure=None):
         keys are the options to change,
         values are sequences of corresponding elements to try
     measure : function, optional
-              a function that takes labels and outputs and returns the loss.
-              Default: 0/1 loss. This must be an *additive* function.
+        a function that takes labels and outputs and returns the loss.
+        Default: 0/1 loss. This must be an *additive* function.
+    nfolds : integer, optional
+        nr of folds to run, default: 10
 
     Returns
     -------
@@ -83,7 +85,6 @@ def gridminimise(learner, features, labels, params, measure=None):
     # could only be worse even if we never computed the whole error!
 
     from ..measures.nfoldcrossvalidation import foldgenerator
-    nfolds = 10
     if measure is None:
         def measure(real, preds):
             return np.sum(np.asarray(real) != np.asarray(preds))
@@ -113,7 +114,7 @@ def gridminimise(learner, features, labels, params, measure=None):
 
 class gridsearch(object):
     '''
-    G = gridsearch(base, measure=accuracy, param1=[...], param2=[...], ...)
+    G = gridsearch(base, measure=accuracy, nfolds=10, params={ 'param1 : [...], param2 : [...]})
 
     Perform a grid search for the best parameter values.
 
@@ -134,20 +135,23 @@ class gridsearch(object):
     -----------
     base_classifier : classifier to use
     measure : function, optional
-              a function that takes labels and outputs and returns the loss.
-              Default: 0/1 loss. This must be an *additive* function.
+        a function that takes labels and outputs and returns the loss.
+        Default: 0/1 loss. This must be an *additive* function.
+    nfolds : integer, optional
+        Nr of folds
+    params : dictionary
     '''
-    def __init__(self, base, measure=None, params={}):
+    def __init__(self, base, measure=None, nfolds=10, params={}):
         self.params = params
         self.base = base
-        self.best = None
+        self.nfolds = 10
         self.measure = measure
 
     def is_multi_class(self):
         return self.base.is_multi_class()
 
     def train(self, features, labels, normalisedlabels=False):
-        self.best = gridminimise(self.base, features, labels, self.params, self.measure)
+        self.best = gridminimise(self.base, features, labels, self.params, self.measure, self.nfolds)
         _set_assignment(self.base, self.best)
         return self.base.train(features, labels, normalisedlabels=normalisedlabels)
 
