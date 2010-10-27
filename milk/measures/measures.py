@@ -19,9 +19,9 @@ def accuracy(cmatrix):
     cmatrix = numpy.asanyarray(cmatrix)
     return cmatrix.trace()/cmatrix.sum()
 
-def zero_one_loss(real, predicted):
+def zero_one_loss(real, predicted, normalisedlabels=False, names=None):
     '''
-    loss = zero_one_loss(real, predicted)
+    loss = zero_one_loss(real, predicted, normalisedlabels={unused}, names={unused})
 
     Parameters
     ----------
@@ -29,6 +29,8 @@ def zero_one_loss(real, predicted):
         the underlying labels
     predicted : sequence
         the predicted labels
+    normalisedlabels : unused
+    names: unused
 
     Returns
     -------
@@ -46,6 +48,18 @@ def waccuracy(cmatrix):
     '''
     cmatrix = numpy.asanyarray(cmatrix)
     return (cmatrix.diagonal() / cmatrix.sum(1)).mean()
+
+def confusion_matrix(real, predicted, normalisedlabels=False, names=None):
+    if not normalisedlabels:
+        real, names = normaliselabels(real)
+        predicted = map(names.index, predicted)
+    n = np.max(real)+1
+    cmat = np.zeros((n,n), int)
+    for r,p in zip(real, predicted):
+        cmat[r,p] += 1
+    return cmat
+
+
 
 ## TODO: Implement http://en.wikipedia.org/wiki/Matthews_Correlation_Coefficient
 
