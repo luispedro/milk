@@ -31,6 +31,7 @@ Decision tree based classifier
 
 from __future__ import division
 import numpy as np
+from .classifier import normaliselabels
 
 class Leaf(object):
     '''
@@ -74,12 +75,9 @@ def _split(features, labels, criterion, subsample, R):
 
 
 def _entropy_set(labels):
-    from scipy.stats import entropy
-    from collections import defaultdict
-    counts = defaultdict(float)
-    for l in counts:
-        counts[l] += 1.
-    return entropy(counts.values())
+    from ._tree import set_entropy
+    counts = np.empty(labels.max()+1, np.double)
+    return set_entropy(labels, counts)
 
 
 def information_gain(*args,**kwargs):
@@ -192,6 +190,8 @@ class tree_learner(object):
         self.R = R
 
     def train(self, features, labels, normalisedlabels=False):
+        if not normalisedlabels:
+            labels,names = normaliselabels(labels)
         tree = build_tree(features, labels, self.criterion, self.min_split, self.subsample, self.R)
         return tree_model(tree, self.return_label)
 
