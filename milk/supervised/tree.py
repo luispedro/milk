@@ -75,6 +75,7 @@ def _split(features, labels, criterion, subsample, R):
 
 
 from ._tree import set_entropy
+from ._tree import information_gain as _information_gain
 def information_gain(labels0, labels1, include_entropy=False):
     '''
     ig = information_gain(labels0, labels1, include_entropy=False)
@@ -85,15 +86,10 @@ def information_gain(labels0, labels1, include_entropy=False):
     The function calculated here does not include the original entropy unless
     you explicitly ask for it (by passing include_entropy=True)
     '''
-    H = 0.
-    N = len(labels0) + len(labels1)
-    nlabels = 1+max(labels0.max(), labels1.max())
-    counts = np.empty(nlabels, np.double)
     if include_entropy:
-        H = set_entropy(np.concatenate( (labels0, labels1) ))
-    for arg in (labels0, labels1):
-        H -= len(arg)/N * set_entropy(arg, counts)
-    return H        
+        return set_entropy(np.concatenate( (labels0, labels1) )) + \
+                _information_gain(labels0, labels1)
+    return _information_gain(labels0, labels1)
 
 
 def build_tree(features, labels, criterion, min_split=4, subsample=None, R=None):

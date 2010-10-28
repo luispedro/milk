@@ -1,5 +1,7 @@
 import milk.supervised.tree
 import milk.supervised._tree
+from milk.supervised._tree import set_entropy
+from milk.supervised.tree import information_gain
 import numpy as np
 
 def test_tree():
@@ -35,4 +37,23 @@ def test_set_entropy():
     px = slow_counts.astype(float)/ slow_counts.sum()
     slow_entropy = - np.sum(px * np.log(px))
     assert np.abs(slow_entropy - entropy) < 1.e-8
+
+
+def slow_information_gain(labels0, labels1):
+    H = 0.
+    N = len(labels0) + len(labels1)
+    nlabels = 1+max(labels0.max(), labels1.max())
+    counts = np.empty(nlabels, np.double)
+    for arg in (labels0, labels1):
+        H -= len(arg)/float(N) * set_entropy(arg, counts)
+    return H        
+
+def test_information_gain():
+    np.random.seed(22)
+    for i in xrange(8):
+        labels0 = (np.random.randn(20) > .2).astype(int)
+        labels1 = (np.random.randn(33) > .8).astype(int)
+        fast = information_gain(labels0, labels1)
+        slow = slow_information_gain(labels0, labels1)
+        assert np.abs(fast - slow) < 1.e-8
 
