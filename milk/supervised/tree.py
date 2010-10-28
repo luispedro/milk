@@ -60,7 +60,7 @@ def _split(features, labels, criterion, subsample, R):
     best = None
     best_val = -1.
     for i in xrange(f):
-        domain_i = np.unique(features[:,i])
+        domain_i = sorted(set(features[:,i]))
         for d in domain_i[1:]:
             cur_split = (features[:,i] < d)
             value = criterion(labels[cur_split],labels[~cur_split])
@@ -74,9 +74,10 @@ def _split(features, labels, criterion, subsample, R):
     return best
 
 
-def information_gain(*args,**kwargs):
+from ._tree import set_entropy
+def information_gain(labels0, labels1, include_entropy=False):
     '''
-    ig = information_gain(labels0, labels1, ..., include_entropy=False)
+    ig = information_gain(labels0, labels1, include_entropy=False)
 
     Information Gain
     See http://en.wikipedia.org/wiki/Information_gain_in_decision_trees
@@ -84,20 +85,13 @@ def information_gain(*args,**kwargs):
     The function calculated here does not include the original entropy unless
     you explicitly ask for it (by passing include_entropy=True)
     '''
-    from ._tree import set_entropy
-    assert len(args) > 1, 'information_gain: only defined for two or more labels'
     H = 0.
-    N = sum(len(A) for A in args)
-    nlabels = 1+max(max(A) for A in args)
+    N = len(labels0) + len(labels1)
+    nlabels = 1+max(labels0.max(), labels1.max())
     counts = np.empty(nlabels, np.double)
-    if kwargs.get('include_entropy',False):
-        from collections import defaultdict
-        counts = defaultdict(float)
-        for arg in args:
-            for L in arg:
-                counts[L] += 1.
-        H = scipy.stats.entropy(counts.values())
-    for arg in args:
+    if include_entropy:
+        H = set_entropy(np.concatenate( (labels0, labels1) ))
+    for arg in (labels0, labels1):
         H -= len(arg)/N * set_entropy(arg, counts)
     return H        
 
