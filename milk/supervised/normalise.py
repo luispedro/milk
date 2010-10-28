@@ -23,6 +23,7 @@
 from __future__ import division
 from collections import defaultdict
 import numpy as np
+from .classifier import normaliselabels
 
 __all__ = [
     'zscore',
@@ -30,6 +31,7 @@ __all__ = [
     'interval_normalise',
     'chkfinite',
     'sample_to_2min',
+    'normaliselabels'
 ]
 
 def zscore(features):
