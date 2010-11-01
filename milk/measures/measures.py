@@ -50,7 +50,28 @@ def waccuracy(cmatrix):
     return (cmatrix.diagonal() / cmatrix.sum(1)).mean()
 
 def confusion_matrix(real, predicted, normalisedlabels=False, names=None):
+    '''
+    cmatrix = confusion_matrix(real, predicted, normalisedlabels=False, names=None)
+
+    Computes the confusion matrix
+
+    Parameters
+    ----------
+    real : sequence
+        The real labels
+    predicted : sequence
+        The predicted sequence (must be same type as `real`)
+    normalisedlabels : boolean, optional
+        Whether labels have been normalised
+    names : sequence
+        The underlying names (unused)
+
+    Returns
+    -------
+    cmatrix : 2 ndarray
+    '''
     if not normalisedlabels:
+        from ..supervised.normalise import normaliselabels
         real, names = normaliselabels(real)
         predicted = map(names.index, predicted)
     n = np.max(real)+1

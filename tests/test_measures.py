@@ -1,4 +1,5 @@
-from milk.measures import accuracy
+import milk.measures.measures
+import numpy as np
 import numpy
 from milk.measures import accuracy, waccuracy
 
@@ -32,4 +33,15 @@ def test_unbalanced():
         ])
     assert accuracy(C) == .5
     assert waccuracy(C) == 1./3
+
+
+
+def test_confusion_matrix():
+    np.random.seed(323)
+    labels0 = np.arange(101)%3
+    labels1 = (labels0 + np.random.rand(101)*2).astype(np.int) % 3
+    cmat = milk.measures.measures.confusion_matrix(labels0, labels1)
+    for i in xrange(3):
+        for j in xrange(3):
+            assert cmat[i,j] == np.sum( (labels0 == i) & (labels1 == j) )
 
