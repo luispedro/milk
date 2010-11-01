@@ -21,10 +21,7 @@
 #  THE SOFTWARE.
 
 from __future__ import division
-from collections import defaultdict
 from ..supervised.classifier import normaliselabels
-from ..supervised.defaultclassifier import defaultclassifier
-import numpy
 import numpy as np
 
 __all__ = ['foldgenerator', 'getfold', 'nfoldcrossvalidation']
@@ -186,27 +183,32 @@ def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins
     predictions : sequence
         predicted output for each element
     '''
-    assert len(features) == len(labels), 'milk.measures.nfoldcrossvalidation: len(features) should match len(labels)'
+    import operator
+    from .measures import confusion_matrix
+    if len(features) != len(labels):
+        raise ValueError('milk.measures.nfoldcrossvalidation: len(features) should match len(labels)')
     if classifier is None:
+        from ..supervised.defaultclassifier import defaultclassifier
         classifier = defaultclassifier()
     labels,names = normaliselabels(labels)
     if return_predictions:
         predictions = np.empty_like(labels)
         predictions.fill(-1) # This makes it clearer if there are bugs in the programme
 
-    features = numpy.asanyarray(features)
+    features = np.asanyarray(features)
 
     nclasses = labels.max() + 1
-    cmatrix = np.zeros((nclasses,nclasses))
+    results = []
+    measure = confusion_matrix
     for trainingset,testingset in foldgenerator(labels, nfolds, origins=origins):
         model = classifier.train(features[trainingset], labels[trainingset])
-        prediction = np.array([model.apply(f) for f in features[testingset]])
+        prediction = [model.apply(f) for f in features[testingset]]
         if return_predictions:
-            predictions[testingset] = prediction.astype(predictions.dtype)
-        for p, r in zip(prediction,labels[testingset]):
-            cmatrix[r,p] += 1
+            predictions[testingset] = np.array(predictions, dtype=predictions.dtype)
+        results.append(measure(labels[testingset], prediction))
 
+    result = reduce(operator.add, results)
     if return_predictions:
-        return cmatrix, names, predictions
-    return cmatrix, names
+        return result, names, predictions
+    return result, names
 
