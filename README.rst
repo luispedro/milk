@@ -20,11 +20,21 @@ feature as it works on numpy arrays directly (or anything that is convertible to
 a numpy-array) without forcing you to copy memory around. For SVMs, you can even
 just use any datatype if you have your own kernel function.
 
+New in 0.3.4
+------------
+- Random forest learners
+- Decision trees sped up 20x
+- Much faster gridsearch  (finds optimum without computing all folds)
+
 Features
 --------
+- Random forests
+- Self organising maps
 - SVMs. Using the libsvm solver with a pythonesque wrapper around it.
 - Stepwise Discriminant Analysis for feature selection.
+- Non-negative matrix factorisation
 - K-means using as little memory as possible.
+- Affinity propagation
 
 License: MIT
 Author: Luis Pedro Coelho (with code from LibSVM and scikits.learn)
