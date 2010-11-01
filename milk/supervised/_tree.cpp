@@ -12,16 +12,14 @@ extern "C" {
 
 namespace {
 
-double set_entropy(PyArrayObject* points, double* counts = 0, int clen = -1) {
-    const int* data = reinterpret_cast<const int*>(PyArray_DATA(points));
-    const int N = PyArray_DIM(points, 0);
-
+template <typename T>
+double set_entropy(const T* data, const int N, double* counts, long clen) {
     for (int i = 0; i != clen; ++i) counts[i] = 0.;
 
     for (int i = 0; i != N; ++i) {
         int value = data[i];
         if (value >= clen) {
-            PyErr_SetString(PyExc_RuntimeError, "value too large. aborting");
+            PyErr_SetString(PyExc_RuntimeError, "milk.supervised.tree.set_entropy: label value too large. aborting");
             return 0;
         }
         counts[value] += 1.;
@@ -45,6 +43,16 @@ double set_entropy(PyArrayObject* points, double* counts = 0, int clen = -1) {
     return entropy;
 }
 
+double set_entropy(PyArrayObject* points, double* counts, long clen) {
+    const int N = PyArray_SIZE(points);
+#define HANDLE(type_marker, type) \
+    if (PyArray_TYPE(points) == type_marker) return set_entropy<type>(reinterpret_cast<const type*>(PyArray_DATA(points)), N, counts, clen);
+
+    HANDLE(NPY_INT, int)
+    HANDLE(NPY_LONG, long)
+#undef HANDLE
+}
+
 PyObject* py_set_entropy(PyObject* self, PyObject* args) {
     const char* errmsg = "Arguments were not what was expected for set_entropy.\n"
                         "This is an internal function: Do not call directly unless you know exactly what you're doing.\n";
@@ -54,7 +62,7 @@ PyObject* py_set_entropy(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_RuntimeError,errmsg);
         return 0;
     }
-    if (!PyArray_Check(labels) || PyArray_TYPE(labels) != NPY_INT32 || !PyArray_ISCONTIGUOUS(labels) ||
+    if (!PyArray_Check(labels) || (PyArray_TYPE(labels) != NPY_INT && PyArray_TYPE(labels) != NPY_LONG) || !PyArray_ISCONTIGUOUS(labels) ||
         !PyArray_Check(counts) || PyArray_TYPE(counts) != NPY_DOUBLE || !PyArray_ISCONTIGUOUS(counts)) {
         PyErr_SetString(PyExc_RuntimeError,errmsg);
         return 0;
@@ -66,7 +74,7 @@ PyObject* py_set_entropy(PyObject* self, PyObject* args) {
 }
 
 PyObject* py_information_gain(PyObject* self, PyObject* args) {
-    const char* errmsg = "Arguments were not what was expected for set_entropy.\n"
+    const char* errmsg = "Arguments were not what was expected for information_gain.\n"
                         "This is an internal function: Do not call directly unless you know exactly what you're doing.\n";
     PyArrayObject* labels0;
     PyArrayObject* labels1;
@@ -74,20 +82,23 @@ PyObject* py_information_gain(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_RuntimeError,errmsg);
         return 0;
     }
-    if (!PyArray_Check(labels0) || PyArray_TYPE(labels0) != NPY_INT32 || !PyArray_ISCONTIGUOUS(labels0) ||
-        !PyArray_Check(labels1) || PyArray_TYPE(labels1) != NPY_INT32 || !PyArray_ISCONTIGUOUS(labels1)) {
+    if (!PyArray_Check(labels0) || (PyArray_TYPE(labels0) != NPY_INT && PyArray_TYPE(labels0) != NPY_LONG) || !PyArray_ISCONTIGUOUS(labels0) ||
+        !PyArray_Check(labels1) || (PyArray_TYPE(labels1) != NPY_INT && PyArray_TYPE(labels1) != NPY_LONG) || !PyArray_ISCONTIGUOUS(labels1)) {
         PyErr_SetString(PyExc_RuntimeError,errmsg);
+        std::cout << PyArray_TYPE(labels0) << " " << PyArray_TYPE(labels1) << '\n';
         return 0;
     }
     double* counts;
     double counts_array[8];
-    int clen = 0;
+    long clen = 0;
 #define GET_MAX(index) \
         const int N ## index = PyArray_DIM(labels ## index, 0); \
         { \
-            const int* data = reinterpret_cast<const int*>(PyArray_DATA(labels ## index)); \
             for (int i = 0; i != N ## index; ++i) { \
-                if (data[i] > clen) clen = data[i]; \
+                long val; \
+                if (PyArray_TYPE(labels ## index) == NPY_INT) val = *reinterpret_cast<const int*>(PyArray_GETPTR1(labels ## index, i)); \
+                else if (PyArray_TYPE(labels ## index) == NPY_LONG) val = *reinterpret_cast<const int*>(PyArray_GETPTR1(labels ## index, i)); \
+                if (val > clen) clen = val; \
             } \
         }
     GET_MAX(0);
