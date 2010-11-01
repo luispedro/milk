@@ -57,3 +57,9 @@ def test_information_gain():
         slow = slow_information_gain(labels0, labels1)
         assert np.abs(fast - slow) < 1.e-8
 
+
+def test_information_gain_small():
+    labels1 = np.array([0])
+    labels0 = np.array([0, 1])
+    assert information_gain(labels0, labels1) < 0.
+
