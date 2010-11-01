@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <cmath>
+#include <cassert>
 extern "C" {
     #include <Python.h>
     #include <numpy/ndarrayobject.h>
@@ -51,6 +52,8 @@ double set_entropy(PyArrayObject* points, double* counts, long clen) {
     HANDLE(NPY_INT, int)
     HANDLE(NPY_LONG, long)
 #undef HANDLE
+    assert(false);
+    return 0.;
 }
 
 PyObject* py_set_entropy(PyObject* self, PyObject* args) {
@@ -95,7 +98,7 @@ PyObject* py_information_gain(PyObject* self, PyObject* args) {
         const int N ## index = PyArray_DIM(labels ## index, 0); \
         { \
             for (int i = 0; i != N ## index; ++i) { \
-                long val; \
+                long val = 0; \
                 if (PyArray_TYPE(labels ## index) == NPY_INT) val = *reinterpret_cast<const int*>(PyArray_GETPTR1(labels ## index, i)); \
                 else if (PyArray_TYPE(labels ## index) == NPY_LONG) val = *reinterpret_cast<const int*>(PyArray_GETPTR1(labels ## index, i)); \
                 if (val > clen) clen = val; \
