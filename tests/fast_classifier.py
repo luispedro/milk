@@ -13,18 +13,16 @@ class fast_classifier(object):
 class fast_model(object):
     def __init__(self, examples):
         self.examples = examples
-    
-    def apply(self, features):
-        res = []
-        for f in features:
-            cur = None
-            best = +np.inf
-            for k,v in self.examples.iteritems(): 
-                dist = np.dot(v-f, v-f)
-                if dist < best:
-                    best = dist
-                    cur = k
-            res.append(k)
-        return res
+        assert len(self.examples)
+
+    def apply(self, f):
+        best = None
+        best_val = +np.inf
+        for k,v in self.examples.iteritems():
+            dist = np.dot(v-f, v-f)
+            if dist < best_val:
+                best = k
+                best_val = dist
+        return best
 
 
