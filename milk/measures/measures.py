@@ -8,16 +8,42 @@ from __future__ import division
 import numpy
 import numpy as np
 
-__all__ = ['accuracy','waccuracy']
+__all__ = [
+    'accuracy',
+    'confusion_matrix',
+    'waccuracy',
+    'zero_one_loss',
+    ]
 
-def accuracy(cmatrix):
+def accuracy(real, other=None, normalisedlabels=False, names=None):
     '''
-    acc = accuracy(cmatrix)
+    acc = accuracy(real, predicted, normalisedlabels=False, names=None)
 
-    Accuracy of confusion matrix
+    Compute accuracy (fraction of correct predictions).
+
+    Parameters
+    ----------
+    real : sequence
+        The real labels
+    predicted : sequence
+        The predicted sequence (must be same type as `real`)
+    normalisedlabels : boolean, optional
+        Whether labels have been normalised
+    names : sequence
+        The underlying names (unused)
+
+    Returns
+    -------
+    acc : float
     '''
-    cmatrix = numpy.asanyarray(cmatrix)
-    return cmatrix.trace()/cmatrix.sum()
+    if other is None:
+        import warnings
+        warnings.warn(DeprecationWarning, 'milk.measures.accuracy: calling this with one argument is a deprecated interface.')
+        cmatrix = np.asanyarray(cmatrix)
+        return cmatrix.trace()/cmatrix.sum()
+    else:
+        real = cmatrix
+        return np.mean(np.asanyarray(real) != other)
 
 def zero_one_loss(real, predicted, normalisedlabels=False, names=None):
     '''
