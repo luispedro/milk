@@ -1,1 +1,1 @@
-from measures import accuracy, waccuracy
+from measures import accuracy, waccuracy, zero_one_loss, confusion_matrix
