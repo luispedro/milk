@@ -5,7 +5,6 @@
 # License: MIT
 
 from __future__ import division
-import numpy
 import numpy as np
 
 __all__ = [
@@ -38,8 +37,8 @@ def accuracy(real, other=None, normalisedlabels=False, names=None):
     '''
     if other is None:
         import warnings
-        warnings.warn(DeprecationWarning, 'milk.measures.accuracy: calling this with one argument is a deprecated interface.')
-        cmatrix = np.asanyarray(cmatrix)
+        warnings.warn('milk.measures.accuracy: calling this with one argument is a deprecated interface.', DeprecationWarning)
+        cmatrix = np.asanyarray(real)
         return cmatrix.trace()/cmatrix.sum()
     else:
         real = cmatrix
@@ -66,13 +65,35 @@ def zero_one_loss(real, predicted, normalisedlabels=False, names=None):
     return np.sum(np.asanyarray(real) != np.asanyarray(predicted))
     
 
-def waccuracy(cmatrix):
+def waccuracy(real, predicted=None, normalisedlabels=False, names=None):
     '''
-    wacc = waccuracy(cmatrix)
+    wacc = waccuracy(real, predicted, normalisedlabels={unused}, names={unused})
 
-    Weighted accuracy of cmatrix
+    Weighted accuracy: average of accuracy for each (real) class. Can be very
+    different from accuracy if the classes are unbalanced (in particular, if
+    they are very unbalanced, you can get a high accuracy with a bad
+    classifier).
+
+    Parameters
+    ----------
+    real : sequence
+        the underlying labels
+    predicted : sequence
+        the predicted labels
+    normalisedlabels : unused
+    names: unused
+
+    Returns
+    -------
+    wacc : float
+        the weighted accuracy
     '''
-    cmatrix = numpy.asanyarray(cmatrix)
+    if predicted is None:
+        import warnings
+        warnings.warn('milk.measures.accuracy: calling this with one argument is a deprecated interface.', DeprecationWarning)
+        cmatrix = np.asanyarray(real)
+    else:
+        cmatrix = confusion_matrix(real, predicted, normalisedlabels, names)
     return (cmatrix.diagonal() / cmatrix.sum(1)).mean()
 
 def confusion_matrix(real, predicted, normalisedlabels=False, names=None):
