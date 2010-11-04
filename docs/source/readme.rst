@@ -3,22 +3,23 @@ MILK: MACHINE LEARNING TOOLKIT
 ==============================
 Machine Learning in Python
 --------------------------
+Milk is a machine learning toolkit in Python.
 
-Milk is a machine learning toolkit in Python. Its focus is on supervised
-classification and on enabling medium scale learning (defined as data that
-barely fits in main memory).
+Its focus is on supervised classification with several classifiers available:
+SVMs (based on libsvm), k-NN, random forests, decision trees. It also performs
+feature selection. These classifiers can be combined in many ways to form
+different classification systems.
 
-milk wraps libsvm in a Pythonic way (the models learned have weight arrays that
-are accessible from Python directly, the models are pickle()able, you can pass
-any Python function as a kernel,....)
+For unsupervised learning, milk supports k-means clustering and affinity
+propagation.
 
-It also supports k-means clustering with an implementation that is careful not
-to use too much memory (if your dataset fits into memory, milk can cluster it).
+Milk is flexible about its inputs. It optimised for numpy arrays, but can often
+handle anything (for example, for SVMs, you can use any dataype and any kernel
+and it does the right thing).
 
-It does not have its own file format or in-memory format, which I consider a
-feature as it works on numpy arrays directly (or anything that is convertible to
-a numpy-array) without forcing you to copy memory around. For SVMs, you can even
-just use any datatype if you have your own kernel function.
+There is a strong emphasis on speed and low memory usage. Therefore, most of
+the performance sensitive code is in C++. This is behind Python-based
+interfaces for convenience.
 
 Features
 --------
@@ -30,4 +31,4 @@ License: MIT
 Author: Luis Pedro Coelho (with code from LibSVM)
 Website: `http://luispedro.org/software/milk
 <http://luispedro.org/software/milk>`__
-
+API Documentation: `http://packages.python.org/milk/ <http://packages.python.org/milk/>`_
