@@ -1,5 +1,6 @@
-Version 0.3.5 2010-10-31
-	* Fixes for 64 bit machines
+Version 0.3.5 2010-11-3
+	* Fixes for 64 bit machines.
+	* Functions in measures.py all have same interface now.
 
 Version 0.3.4 2010-10-31
 	* Random forest learners
