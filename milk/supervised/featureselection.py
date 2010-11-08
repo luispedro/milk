@@ -102,7 +102,7 @@ def sda(features, labels, tolerance=None, significance_in=None, significance_out
                 if k == last_enter_k:
                     # We are going into an infinite loop.
                     import warnings
-                    warnings.warn('pyslic.featureselection.sda: infinite loop detected (maybe bug?).')
+                    warnings.warn('milk.featureselection.sda: infinite loop detected (maybe bug?).')
                     break
                 W = _sweep(W,k,1)
                 T = _sweep(T,k,1)
