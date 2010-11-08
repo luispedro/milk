@@ -225,6 +225,10 @@ class featureselector(object):
 
     def train(self, features, labels, normalisedlabels=False):
         idxs = self.selector(features, labels)
+        if len(idxs) == 0:
+            import warnings
+            warnings.warn('milk.featureselection: No features selected! Using all features as fall-back.')
+            idxs = np.arange(len(features[0]))
         return filterfeatures(idxs)
 
     def __repr__(self):
