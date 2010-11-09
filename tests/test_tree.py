@@ -23,7 +23,7 @@ def test_split_subsample():
     seen = set()
     for i in xrange(20):
         random.seed(2)
-        i,s = milk.supervised.tree._split(features[::10], labels[::10], milk.supervised.tree.information_gain, 2, random)
+        i,s = milk.supervised.tree._split(features[::10], labels[::10], None, milk.supervised.tree.information_gain, 2, random)
         seen.add(i)
     assert len(seen) <= 2
 

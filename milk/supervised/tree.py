@@ -51,7 +51,7 @@ class Node(object): # This could be replaced by a namedtuple
         self.left = left
         self.right = right
 
-def _split(features, labels, criterion, subsample, R):
+def _split(features, labels, weights, criterion, subsample, R):
     N,f = features.shape
     if subsample is not None:
         samples = np.array(R.sample(xrange(features.shape[1]), subsample))
@@ -63,7 +63,10 @@ def _split(features, labels, criterion, subsample, R):
         domain_i = sorted(set(features[:,i]))
         for d in domain_i[1:]:
             cur_split = (features[:,i] < d)
-            value = criterion(labels[cur_split],labels[~cur_split])
+            if weights is not None:
+                value = criterion(labels[cur_split], labels[~cur_split], weights[cur_split], weights[~cur_split])
+            else:
+                value = criterion(labels[cur_split], labels[~cur_split])
             if value > best_val:
                 best_val = value
                 if subsample is not None:
@@ -92,9 +95,9 @@ def information_gain(labels0, labels1, include_entropy=False):
     return _information_gain(labels0, labels1)
 
 
-def build_tree(features, labels, criterion, min_split=4, subsample=None, R=None):
+def build_tree(features, labels, criterion, min_split=4, subsample=None, R=None, weights=None):
     '''
-    tree = build_tree(features, labels, criterion, min_split=4, subsample=None, R=None)
+    tree = build_tree(features, labels, criterion, min_split=4, subsample=None, R=None, weights={all 1s})
 
     Parameters
     ----------
@@ -108,6 +111,10 @@ def build_tree(features, labels, criterion, min_split=4, subsample=None, R=None)
         minimum size to split on
     subsample : integer, optional
         if given, then, at each step, choose
+    R : source of randomness, optional
+        See `milk.util.get_pyrandom`
+    weights : sequence, optional
+        weight of instance (default: all the same)
 
     Returns
     -------
@@ -126,7 +133,7 @@ def build_tree(features, labels, criterion, min_split=4, subsample=None, R=None)
         N = float(len(labels))
         if N < min_split:
             return Leaf(labels.sum()/N, N)
-        S = _split(features, labels, criterion, subsample, R)
+        S = _split(features, labels, weights, criterion, subsample, R)
         if S is None:
             return Leaf(labels.sum()/N, N)
         i,thresh = S
@@ -153,7 +160,8 @@ def apply_tree(tree, features):
 class tree_learner(object):
     '''
     tree = tree_learner()
-    model = tree.train(features,labels)
+    model = tree.train(features, labels)
+    model2 = tree.train(features, labels, weights=weights)
     predicted = model.apply(testfeatures)
 
     A decision tree classifier (currently, implements the greedy ID3 
@@ -176,10 +184,10 @@ class tree_learner(object):
         self.subsample = subsample
         self.R = R
 
-    def train(self, features, labels, normalisedlabels=False):
+    def train(self, features, labels, normalisedlabels=False, weights=None):
         if not normalisedlabels:
             labels,names = normaliselabels(labels)
-        tree = build_tree(features, labels, self.criterion, self.min_split, self.subsample, self.R)
+        tree = build_tree(features, labels, self.criterion, self.min_split, self.subsample, self.R, weights)
         return tree_model(tree, self.return_label)
 
 tree_classifier = tree_learner
