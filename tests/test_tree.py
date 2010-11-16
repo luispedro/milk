@@ -63,3 +63,14 @@ def test_information_gain_small():
     labels0 = np.array([0, 1])
     assert information_gain(labels0, labels1) < 0.
 
+
+def test_z1_loss():
+    from milk.supervised.tree import z1_loss
+    L0 = np.zeros(10)
+    L1 = np.ones(10)
+    L1[3] = 0
+    W0 = np.ones(10)
+    W1 = np.ones(10)
+    assert z1_loss(L0, L1) == z1_loss(L0, L1, W0, W1)
+    assert z1_loss(L0, L1) != z1_loss(L0, L1, W0, .8*W1)
+

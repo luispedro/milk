@@ -95,6 +95,22 @@ def information_gain(labels0, labels1, include_entropy=False):
     return _information_gain(labels0, labels1)
 
 
+def z1_loss(labels0, labels1, weights0=None, weights1=None):
+    '''
+    z = z1_loss(labels0, labels1)
+    z = z1_loss(labels0, labels1, weights0, weights1)
+
+    zero-one loss split for tree learning
+    '''
+    def _acc(labels, weights):
+        c = (labels.mean() > .5)
+        if weights is not None:
+            return -np.dot((labels != c), weights)
+        return -np.sum(labels != c)
+    return _acc(labels0, weights0) + _acc(labels1, weights1)
+
+
+
 def build_tree(features, labels, criterion, min_split=4, subsample=None, R=None, weights=None):
     '''
     tree = build_tree(features, labels, criterion, min_split=4, subsample=None, R=None, weights={all 1s})
@@ -164,8 +180,8 @@ class tree_learner(object):
     model2 = tree.train(features, labels, weights=weights)
     predicted = model.apply(testfeatures)
 
-    A decision tree classifier (currently, implements the greedy ID3 
-    algorithm without any pruning.
+    A decision tree classifier (currently, implements the greedy ID3
+    algorithm without any pruning).
 
     Attributes
     ----------
@@ -206,3 +222,24 @@ class tree_model(object):
             return value > .5
         return value
 
+class stump_model(object):
+    def __init__(self, idx, cutoff, names):
+        self.names = names
+        self.idx = idx
+        self.cutoff = cutoff
+
+    def apply(self, f):
+        return self.names[f[self.idx] > self.cutoff]
+
+    def __repr__(self):
+        return '<stump(%s, %s)>' % (self.idx, self.cutoff)
+
+class stump_learner(object):
+    def __init__(self):
+        pass
+
+    def train(self, features, labels, normalisedlabels=False, weights=None, **kwargs):
+        if not normalisedlabels:
+            labels,names = normaliselabels(labels)
+        idx,cutoff = _split(features, labels, weights, z1_loss, subsample=None, R=None)
+        return stump_model(idx, cutoff, names)
