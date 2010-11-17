@@ -48,7 +48,8 @@ Both learners and models are pickle()able.
 Composition and Defaults
 ------------------------
 
-The style of milk involves many small objects,each providing one step of the pipeline. For example:
+The style of milk involves many small objects,each providing one step of the
+pipeline. For example:
 
 1. remove NaNs and Infs from features
 2. bring features to the [-1, 1] interval
@@ -79,6 +80,8 @@ supervised Submodules
 
 - defaultclassifier: contains a default "good enough" classifier
 - svm: related to SVMs
+- adaboost: Adaboost
+- randomforest: random forests
 - grouped: contains objects to transform single object learners into group
   learners by voting
 - multi: transforms binary learners into multi-class learners (1-vs-1 or
