@@ -1,5 +1,8 @@
 Version 0.3.5+
 	* Fix for when SDA returns empty
+	* weights option to some learners
+	* stump learner
+	* Adaboost (result of above changes)
 
 Version 0.3.5 2010-11-3
 	* Fixes for 64 bit machines.
