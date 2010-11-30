@@ -111,4 +111,13 @@ def test_stringlabels():
     assert Lo[1] in labelnames
     assert Lo[0] != Lo[1] in labelnames
 
+def test_predictions():
+    np.random.seed(222)
+    D = np.random.rand(100,10)
+    D[:40] += np.random.rand(40,10)**2
+    labels = [0] * 40 + [1] * 60
+    cmat,_,predictions = nfoldcrossvalidation(D, labels, classifier=fast_classifier(), return_predictions=1)
+    assert np.all((predictions == 0)|(predictions == 1))
+    assert cmat.trace() == np.sum(predictions == labels)
+
 

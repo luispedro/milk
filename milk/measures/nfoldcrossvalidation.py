@@ -202,10 +202,10 @@ def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins
     measure = confusion_matrix
     for trainingset,testingset in foldgenerator(labels, nfolds, origins=origins):
         model = classifier.train(features[trainingset], labels[trainingset])
-        prediction = [model.apply(f) for f in features[testingset]]
+        cur_predictions = [model.apply(f) for f in features[testingset]]
         if return_predictions:
-            predictions[testingset] = np.array(predictions, dtype=predictions.dtype)
-        results.append(measure(labels[testingset], prediction))
+            predictions[testingset] = np.array(cur_predictions, dtype=predictions.dtype)
+        results.append(measure(labels[testingset], cur_predictions))
 
     result = reduce(operator.add, results)
     if return_predictions:
