@@ -22,6 +22,19 @@ There is a strong emphasis on speed and low memory usage. Therefore, most of
 the performance sensitive code is in C++. This is behind Python-based
 interfaces for convenience.
 
+New in 0.3.5
+------------
+- Unsupervised (1-class) kernel density modeling
+- Fix for when SDA returns empty
+- weights option to some learners
+- stump learner
+- Adaboost (result of above changes)
+
+New in 0.3.5
+------------
+- Fixes for 64 bit machines
+- Functions in measures.py all have same interface now.
+
 New in 0.3.4
 ------------
 - Random forest learners
@@ -40,5 +53,6 @@ Features
 
 License: MIT
 Author: Luis Pedro Coelho (with code from LibSVM and scikits.learn)
-Website: http://luispedro.org/software/milk
+Website: `http://luispedro.org/software/milk
+<http://luispedro.org/software/milk>`__
 API Documentation: `http://packages.python.org/milk/ <http://packages.python.org/milk/>`_
