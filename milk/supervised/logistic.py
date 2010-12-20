@@ -9,11 +9,6 @@ from .normalise import normaliselabels
 
 def _sigmoidal(z):
     return 1./(1+np.exp(-z))
-    #z *= -1
-    #np.exp(z,z)
-    #z += 1.
-    #z **= -1
-    #return z
 
 class logistic_model(object):
     def __init__(self, bs):
