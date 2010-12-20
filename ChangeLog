@@ -1,3 +1,6 @@
+Version 0.3.6+
+	* Logistic regression
+
 Version 0.3.6 2010-12-17 luispedro
 	* Unsupervised (1-class) kernel density modeling
 	* Fix for when SDA returns empty
