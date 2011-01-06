@@ -8,7 +8,7 @@ from __future__ import division
 from collections import defaultdict
 import numpy as np
 
-__all__ [
+__all__ = [
     'kNN',
     ]
 

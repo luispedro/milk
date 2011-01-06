@@ -11,6 +11,7 @@ from .classifier import normaliselabels
 __all__ = [
     'gridminimise',
     'gridsearch',
+    ]
 
 def _allassignments(options):
     try:
