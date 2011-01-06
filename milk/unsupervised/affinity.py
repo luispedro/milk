@@ -1,26 +1,40 @@
+# -*- coding: utf-8 -*-
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
+# Copyright (C) 2010-2011,
+#       Luis Pedro Coelho <luis@luispedro.org>,
+#       Alexandre Gramfort <alexandre.gramfort@inria.fr>,
+#       Gael Varoquaux <gael.varoquaux@normalesup.org>
+#
+# License: MIT. See COPYING.MIT file in the milk distribution
 """Algorithms for clustering : Meanshift and Affinity propagation
 
 Original Authors (for scikits.learn):
         Alexandre Gramfort alexandre.gramfort@inria.fr
         Gael Varoquaux gael.varoquaux@normalesup.org
+
+I have made this implementation more careful about allocating intermediate
+arrays.
+
 """
 
 import numpy as np
 
+__all__ = [
+    'affinity_propagation',
+    ]
 
 def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True, R=0):
     """Perform Affinity Propagation Clustering of data
 
     Parameters
     ----------
-
-    S: array [n_points, n_points]
+    S : array [n_points, n_points]
         Matrix of similarities between points
-    p: array [n_points,] or float, optional
+    p : array [n_points,] or float, optional
         Preferences for each point
     damping : float, optional
         Damping factor
-    copy: boolean, optional
+    copy : boolean, optional
         If copy is False, the affinity matrix is modified inplace by the
         algorithm, for memory efficiency
     R : source of randomness
@@ -28,7 +42,7 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
     Returns
     -------
 
-    cluster_centers_indices: array [n_clusters]
+    cluster_centers_indices : array [n_clusters]
         index of clusters centers
 
     labels : array [n_points]
