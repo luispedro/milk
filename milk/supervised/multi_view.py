@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# Copyright (C) 2008-2011, Luis Pedro Coelho <lpc@cmu.edu>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
+#
 # License: MIT. See COPYING.MIT file in the milk distribution
 
 import numpy as np
 
+
+__all__ = [
+    'multi_view_learner',
+    ]
 class multi_view_model(object):
     def __init__(self, models):
         self.models = models
@@ -23,14 +28,23 @@ class multi_view_model(object):
         return np.sum( np.log(Ps/(1-Ps)) ) > 0
 
 
-class multi_view_classifier(object):
+class multi_view_learner(object):
+    '''
+    Multi View Learner
+
+    This learner learns different classifiers on multiple sets of features and
+    combines them for classification.
+
+    '''
     def __init__(self, bases):
         self.bases = bases
 
     def train(self, features, labels, normalisedlabels=False):
         features = zip(*features)
         if len(features) != len(self.bases):
-            raise ValueError('milk.supervised.two_view: Nr of features does not match classifiser construction (got %s, expected %s)' % (len(features) ,len(self.bases)))
+            raise ValueError('milk.supervised.multi_view_learner: ' +
+                        'Nr of features does not match classifiser construction (got %s, expected %s)'
+                        % (len(features) ,len(self.bases)))
         models = []
         for basis,f in zip(self.bases, features):
             try:
@@ -39,3 +53,5 @@ class multi_view_classifier(object):
                 f = np.array(f, dtype=object)
             models.append(basis.train(f, labels))
         return multi_view_model(models)
+
+multi_view_classifier = multi_view_learner

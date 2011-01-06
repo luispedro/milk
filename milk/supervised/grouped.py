@@ -1,12 +1,21 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2010, Luis Pedro Coelho <lpc@cmu.edu>
+# Copyright (C) 2010-2011, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
+#
 # License: MIT. See COPYING.MIT file in the milk distribution
+# -*- coding: utf-8 -*-
 
 from __future__ import division
 import numpy as np
 from collections import defaultdict
 from .classifier import normaliselabels
+
+__all__ = [
+    'voting_learner',
+    'mean_learner',
+    'remove_outliers',
+    'filter_outliers',
+    ]
 
 def _concatenate_features_labels(gfeatures, glabels):
         if type(gfeatures) == np.ndarray and gfeatures.dtype == object:
@@ -17,11 +26,11 @@ def _concatenate_features_labels(gfeatures, glabels):
             labels.extend( [label] * len(feats) )
         return features, labels
 
-class voting_classifier(object):
+class voting_learner(object):
     '''
     Implements a voting scheme for multiple sub-examples per example.
 
-    classifier = voting_classifier(base)
+    classifier = voting_learner(base)
 
     base should be a binary classifier
 
@@ -30,7 +39,7 @@ class voting_classifier(object):
 
     ::
 
-        voterlearn = voting_classifier(milk.supervised.simple_svm())
+        voterlearn = voting_learner(milk.supervised.simple_svm())
         voter = voterlearn.train(training_groups,  labeled_groups)
         res = voter.apply([ [f0, f1, f3] ])
 
@@ -42,6 +51,7 @@ class voting_classifier(object):
     def train(self, gfeatures, glabels, normalisedlabels=False):
         features, labels = _concatenate_features_labels(gfeatures, glabels)
         return voting_model(self.base.train(features, labels))
+voting_classifier = voting_learner
 
 
 class voting_model(object):
@@ -60,11 +70,11 @@ class voting_model(object):
                 most_votes = v
         return best
 
-class mean_classifier(object):
+class mean_learner(object):
     '''
     Implements a mean scheme for multiple sub-examples per example.
 
-    classifier = mean_classifier(base)
+    classifier = mean_learner(base)
 
     `base` should be a classifier that returns a numeric confidence value
     `classifier` will return the **mean**
@@ -74,7 +84,7 @@ class mean_classifier(object):
 
     ::
 
-        meanlearner = mean_classifier(milk.supervised.raw_svm())
+        meanlearner = mean_learner(milk.supervised.raw_svm())
         model = meanlearner.train(training_groups,  labeled_groups)
         res = model.apply([ [f0, f1, f3] ])
 
@@ -89,6 +99,7 @@ class mean_classifier(object):
         features, labels = _concatenate_features_labels(gfeatures, glabels)
         return mean_model(self.base.train(features, labels))
 
+mean_classifier = mean_learner
 
 class mean_model(object):
     def __init__(self, base):
