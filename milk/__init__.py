@@ -39,6 +39,7 @@ Modules
 
 Example
 -------
+
 ::
 
     features = np.random.randn(100,20)
@@ -49,6 +50,7 @@ Example
     model = classifier.train(features, labels)
     new_label = model.apply(np.random.randn(100))
     new_label2 = model.apply(np.random.randn(100)*2)
+
 '''
 
 from .nfoldcrossvalidation import nfoldcrossvalidation

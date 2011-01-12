@@ -164,7 +164,7 @@ def repeated_kmeans(fmatrix,k,iterations,distance='euclidean',max_iter=1000,R=No
 
     See Also
     --------
-    `kmeans`
+    kmeans : runs kmeans once
 
     Parameters
     ----------
@@ -180,7 +180,7 @@ def repeated_kmeans(fmatrix,k,iterations,distance='euclidean',max_iter=1000,R=No
     assignments : 1-D array of assignments
     centroids : centroids
 
-    These are the same returns as `kmeans`
+    These are the same returns as the kmeans function
     '''
     if distance == 'seuclidean':
         fmatrix = zscore(fmatrix)

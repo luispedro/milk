@@ -8,6 +8,8 @@ Contents:
    supervised
    featureselection
    randomnumbers
+   examples
+   milksets
    api
 
 Indices and tables
