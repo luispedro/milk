@@ -24,9 +24,17 @@ def pca(X, zscore=True):
 
     Parameters
     ----------
+    X : 2-dimensional ndarray
+        data matrix
+    zscore : boolean, optional
+        whether to normalise to zscores (default: True)
 
-        * X: data matrix
-        * zscore: whether to normalise to zscores (default: True)
+    Returns
+    -------
+    Y : ndarray
+        Transformed matrix (of same dimension as X)
+    V : ndarray
+        principal components
     '''
     if zscore:
         X = normalise.zscore(X)
