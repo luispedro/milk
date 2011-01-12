@@ -66,21 +66,33 @@ class rf_model(object):
 class rf_learner(object):
     '''
     Random Forest Learner
-    '''
-    def __init__(self, rf=101):
-        self.rf = rf
 
-    def train(self, features, labels, normalisedlabels=False, **kwargs):
+    learner = rf_learner(rf=101, frac=.7)
+
+    Attributes
+    ----------
+    rf : integer, optional
+        Nr of trees to learn (default: 101)
+    frac : float, optional
+        Sample fraction
+    '''
+    def __init__(self, rf=101, frac=.7):
+        self.rf = rf
+        self.frac = frac
+
+    def train(self, features, labels, normalisedlabels=False, names=None, **kwargs):
         N,M = features.shape
-        m = int(.7*M)
-        n = int(.7*M)
+        m = int(self.frac*M)
+        n = int(self.frac*M)
         R = np.random
         tree = milk.supervised.tree.tree_learner()
         forest = []
-        labels,names = normaliselabels(labels)
+        if not normalisedlabels:
+            labels,names = normaliselabels(labels)
+        elif names is None:
+            names = (0,1)
         for i in xrange(self.rf):
             forest.append(tree.train(*_sample(features, labels, n, R), normalisedlabels=True))
         return rf_model(forest, names)
-
 
 
