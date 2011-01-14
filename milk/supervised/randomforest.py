@@ -92,7 +92,9 @@ class rf_learner(object):
         elif names is None:
             names = (0,1)
         for i in xrange(self.rf):
-            forest.append(tree.train(*_sample(features, labels, n, R), normalisedlabels=True))
+            forest.append(
+                    tree.train(*_sample(features, labels, n, R),
+                               **{'normalisedlabels' : True})) # This syntax is necessary for Python 2.5
         return rf_model(forest, names)
 
 
