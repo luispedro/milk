@@ -12,6 +12,8 @@ __all__ = [
     ]
 
 def _sigmoidal(z):
+    if z > 300: return 1.
+    if z < -300: return 0.
     return 1./(1+np.exp(-z))
 
 class logistic_model(object):
@@ -20,7 +22,7 @@ class logistic_model(object):
 
     def apply(self, fs):
         return _sigmoidal(self.bs[0] + np.dot(fs, self.bs[1:]))
-        
+
 class logistic_learner(object):
     '''
     learner = logistic_learner(alpha=0.0)
@@ -44,7 +46,7 @@ class logistic_learner(object):
     def __init__(self, alpha=0.0):
         self.alpha = alpha
 
-    def train(self, features, labels, normalisedlabels=False, names=None, *kwargs):
+    def train(self, features, labels, normalisedlabels=False, names=None, **kwargs):
         def error(bs):
             response = bs[0] + np.dot(features, bs[1:])
             response = _sigmoidal(response)
