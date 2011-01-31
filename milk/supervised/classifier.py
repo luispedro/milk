@@ -21,7 +21,6 @@
 #  THE SOFTWARE.
 
 from __future__ import division
-import numpy
 import numpy as np
 
 __all__ = ['normaliselabels', 'ctransforms']
@@ -102,7 +101,7 @@ class ctransforms(object):
         model = None
         for T in self.transforms:
             if model is not None:
-                features = numpy.array([model.apply(f) for f in features])
+                features = np.array([model.apply(f) for f in features])
             model = T.train(features, labels, normalisedlabels=normalisedlabels)
             models.append(model)
         return ctransforms_model(models)
