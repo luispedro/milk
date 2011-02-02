@@ -135,4 +135,16 @@ def test_getfoldgenerator_simplified():
             11, 12, 12, 12, 13, 13, 14, 14, 14, 14, 15, 15, 15, 16])
     for Tr,Te in foldgenerator(labels, 3, origins):
         assert np.any(labels[Te])
+    for Tr,Te in foldgenerator(labels, 4, origins):
+        assert np.any(labels[Te])
+
+def test_getfoldgenerator_simplified_2():
+    # This is a cut-down version of the above
+    labels = np.zeros(44, bool)
+    labels[35:] = 1
+    origins = np.array([0,  0,  1,  2,  2,  2,  3,  4,  4,  4,  5,  6,  6,  6,
+            6,  7,  7, 7,  8,  8,  8,  8,  9,  9,  9, 10, 10, 10, 10, 11, 11,
+            11, 12, 12, 12, 13, 13, 14, 14, 14, 14, 15, 15, 15])
+    for Tr,Te in foldgenerator(labels, 3, origins):
+        assert np.any(labels[Te])
 
