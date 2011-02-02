@@ -115,6 +115,7 @@ The class histogram %s looks like:
                 testing[locs[s:e]] = 1
             else:
                 s,e = np.searchsorted(label_origins_counts[i], (s,e))
+                assert s < e, 'milk.measures.nfoldcrossvalidation.foldgenerator: unexpected empty set!'
                 for included in label_origins[i][s:e]:
                     testing[origins == included] = True
         yield ~testing, testing

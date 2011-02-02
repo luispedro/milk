@@ -1,3 +1,5 @@
+import numpy as np
+from milk.measures.nfoldcrossvalidation import nfoldcrossvalidation, foldgenerator
 
 
 # Regression test in 2011-01-31
@@ -123,4 +125,14 @@ def test_getfoldgenerator():
 
     for Tr,Te in foldgenerator(labels[::3], 3, origins[::3]):
         assert (np.array(labels)[Te] == 2).any()
+
+def test_getfoldgenerator_simplified():
+    # This is a cut-down version of the above
+    labels = np.zeros(45, bool)
+    labels[35:] = 1
+    origins = np.array([0,  0,  1,  2,  2,  2,  3,  4,  4,  4,  5,  6,  6,  6,
+            6,  7,  7, 7,  8,  8,  8,  8,  9,  9,  9, 10, 10, 10, 10, 11, 11,
+            11, 12, 12, 12, 13, 13, 14, 14, 14, 14, 15, 15, 15, 16])
+    for Tr,Te in foldgenerator(labels, 3, origins):
+        assert np.any(labels[Te])
 
