@@ -7,6 +7,7 @@ Contents:
 
    supervised
    featureselection
+   adaboost
    randomnumbers
    examples
    milksets
