@@ -121,10 +121,10 @@ def test_getfoldgenerator():
         assert (np.array(labels)[Te] == 2).any()
 
     for Tr,Te in foldgenerator(labels[::2], 3, origins[::2]):
-        assert (np.array(labels)[Te] == 2).any()
+        assert (np.array(labels[::2])[Te] == 2).any()
 
     for Tr,Te in foldgenerator(labels[::3], 3, origins[::3]):
-        assert (np.array(labels)[Te] == 2).any()
+        assert (np.array(labels[::3])[Te] == 2).any()
 
 def test_getfoldgenerator_simplified():
     # This is a cut-down version of the above
