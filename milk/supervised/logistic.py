@@ -11,8 +11,9 @@ __all__ = [
     'logistic_learner',
     ]
 
+@np.vectorize
 def _sigmoidal(z):
-    if z > 300: return 1.
+    if (z > 300): return 1.
     if z < -300: return 0.
     return 1./(1+np.exp(-z))
 
