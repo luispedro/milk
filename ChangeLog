@@ -2,6 +2,7 @@ Version 0.3.6+
 	* Logistic regression
 	* Source demos included (in source and documentation)
 	* Add cluster agreement metrics
+	* Fix nfoldcrossvalidation bug when using origins
 
 Version 0.3.6 2010-12-17 luispedro
 	* Unsupervised (1-class) kernel density modeling
