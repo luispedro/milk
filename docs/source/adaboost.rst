@@ -34,15 +34,23 @@ cross-validation::
                                     classifier=learner, \
                                     return_predictions=True)
 
-We just display the first two dimensions here::
+We display just the first two dimensions here using circles for correct
+predictions and crosses for mis-matches. The colour represents the underlying
+class::
 
     import pylab as plt
     colors = "rgb"
-    for y,x,p in zip(features.T[0], features.T[1], predictions):
-        plt.plot([y],[x], colors[p]+'o')
+    codes = "xo"
+    for y,x,r,p in zip(features.T[0], features.T[1], labels, predictions):
+        code = codes[int(r == p)]
+        plt.plot([y],[x], colors[p]+code)
     plt.show()
 
+.. plot:: ./../milk/demos/adaboost.py
+    :include-source:
 
+API Documentation
+-----------------
 
 .. automodule:: milk.supervised.adaboost
     :members: boost_learner

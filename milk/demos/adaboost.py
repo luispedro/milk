@@ -11,7 +11,9 @@ learner = milk.supervised.multi.one_against_one(learner)
 features, labels = wine.load()
 cmat,names,predictions = milk.nfoldcrossvalidation(features,labels, classifier=learner, return_predictions=True)
 colors = "rgb"
-for y,x,p in zip(features.T[0], features.T[1], predictions):
-    plt.plot([y],[x], colors[p]+'o')
+codes = "xo"
+for y,x,r,p in zip(features.T[0], features.T[1], labels, predictions):
+    code = codes[int(r == p)]
+    plt.plot([y],[x], colors[p]+code)
 plt.show()
 
