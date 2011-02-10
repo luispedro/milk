@@ -1,4 +1,4 @@
-Version 0.3.6+
+Version 0.3.7 2011-02-10 luispedro
 	* Logistic regression
 	* Source demos included (in source and documentation)
 	* Add cluster agreement metrics
