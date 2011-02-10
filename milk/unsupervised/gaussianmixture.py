@@ -61,7 +61,7 @@ def log_likelihood(fmatrix,assignments,centroids,model='one_variance',covs=None)
 
     raise ValueError, "log_likelihood: cannot handle model '%s'" % model
 
-    
+
 def nr_parameters(fmatrix,k,model='one_variance'):
     '''
     nr_p = nr_parameters(fmatrix, k, model='one_variance')
@@ -70,12 +70,17 @@ def nr_parameters(fmatrix,k,model='one_variance'):
 
     Parameters
     ----------
-      fmatrix : feature matrix
-      k : nr of clusters
-      model : one of 'one_variance' (default), 'diagonal_covariance', or 'full_covariance'
+    fmatrix : 2d-array
+        feature matrix
+    k : integer
+        nr of clusters
+    model : str
+        one of 'one_variance' (default), 'diagonal_covariance', or 'full_covariance'
+
     Returns
     -------
-      nr_p : Number of parameters
+    nr_p : integer
+        Number of parameters
     '''
     N,q = fmatrix.shape
     if model == 'one_variance':
@@ -107,22 +112,33 @@ def BIC(fmatrix, assignments, centroids, model='one_variance', covs=None):
 
     Parameters
     ----------
-      fmatrix : feature matrix
-      assignments : Centroid assignments
-      centroids : Centroids
-      model : one of:
-                'one_variance': All features share the same variance parameter
-                    sigma^2. Default
-                'full_covariance': Estimate a full covariance matrix or use
-                    covs[i] for centroid[i]
-      covs : Covariance matrices
+    fmatrix : 2d-array
+        feature matrix
+    assignments : 2d-array
+        Centroid assignments
+    centroids : sequence
+        Centroids
+    model : str, optional
+        one of
+
+        'one_variance'
+            All features share the same variance parameter sigma^2. Default
+
+        'full_covariance'
+            Estimate a full covariance matrix or use covs[i] for centroid[i]
+    covs : sequence or matrix, optional
+        Covariance matrices. If None, then estimate from the data. If scalars
+        instead of matrices are given, then s stands for sI (i.e., the diagonal
+        matrix with s along the diagonal).
+
     Returns
     -------
-      B = BIC value
+    B : float
+        BIC value
 
     See Also
     --------
-     `AIC`
+    AIC
     '''
     return _compute('BIC', fmatrix, assignments, centroids, model, covs)
 
@@ -134,22 +150,33 @@ def AIC(fmatrix,assignments,centroids,model='one_variance',covs=None):
 
     Parameters
     ----------
-      fmatrix : feature matrix
-      assignments : Centroid assignments
-      centroids : Centroids
-      model : one of:
-                'one_variance': All features share the same variance parameter
-                    sigma^2. Default
-                'full_covariance': Estimate a full covariance matrix or use
-                    covs[i] for centroid[i]
-      covs : Covariance matrices
+    fmatrix : 2d-array
+        feature matrix
+    assignments : 2d-array
+        Centroid assignments
+    centroids : sequence
+        Centroids
+    model : str, optional
+        one of
+
+        'one_variance'
+            All features share the same variance parameter sigma^2. Default
+
+        'full_covariance'
+            Estimate a full covariance matrix or use covs[i] for centroid[i]
+    covs : sequence, optional
+        Covariance matrices. If None, then estimate from the data. If scalars
+        instead of matrices are given, then s stands for sI (i.e., the diagonal
+        matrix with s along the diagonal).
+
     Returns
     -------
-      A = AIC value
+    B : float
+        AIC value
 
     See Also
     --------
-     `BIC`
+    BIC
     '''
     return _compute('AIC', fmatrix, assignments, centroids, model, covs)
 
