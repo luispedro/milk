@@ -22,7 +22,8 @@ class kNN(object):
 
     Attributes:
     -----------
-        * k: the k to use
+    k : integer
+        number of neighbours to consider
     '''
 
 
