@@ -22,6 +22,10 @@ There is a strong emphasis on speed and low memory usage. Therefore, most of
 the performance sensitive code is in C++. This is behind Python-based
 interfaces for convenience.
 
+To learn more, check the docs at `http://packages.python.org/milk/
+<http://packages.python.org/milk/>`_ or the code demos included with the source
+at ``milk/demos/``.
+
 New in 0.3.7
 ------------
 - Logistic regression
