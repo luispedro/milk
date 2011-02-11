@@ -22,6 +22,13 @@ There is a strong emphasis on speed and low memory usage. Therefore, most of
 the performance sensitive code is in C++. This is behind Python-based
 interfaces for convenience.
 
+New in 0.3.7
+------------
+- Logistic regression
+- Source demos included (in source and documentation)
+- Add cluster agreement metrics
+- Fix nfoldcrossvalidation bug when using origins
+
 New in 0.3.6
 ------------
 - Unsupervised (1-class) kernel density modeling
