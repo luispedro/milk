@@ -40,7 +40,7 @@ double set_entropy(const T* data, const int N, double* counts, long clen) {
         if (cx) entropy += cx * std::log(cx);
     }
     entropy /= -N;
-    entropy += std::log(N);
+    entropy += std::log(double(N));
     return entropy;
 }
 
