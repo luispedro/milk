@@ -26,6 +26,10 @@ To learn more, check the docs at `http://packages.python.org/milk/
 <http://packages.python.org/milk/>`_ or the code demos included with the source
 at ``milk/demos/``.
 
+New in 0.3.8
+------------
+- Fix compilation on Windows
+
 New in 0.3.7
 ------------
 - Logistic regression

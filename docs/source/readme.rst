@@ -22,6 +22,10 @@ There is a strong emphasis on speed and low memory usage. Therefore, most of
 the performance sensitive code is in C++. This is behind Python-based
 interfaces for convenience.
 
+New in 0.3.8
+------------
+- Fix compilation on Windows
+
 New in 0.3.7
 ------------
 - Logistic regression
