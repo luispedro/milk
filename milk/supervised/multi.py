@@ -14,6 +14,12 @@ __all__ = [
     'one_against_rest_multi',
     ]
 
+def _asanyarray(f):
+    try:
+        return np.asanyarray(f)
+    except:
+        return np.array(f, dtype=object)
+
 class one_against_rest(object):
     '''
     Implements one vs. rest classification strategy to transform
@@ -114,7 +120,7 @@ class one_against_one(object):
         one_against_one.train(objs,labels)
         '''
         labels, names = normaliselabels(labels)
-        features = np.asanyarray(features)
+        features = _asanyarray(features)
         nclasses = labels.max() + 1
         models = [ [None for i in xrange(nclasses)] for j in xrange(nclasses)]
         for i in xrange(nclasses):
