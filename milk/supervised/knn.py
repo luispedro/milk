@@ -47,6 +47,7 @@ class kNN_model(object):
         self.labels = labels
 
     def apply(self, features):
+        features = np.asanyarray(features)
         diff2 = np.dot(self.features, (-2.)*features)
         diff2 += self.f2
         neighbours = diff2.argsort()[:self.k]
