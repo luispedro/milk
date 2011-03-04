@@ -36,16 +36,19 @@ class kNN(object):
         if copy_features:
             features = features.copy()
             labels = labels.copy()
-        return kNN_model(self.k, features, labels)
+        features2 = np.sum(features**2, axis=1)
+        return kNN_model(self.k, features, features2, labels)
 
 class kNN_model(object):
-    def __init__(self, k, features, labels):
+    def __init__(self, k, features, features2, labels):
         self.k = k
         self.features = features
+        self.f2 = features2
         self.labels = labels
 
-    def apply(self,features):
-        diff2 = ( (self.features - features)**2 ).sum(1)
+    def apply(self, features):
+        diff2 = np.dot(self.features, (-2.)*features)
+        diff2 += self.f2
         neighbours = diff2.argsort()[:self.k]
         labels = self.labels[neighbours]
         votes = defaultdict(int)
