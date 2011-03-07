@@ -30,6 +30,23 @@ from .normalise import zscore
 __all__ = ['kmeans','repeated_kmeans']
 
 
+
+try:
+    _x = np.array([1])
+    _y = np.array([1])
+    _r = np.array([0])
+    np.dot(_x,_y,_r)
+    if _r[0] != 1:
+        raise NotImplementedError
+    _dot3 = np.dot
+except:
+    def _dot3(x, y, _):
+        return np.dot(x,y)
+finally:
+    del _x
+    del _y
+    del _r
+
 def _mahalanobis2(fmatrix, x, icov):
     diff = fmatrix-x
     # The expression below seems to be faster than looping over the elements and summing
@@ -83,35 +100,43 @@ def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kw
         rss += np.dot(diff, diff)
     return rss
 
-def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
+def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, **kwargs):
     '''
-    assignments, centroids = kmean(fmatrix, K, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None)
+    assignments, centroids = kmean(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None)
 
-    K-Means Clustering
+    k-Means Clustering
 
     Parameters
     ----------
-        distance: one of:
-            - 'euclidean'   : euclidean distance (default)
-            - 'seuclidean'  : standartised euclidean distance. This is equivalent to first normalising the features.
-            - 'mahalanobis' : mahalanobis distance.
-                This can make use of the following keyword arguments:
-                    + 'icov' (the inverse of the covariance matrix),
-                    + 'covmat' (the covariance matrix)
-                If neither is passed, then the function computes the covariance from the feature matrix
-        max_iter : Maximum number of iteration (default: 1000)
+    fmatrix : ndarray
+        2-ndarray (Nelements x Nfeatures)
+    distance: string, optional
+        one of:
+        - 'euclidean'   : euclidean distance (default)
+        - 'seuclidean'  : standartised euclidean distance. This is equivalent to first normalising the features.
+        - 'mahalanobis' : mahalanobis distance.
+            This can make use of the following keyword arguments:
+                + 'icov' (the inverse of the covariance matrix),
+                + 'covmat' (the covariance matrix)
+            If neither is passed, then the function computes the covariance from the feature matrix
+    max_iter : integer, optional
+        Maximum number of iteration (default: 1000)
+    R : source of randomness, optional
+
     Returns
     -------
-      assignments : An 1-D array of size `len(fmatrix)`
-      centroids : An array of `k'` centroids
+    assignments : ndarray
+        An 1-D array of size `len(fmatrix)`
+    centroids : ndarray
+        An array of `k'` centroids
     '''
     fmatrix = np.asanyarray(fmatrix)
     if distance == 'seuclidean':
         fmatrix = zscore(fmatrix)
         distance = 'euclidean'
     if distance == 'euclidean':
-        def distfunction(fmatrix, cs):
-            dists = np.dot(fmatrix, -2*cs.T)
+        def distfunction(fmatrix, cs, dists):
+            dists = _dot3(fmatrix, (-2)*cs.T, dists)
             dists += np.array([np.dot(c,c) for c in cs])
             # For a distance, we'd need to add the fmatrix**2 components, but
             # it doesn't matter because we are going to perform an argmin() on
@@ -124,17 +149,19 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
             if covmat is None:
                 covmat = np.cov(fmatrix.T)
             icov = linalg.inv(covmat)
-        def distfunction(fmatrix, cs):
+        def distfunction(fmatrix, cs, _):
             return np.array([_mahalanobis2(fmatrix, c, icov) for c in cs]).T
     else:
         raise ValueError('Distance argument unknown (%s)' % distance)
     R = get_pyrandom(R)
 
-    centroids = np.array(R.sample(fmatrix,K), fmatrix.dtype)
+    centroids = np.array(R.sample(fmatrix,k), fmatrix.dtype)
     prev = np.zeros(len(fmatrix), np.int32)
-    bins = np.arange(K+1)
+    bins = np.arange(k+1)
+    mean = None
+    dists = None
     for i in xrange(max_iter):
-        dists = distfunction(fmatrix, centroids)
+        dists = distfunction(fmatrix, centroids, dists)
         assignments = dists.argmin(1)
         if np.all(assignments == prev):
             break
@@ -142,16 +169,19 @@ def kmeans(fmatrix,K,distance='euclidean',max_iter=1000,R=None,**kwargs):
         counts,_ = np.histogram(assignments, bins)
         for ci,count in enumerate(counts):
             if count:
-                where = (assignments == ci)
-                mean = np.dot(fmatrix.T, where)
+                where = (assignments.T == ci)
+                mean = _dot3(where, fmatrix, mean) # mean = dot(fmatrix.T, where.T), but it is better to not cause copies
                 mean /= count
                 centroids[ci] = mean
             else:
                 empty.append(ci)
         if empty:
             centroids = np.delete(centroids, empty, axis=0)
-            K = len(centroids)
-            bins = np.arange(K+1)
+            k = len(centroids)
+            bins = np.arange(k+1)
+            # This will cause new matrices to be allocated in the next iteration
+            mean = None
+            dists = None
         prev[:] = assignments
     return assignments, centroids
 
