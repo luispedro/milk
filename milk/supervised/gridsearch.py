@@ -84,6 +84,9 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10):
     iteration = np.zeros(N, int)
     error = np.zeros(N, float)
     folds = [(Tr.copy(), Te.copy()) for Tr,Te in foldgenerator(labels, nfolds)]
+    # foldgenerator might actually decide on a smaller number of folds,
+    # depending on the distribution of class sizes:
+    nfolds = len(folds)
     while True:
         next_pos = (error == error.min())
         iter = iteration[next_pos].max()
