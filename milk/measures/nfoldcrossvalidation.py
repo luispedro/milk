@@ -8,7 +8,7 @@ from ..supervised.classifier import normaliselabels
 import numpy as np
 
 __all__ = ['foldgenerator', 'getfold', 'nfoldcrossvalidation']
-def foldgenerator(labels, nfolds=None, origins=None):
+def foldgenerator(labels, nfolds=None, origins=None, folds=None):
     '''
     for train,test in foldgenerator(labels, nfolds=None, origins=None)
         ...
@@ -28,6 +28,8 @@ def foldgenerator(labels, nfolds=None, origins=None):
     nfolds : integer
         nr of folds (default 10 or minimum label size)
     origins : if present, must be an array of indices of the same size as labels.
+    folds : sequence of int, optional
+        which folds to generate
 
     Returns
     -------
@@ -76,6 +78,7 @@ If you passed in an origins parameter, it might be caused by having a class come
             foldweight[f] += w
 
     for f in xrange(nfolds):
+        if folds is not None and f not in folds: continue
         yield (fold != f), (fold == f)
 
 def getfold(labels, fold, nfolds=None, origins=None):
@@ -102,7 +105,7 @@ def getfold(labels, fold, nfolds=None, origins=None):
             return t,s
     raise ValueError('milk.getfold: Attempted to get fold %s but the number of actual folds was too small (%s)' % (fold,i))
 
-def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins=None, return_predictions=False):
+def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins=None, return_predictions=False, folds=None):
     '''
     Perform n-fold cross validation
 
@@ -130,6 +133,9 @@ def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins
         Origin ID (see foldgenerator)
     return_predictions : bool, optional
         whether to return predictions (default: False)
+    folds : sequence of int, optional
+        which folds to generate
+
 
     Returns
     -------
@@ -157,12 +163,12 @@ def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins
     nclasses = labels.max() + 1
     results = []
     measure = confusion_matrix
-    for trainingset,testingset in foldgenerator(labels, nfolds, origins=origins):
+    for trainingset,testingset in foldgenerator(labels, nfolds, origins=origins, folds=folds):
         model = classifier.train(features[trainingset], labels[trainingset])
-        cur_predictions = [model.apply(f) for f in features[testingset]]
+        cur_preds = np.array([model.apply(f) for f in features[testingset]])
         if return_predictions:
-            predictions[testingset] = np.array(cur_predictions, dtype=predictions.dtype)
-        results.append(measure(labels[testingset], cur_predictions))
+            predictions[testingset] = cur_preds
+        results.append(measure(labels[testingset], cur_preds))
 
     result = reduce(operator.add, results)
     if return_predictions:

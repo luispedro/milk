@@ -2,6 +2,7 @@ Version 0.3.8+
 	* Improve speed of k-nearest neighbour (10x on scikits-learn benchmark)
 	* Fix gridminize for low count labels
 	* Improve kmeans on newer numpy (works for larger datasets)
+	* Add ``folds`` argument to ``nfoldcrossvalidation``
 
 Version 0.3.8 2011-02-12 luispedro
 	* Fix compilation on Windows
