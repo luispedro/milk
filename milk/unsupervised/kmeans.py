@@ -58,24 +58,29 @@ def centroid_errors(fmatrix, assignments, centroids):
     '''
     errors = centroid_errors(fmatrix, assignments, centroids)
 
-    Computes the following
+    Computes the following::
 
-    for all i, j:
-        ci = assignments[i]
-        errors[i,j] = fmatrix[ci, j] - centroids[ci, j]
+        for all i, j:
+            ci = assignments[i]
+            errors[i,j] = fmatrix[ci, j] - centroids[ci, j]
 
     Parameters
     ----------
-      fmatrix : feature matrix
-      assignments : Assignments array
-      centroids : centroids
+    fmatrix : 2D ndarray
+        feature matrix
+    assignments : 1D ndarray
+        Assignments array
+    centroids : 2D
+        centroids
+
     Returns
     -------
-      errors : Difference between fmatrix and corresponding centroid
+    errors : float
+        Difference between fmatrix and corresponding centroid
     '''
     errors = []
-    for k in xrange(len(centroids)):
-        errors.append(fmatrix[assignments == k] - centroids[k])
+    for k,c in enumerate(centroids):
+        errors.append(fmatrix[assignments == k] - c)
     return np.concatenate(errors)
 
 def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kwargs):
@@ -86,12 +91,17 @@ def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kw
 
     Parameters
     ----------
-      fmatrix : feature matrix
-      assignments : Assignments array
-      centroids : centroids
+    fmatrix : 2D ndarray
+        feature matrix
+    assignments : 1D ndarray
+        Assignments array
+    centroids : 2D
+        centroids
+
     Returns
     -------
-      rss : residual sum squares
+    rss : float
+        residual sum squares
     '''
     if distance != 'euclidean':
         raise NotImplemented, "residual_sum_squares only implemented for 'euclidean' distance"
