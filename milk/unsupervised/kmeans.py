@@ -32,6 +32,8 @@ __all__ = ['kmeans','repeated_kmeans']
 
 
 try:
+    # This tests for the presence of 3-argument np.dot
+    # with the 3rd argument being the output argument
     _x = np.array([1])
     _y = np.array([1])
     _r = np.array([0])
