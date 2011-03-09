@@ -1,5 +1,6 @@
 import numpy as np 
 import milk.unsupervised
+from milk.unsupervised.kmeans import assign_centroids
 
 def test_kmeans():
     np.random.seed(132)
@@ -23,4 +24,9 @@ def test_kmeans_centroids():
                 assert np.allclose(centroids[i], features[indices == i].mean(0))
 
 
+def test_assign_cids():
+    from milksets.wine import load
+    features,_ = load()
+    assigns, centroids = milk.unsupervised.kmeans(features, 3, R=2, max_iters=10)
+    assert np.all(assign_centroids(features, centroids) == assigns)
 

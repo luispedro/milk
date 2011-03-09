@@ -27,8 +27,10 @@ from numpy import linalg
 from ..utils import get_pyrandom
 from .normalise import zscore
 
-__all__ = ['kmeans','repeated_kmeans']
-
+__all__ = [
+        'kmeans',
+        'repeated_kmeans',
+        ]
 
 
 try:
@@ -70,7 +72,7 @@ def centroid_errors(fmatrix, assignments, centroids):
         feature matrix
     assignments : 1D ndarray
         Assignments array
-    centroids : 2D
+    centroids : 2D ndarray
         centroids
 
     Returns
@@ -95,7 +97,7 @@ def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kw
         feature matrix
     assignments : 1D ndarray
         Assignments array
-    centroids : 2D
+    centroids : 2D ndarray
         centroids
 
     Returns
@@ -111,6 +113,29 @@ def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kw
         diff = diff.ravel()
         rss += np.dot(diff, diff)
     return rss
+
+def assign_centroids(fmatrix, centroids):
+    '''
+    cids = assign_centroids(fmatrix, centroids)
+
+    Assigns a centroid to each element of fmatrix
+
+    Parameters
+    ----------
+    fmatrix : 2D ndarray
+        feature matrix
+    centroids : 2D ndarray
+        centroids matrix
+
+    Returns
+    -------
+    cids : sequence
+        ``cids[i]`` is the index of the centroid closes to ``fmatrix[i]``
+    '''
+    dists = np.dot(fmatrix, (-2)*centroids.T)
+    dists += np.array([np.dot(c,c) for c in centroids])
+    return dists.argmin(1)
+
 
 def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, **kwargs):
     '''

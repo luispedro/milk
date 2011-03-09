@@ -3,6 +3,7 @@ Version 0.3.8+
 	* Fix gridminize for low count labels
 	* Improve kmeans on newer numpy (works for larger datasets)
 	* Add ``folds`` argument to ``nfoldcrossvalidation``
+	* Add ``assign_centroid`` function in milk.unsupervised.nfoldcrossvalidation
 
 Version 0.3.8 2011-02-12 luispedro
 	* Fix compilation on Windows
