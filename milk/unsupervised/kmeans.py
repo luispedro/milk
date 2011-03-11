@@ -189,7 +189,9 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, **kwargs):
         def distfunction(fmatrix, cs, _):
             return np.array([_mahalanobis2(fmatrix, c, icov) for c in cs]).T
     else:
-        raise ValueError('Distance argument unknown (%s)' % distance)
+        raise ValueError('milk.unsupervised.kmeans: `distance` argument unknown (%s)' % distance)
+    if k < 2:
+        raise ValueError('milk.unsupervised.kmeans `k` should be >= 2.')
     R = get_pyrandom(R)
 
     centroids = np.array(R.sample(fmatrix,k), fmatrix.dtype)
