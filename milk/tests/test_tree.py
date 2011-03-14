@@ -19,6 +19,7 @@ def test_split_subsample():
     import random
     from milksets import wine
     features, labels = wine.load()
+    labels = labels.astype(np.int)
 
     seen = set()
     for i in xrange(20):
