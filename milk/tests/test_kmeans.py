@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 import milk.unsupervised
 from milk.unsupervised.kmeans import assign_centroids
 
@@ -30,3 +30,13 @@ def test_assign_cids():
     assigns, centroids = milk.unsupervised.kmeans(features, 3, R=2, max_iters=10)
     assert np.all(assign_centroids(features, centroids) == assigns)
 
+def test_non_contiguous_fmatrix():
+    from milksets.wine import load
+    features,_ = load()
+    features = features[:,::2]
+    assigns, centroids = milk.unsupervised.kmeans(features, 3, R=2, max_iters=10)
+    assert np.all(assign_centroids(features, centroids) == assigns)
+
+    features = features.astype(np.int32)
+    assigns, centroids = milk.unsupervised.kmeans(features, 3, R=2, max_iters=10)
+    assert np.all(assign_centroids(features, centroids) == assigns)

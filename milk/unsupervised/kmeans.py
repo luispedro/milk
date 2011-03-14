@@ -24,6 +24,7 @@ from __future__ import division
 import numpy as np
 from numpy import linalg
 
+from . import _kmeans
 from ..utils import get_pyrandom
 from .normalise import zscore
 
@@ -136,6 +137,22 @@ def assign_centroids(fmatrix, centroids):
     dists += np.array([np.dot(c,c) for c in centroids])
     return dists.argmin(1)
 
+def _pycomputecentroids(fmatrix, centroids, assignments, counts):
+    k, Nf = centroids.shape
+    bins = np.arange(k+1)
+    ncounts,_ = np.histogram(assignments, bins)
+    counts[:] = ncounts
+    any_empty = False
+    mean = None
+    for ci,count in enumerate(counts):
+        if count:
+            where = (assignments.T == ci)
+            mean = _dot3(where, fmatrix, mean) # mean = dot(fmatrix.T, where.T), but it is better to not cause copies
+            mean /= count
+            centroids[ci] = mean
+        else:
+            any_empty = True
+    return any_empty
 
 def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, **kwargs):
     '''
@@ -192,34 +209,27 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, **kwargs):
         raise ValueError('milk.unsupervised.kmeans: `distance` argument unknown (%s)' % distance)
     if k < 2:
         raise ValueError('milk.unsupervised.kmeans `k` should be >= 2.')
+    if fmatrix.dtype in (np.float32, np.float64) and fmatrix.flags['C_CONTIGUOUS']:
+        computecentroids = _kmeans.computecentroids
+    else:
+        computecentroids = _pycomputecentroids
     R = get_pyrandom(R)
 
     centroids = np.array(R.sample(fmatrix,k), fmatrix.dtype)
     prev = np.zeros(len(fmatrix), np.int32)
-    bins = np.arange(k+1)
-    mean = None
+    counts = np.empty(k, np.int32)
     dists = None
     for i in xrange(max_iter):
         dists = distfunction(fmatrix, centroids, dists)
         assignments = dists.argmin(1)
         if np.all(assignments == prev):
             break
-        empty = []
-        counts,_ = np.histogram(assignments, bins)
-        for ci,count in enumerate(counts):
-            if count:
-                where = (assignments.T == ci)
-                mean = _dot3(where, fmatrix, mean) # mean = dot(fmatrix.T, where.T), but it is better to not cause copies
-                mean /= count
-                centroids[ci] = mean
-            else:
-                empty.append(ci)
-        if empty:
+        if computecentroids(fmatrix, centroids, assignments.astype(np.int32), counts):
+            (empty,) = np.where(counts == 0)
             centroids = np.delete(centroids, empty, axis=0)
             k = len(centroids)
-            bins = np.arange(k+1)
+            counts = np.empty(k, np.int32)
             # This will cause new matrices to be allocated in the next iteration
-            mean = None
             dists = None
         prev[:] = assignments
     return assignments, centroids

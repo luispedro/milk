@@ -34,10 +34,11 @@ from numpy.distutils.core import setup, Extension
 execfile('milk/milk_version.py')
 long_description = file('README.rst').read()
 
+kmeans_ext = Extension('milk.unsupervised._kmeans', sources = ['milk/unsupervised/_kmeans.cpp'])
 svm_ext = Extension('milk.supervised._svm', sources = ['milk/supervised/_svm.cpp'])
 som_ext = Extension('milk.unsupervised._som', sources = ['milk/unsupervised/_som.cpp'])
 tree_ext = Extension('milk.supervised._tree', sources = ['milk/supervised/_tree.cpp'])
-ext_modules = [svm_ext, som_ext, tree_ext]
+ext_modules = [kmeans_ext, svm_ext, som_ext, tree_ext]
 
 packages = filter(lambda p: p.startswith('milk'), setuptools.find_packages())
 
