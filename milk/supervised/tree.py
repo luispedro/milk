@@ -127,7 +127,7 @@ def build_tree(features, labels, criterion, min_split=4, subsample=None, R=None,
     '''
     assert len(features) == len(labels), 'build_tree: Nr of labels does not match nr of features'
     features = np.asanyarray(features)
-    labels = np.asanyarray(labels)
+    labels = np.asanyarray(labels, dtype=np.int)
     if subsample is not None:
         if subsample <= 0:
             raise ValueError('milk.supervised.tree.build_tree: `subsample` must be > 0.\nDid you mean to use None to signal no subsample?')

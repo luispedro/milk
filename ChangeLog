@@ -5,6 +5,7 @@ Version 0.3.8+
 	* Add ``folds`` argument to ``nfoldcrossvalidation``
 	* Add ``assign_centroid`` function in milk.unsupervised.nfoldcrossvalidation
 	* Faster kmeans by coding centroid recalculation in C++
+	* Fix bug with non-integer labels for tree learning
 
 Version 0.3.8 2011-02-12 luispedro
 	* Fix compilation on Windows
