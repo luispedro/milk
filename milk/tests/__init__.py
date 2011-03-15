@@ -12,5 +12,8 @@ except ImportError:
 
 def run():
     import nose
-    nose.main()
+    from os import path
+    currentdir = path.dirname(__file__)
+    updir = path.join(currentdir, '..')
+    nose.run('milk', argv=['', '--exe', '-w', updir])
 
