@@ -26,6 +26,16 @@ To learn more, check the docs at `http://packages.python.org/milk/
 <http://packages.python.org/milk/>`_ or the code demos included with the source
 at ``milk/demos/``.
 
+New in 0.3.9
+------------
+- Add ``folds`` argument to ``nfoldcrossvalidation``
+- Add ``assign_centroid`` function in milk.unsupervised.nfoldcrossvalidation
+- Improve speed of k-nearest neighbour (10x on scikits-learn benchmark)
+- Improve kmeans on newer numpy (works for larger datasets too)
+- Faster kmeans by coding centroid recalculation in C++
+- Fix gridminize for low count labels
+- Fix bug with non-integer labels for tree learning
+
 New in 0.3.8
 ------------
 - Fix compilation on Windows

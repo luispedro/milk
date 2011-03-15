@@ -22,6 +22,16 @@ There is a strong emphasis on speed and low memory usage. Therefore, most of
 the performance sensitive code is in C++. This is behind Python-based
 interfaces for convenience.
 
+New in 0.3.9
+------------
+- Add ``folds`` argument to ``nfoldcrossvalidation``
+- Add ``assign_centroid`` function in milk.unsupervised.nfoldcrossvalidation
+- Improve speed of k-nearest neighbour (10x on scikits-learn benchmark)
+- Improve kmeans on newer numpy (works for larger datasets too)
+- Faster kmeans by coding centroid recalculation in C++
+- Fix gridminize for low count labels
+- Fix bug with non-integer labels for tree learning
+
 New in 0.3.8
 ------------
 - Fix compilation on Windows
