@@ -9,6 +9,7 @@ Contents:
    featureselection
    adaboost
    randomnumbers
+   benchmarks
    examples
    milksets
    api
