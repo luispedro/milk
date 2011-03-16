@@ -26,6 +26,41 @@ To learn more, check the docs at `http://packages.python.org/milk/
 <http://packages.python.org/milk/>`_ or the code demos included with the source
 at ``milk/demos/``.
 
+Example
+-------
+
+Here is how to test how well you can classify some ``features,labels`` data,
+measured by cross-validation::
+
+    import numpy as np
+    import milk
+    features = np.random.rand(100,10) # 2d array of features: 100 examples of 10 features each
+    labels = np.zeros(100)
+    features[50:] += .5
+    labels[50:] = 1
+    confusion_matrix, names = milk.nfoldcrossvalidation(features, labels)
+    print 'Accuracy:', confusion_matrix.trace()/float(confusion_matrix.sum())
+
+If want to use a classifier, you instanciate a *learner object* and call its
+``train()`` method::
+
+    import numpy as np
+    import milk
+    features = np.random.rand(100,10)
+    labels = np.zeros(100)
+    features[50:] += .5
+    labels[50:] = 1
+    learner = milk.defaultclassifier()
+    model = learner.train(features, labels)
+
+    # Now you can use the model on new examples:
+    example = np.random.rand(10)
+    print model.apply(example)
+    example2 = np.random.rand(10)
+    example2 += .5
+    print model.apply(example2)
+    
+
 New in 0.3.9
 ------------
 - Add ``folds`` argument to ``nfoldcrossvalidation``
