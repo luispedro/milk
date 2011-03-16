@@ -26,8 +26,8 @@ To learn more, check the docs at `http://packages.python.org/milk/
 <http://packages.python.org/milk/>`_ or the code demos included with the source
 at ``milk/demos/``.
 
-Example
--------
+Examples
+--------
 
 Here is how to test how well you can classify some ``features,labels`` data,
 measured by cross-validation::
@@ -60,9 +60,40 @@ If want to use a classifier, you instanciate a *learner object* and call its
     example2 += .5
     print model.apply(example2)
     
+There are several classification methods in the package, but they all use the
+same interface: ``train()`` returns a *model* object, which has an ``apply()``
+method to execute on new instances.
+
+
+Details
+-------
+License: MIT
+
+Author: Luis Pedro Coelho (with code from LibSVM and scikits.learn)
+
+API Documentation: `http://packages.python.org/milk/ <http://packages.python.org/milk/>`_
+
+Mailing List: `http://groups.google.com/group/milk-users
+<http://groups.google.com/group/milk-users>`__
+
+Features
+--------
+- SVMs. Using the libsvm solver with a pythonesque wrapper around it.
+- K-means using as little memory as possible. It can cluster millions of
+  instances efficiently.
+- Random forests
+- Self organising maps
+- Stepwise Discriminant Analysis for feature selection.
+- Non-negative matrix factorisation
+- Affinity propagation
+
+Recent History
+--------------
+
+The ChangeLog file contains a more complete history.
 
 New in 0.3.9
-------------
+~~~~~~~~~~~~
 - Add ``folds`` argument to ``nfoldcrossvalidation``
 - Add ``assign_centroid`` function in milk.unsupervised.nfoldcrossvalidation
 - Improve speed of k-nearest neighbour (10x on scikits-learn benchmark)
@@ -72,18 +103,18 @@ New in 0.3.9
 - Fix bug with non-integer labels for tree learning
 
 New in 0.3.8
-------------
+~~~~~~~~~~~~
 - Fix compilation on Windows
 
 New in 0.3.7
-------------
+~~~~~~~~~~~~
 - Logistic regression
 - Source demos included (in source and documentation)
 - Add cluster agreement metrics
 - Fix nfoldcrossvalidation bug when using origins
 
 New in 0.3.6
-------------
+~~~~~~~~~~~~
 - Unsupervised (1-class) kernel density modeling
 - Fix for when SDA returns empty
 - weights option to some learners
@@ -91,28 +122,7 @@ New in 0.3.6
 - Adaboost (result of above changes)
 
 New in 0.3.5
-------------
+~~~~~~~~~~~~
 - Fixes for 64 bit machines
 - Functions in measures.py all have same interface now.
 
-New in 0.3.4
-------------
-- Random forest learners
-- Decision trees sped up 20x
-- Much faster gridsearch  (finds optimum without computing all folds)
-
-Features
---------
-- Random forests
-- Self organising maps
-- SVMs. Using the libsvm solver with a pythonesque wrapper around it.
-- Stepwise Discriminant Analysis for feature selection.
-- Non-negative matrix factorisation
-- K-means using as little memory as possible.
-- Affinity propagation
-
-License: MIT
-Author: Luis Pedro Coelho (with code from LibSVM and scikits.learn)
-Website: `http://luispedro.org/software/milk
-<http://luispedro.org/software/milk>`__
-API Documentation: `http://packages.python.org/milk/ <http://packages.python.org/milk/>`_
