@@ -1,3 +1,6 @@
+Version 0.3.9+
+	* Add ext.jugparallel for parallel nfold crossvalidation
+
 Version 0.3.9 2011-03-15 by luispedro
 	* Improve speed of k-nearest neighbour (10x on scikits-learn benchmark)
 	* Fix gridminize for low count labels
