@@ -11,6 +11,7 @@ Contents:
    randomnumbers
    benchmarks
    examples
+   extensions
    milksets
    api
 
