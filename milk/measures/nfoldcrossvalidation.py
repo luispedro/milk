@@ -27,7 +27,8 @@ def foldgenerator(labels, nfolds=None, origins=None, folds=None):
         the labels
     nfolds : integer
         nr of folds (default 10 or minimum label size)
-    origins : if present, must be an array of indices of the same size as labels.
+    origins : sequence, optional
+        if present, must be an array of indices of the same size as labels.
     folds : sequence of int, optional
         which folds to generate
 
@@ -105,12 +106,12 @@ def getfold(labels, fold, nfolds=None, origins=None):
             return t,s
     raise ValueError('milk.getfold: Attempted to get fold %s but the number of actual folds was too small (%s)' % (fold,i))
 
-def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins=None, return_predictions=False, folds=None):
+def nfoldcrossvalidation(features, labels, nfolds=None, learner=None, origins=None, return_predictions=False, folds=None, classifier=None):
     '''
     Perform n-fold cross validation
 
-    cmatrix,names = nfoldcrossvalidation(features, labels, nfolds=10, classifier={defaultclassifier()}, origins=None, return_predictions=False)
-    cmatrix,names,predictions = nfoldcrossvalidation(features, labels, nfolds=10, classifier={defaultclassifier()}, origins=None, return_predictions=True)
+    cmatrix,names = nfoldcrossvalidation(features, labels, nfolds=10, learner={defaultclassifier()}, origins=None, return_predictions=False)
+    cmatrix,names,predictions = nfoldcrossvalidation(features, labels, nfolds=10, learner={defaultclassifier()}, origins=None, return_predictions=True)
 
     cmatrix will be a N x N matrix, where N is the number of classes
 
@@ -125,9 +126,10 @@ def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins
     labels : an array of labels, where label[i] is the label corresponding to features[i]
     nfolds : integer, optional
         Nr of folds. Default: 10
-    classifier : learner object, optional
-        classifier should implement the train() method to return a model
+    learner : learner object, optional
+        learner should implement the train() method to return a model
         (something with an apply() method). defaultclassifier() by default
+        This parameter used to be called `classifier` and that name is still supported
 
     origins : sequence, optional
         Origin ID (see foldgenerator)
@@ -150,9 +152,13 @@ def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins
     from .measures import confusion_matrix
     if len(features) != len(labels):
         raise ValueError('milk.measures.nfoldcrossvalidation: len(features) should match len(labels)')
-    if classifier is None:
+    if classifier is not None:
+        if learner is not None:
+            raise ValueError('milk.nfoldcrossvalidation: Using both `learner` and `classifier` arguments. They are the same, but `learner` is preferred')
+        learner = classifier
+    if learner is None:
         from ..supervised.defaultclassifier import defaultclassifier
-        classifier = defaultclassifier()
+        learner = defaultclassifier()
     labels,names = normaliselabels(labels)
     if return_predictions:
         predictions = np.empty_like(labels)
@@ -164,7 +170,7 @@ def nfoldcrossvalidation(features, labels, nfolds=None, classifier=None, origins
     results = []
     measure = confusion_matrix
     for trainingset,testingset in foldgenerator(labels, nfolds, origins=origins, folds=folds):
-        model = classifier.train(features[trainingset], labels[trainingset])
+        model = learner.train(features[trainingset], labels[trainingset])
         cur_preds = np.array([model.apply(f) for f in features[testingset]])
         if return_predictions:
             predictions[testingset] = cur_preds
