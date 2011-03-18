@@ -12,14 +12,14 @@ def rand_arand_jaccard(recovered, labels):
 
     Compute Rand, Adjusted Rand, and Jaccard indices
 
-    These share some of the computation. Therefore, it is best to compute them
-    together.
+    These share most of the computation. Therefore, it is best to compute them
+    together even if you are only going to use some.
 
     Parameters
     ----------
-    recovered : ndarray of int
+    recovered : sequence of int
         The recovered clusters
-    labels : ndarray of int
+    labels : sequence of int
         Underlying labels
 
     Returns
@@ -38,6 +38,8 @@ def rand_arand_jaccard(recovered, labels):
     '''
 
     from scipy.misc import comb
+    recovered = np.asanyarray(recovered)
+    labels = np.asanyarray(labels)
     contig,_,_ = np.histogram2d(recovered, labels,np.arange(max(recovered.max()+2,labels.max()+2)))
     A_0 = contig.sum(0)
     A_1 = contig.sum(1)
