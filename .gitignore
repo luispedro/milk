@@ -6,3 +6,4 @@ milk/unsupervised/_kmeans.so
 build
 dist/
 milk.egg-info
+docs/milk/
