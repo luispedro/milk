@@ -8,6 +8,7 @@ Contents:
    supervised
    featureselection
    adaboost
+   clustering
    randomnumbers
    benchmarks
    examples
