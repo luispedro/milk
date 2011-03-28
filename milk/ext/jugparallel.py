@@ -33,6 +33,20 @@ class _nfold_one(object):
                     folds=[i],
                     **self.kwargs)
 
+    def __jug_hash__(self):
+        # jug.hash is only available in jug 0.9
+        # This is also the first version that would call __jug_hash__
+        # So, we import it here only.
+        from jug import hash
+        M = hash.new_hash_object()
+        hash.hash_update(M,[
+            ('type', 'milk.nfoldcrossvalidation'),
+            ('features', self.features),
+            ('labels', self.labels),
+            ('kwargs', self.kwargs),
+            ])
+        return M.hexdigest()
+
 def _nfold_reduce(a,b):
     cmat = a[0] + b[0]
     names = a[1]
