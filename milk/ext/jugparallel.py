@@ -57,6 +57,32 @@ def _nfold_reduce(a,b):
     return cmat, names, predictions.max(0)
 
 def nfoldcrossvalidation(features, labels, **kwargs):
+    '''
+    jug_task = nfoldcrossvalidation(features, labels, **kwargs)
+
+    A jug Task that perform n-foldcrossvalidation
+
+    N-fold cross validation is inherently parallel. This function returns a
+    ``jug.Task`` which performs n-fold crossvalidation which jug can
+    parallelise.
+
+    Parameters
+    ----------
+    features : sequence of features
+    labels : sequence
+    kwargs : any
+        This will be passed down to ``milk.nfoldcrossvalidation``
+
+    Returns
+    -------
+    jug_task : a jug.Task
+        A Task object
+
+    See Also
+    --------
+    milk.nfoldcrossvalidation : The same functionality as a "normal" function
+    jug.CompoundTask : This function can be used as argument to CompoundTask
+    '''
     mapper = identity(_nfold_one(features, labels, kwargs))
     nfolds = kwargs.get('nfolds', 10)
     return mapreduce(_nfold_reduce, mapper, range(nfolds), map_step=1, reduce_step=(nfolds+1))
