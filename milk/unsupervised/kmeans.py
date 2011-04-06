@@ -115,7 +115,7 @@ def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kw
         rss += np.dot(diff, diff)
     return rss
 
-def assign_centroids(fmatrix, centroids):
+def assign_centroids(fmatrix, centroids, histogram=False):
     '''
     cids = assign_centroids(fmatrix, centroids)
 
@@ -127,15 +127,24 @@ def assign_centroids(fmatrix, centroids):
         feature matrix
     centroids : 2D ndarray
         centroids matrix
+    histogram : boolean, optional
+        If True, then the result is actually a histogram
 
     Returns
     -------
     cids : sequence
-        ``cids[i]`` is the index of the centroid closes to ``fmatrix[i]``
+        ``cids[i]`` is the index of the centroid closes to ``fmatrix[i];`` or,
+        if ``histogram``, then ``cids[i]`` is the number of points that were
+        assigned to centroid ``i.``
     '''
     dists = np.dot(fmatrix, (-2)*centroids.T)
     dists += np.array([np.dot(c,c) for c in centroids])
-    return dists.argmin(1)
+    cids = dists.argmin(1)
+    if histogram:
+        return np.array(
+            [np.sum(cids == ci) for ci in xrange(len(centroids))],
+            np.float)
+    return cids
 
 def _pycomputecentroids(fmatrix, centroids, assignments, counts):
     k, Nf = centroids.shape
