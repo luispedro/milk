@@ -1,5 +1,7 @@
 Version 0.3.9+
-	* Add ext.jugparallel for parallel nfold crossvalidation
+	* Add ext.jugparallel
+	* parallel nfold crossvalidation using jug
+	* parallel multiple kmeans runs using jug
 	* cluster_agreement for non-ndarrays
 	* Add histogram option to ``milk.kmeans.assign_centroid``
 

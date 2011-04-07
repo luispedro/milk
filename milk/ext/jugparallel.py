@@ -9,12 +9,17 @@ Jug Parallel
 
 These are some functions that make it easier to take advantage of `jug
 <http://luispedro.org/software/jug>`__ to perform tasks in parallel.
+
+All of the functions in this module return a jug.Task object and are usable
+with the ``CompoundTask`` interface in jug.
+
 '''
 
 from __future__ import division
 import numpy as np
 import milk
 try:
+    from jug import TaskGenerator
     from jug.utils import identity
     from jug.mapreduce import mapreduce
 except ImportError:
@@ -87,4 +92,59 @@ def nfoldcrossvalidation(features, labels, **kwargs):
     nfolds = kwargs.get('nfolds', 10)
     return mapreduce(_nfold_reduce, mapper, range(nfolds), map_step=1, reduce_step=(nfolds+1))
 
+
+@TaskGenerator
+def _select_best(features, results, method):
+    from milk.unsupervised.gaussianmixture import AIC, BIC
+    if method == 'AIC':
+        method = AIC
+    elif method == 'BIC':
+        method = BIC
+    else:
+        raise ValueError('milk.ext.jugparallel.kmeans_select_best: unknown method: %s' % method)
+    best = None
+    bestval = float("Inf")
+    for assignments, centroids in results:
+        cur = method(features, assignments, centroids)
+        if cur < bestval:
+            bestval = cur
+            best = (assignments, centroids)
+    return best
+
+def kmeans_select_best(features, ks, repeats=1, method='AIC', R=None, **kwargs):
+    '''
+    assignments_centroids = kmeans_select_best(features, ks, repeats=1, method='AIC', R=None, **kwargs)
+
+    Perform ``repeats`` calls to ``kmeans`` for each ``k`` in ``ks``, select
+    the best one according to ``method.``
+
+    Parameters
+    ----------
+    features : array-like
+        2D array
+    ks : sequence of integers
+        These will be the values of ``k`` to try
+    repeats : integer, optional
+        How many times to attempt each k (default: 1).
+    method : str, optional
+        Which method to use. Must be one of 'AIC' (default) or 'BIC'.
+    R : random number source, optional
+    kwargs : other options
+        These are passed transparently to ``kmeans``
+
+    Returns
+    -------
+    assignments_centroids : jug.Task
+        jug.Task which is the result of the best (as measured by ``method``)
+        kmeans clustering.
+    '''
+    from milk import kmeans
+    from milk.utils import get_pyrandom
+    kmeans = TaskGenerator(kmeans)
+    start = get_pyrandom(R).randint(0,1024*1024)
+    results = []
+    for ki,k in enumerate(ks):
+        for i in xrange(repeats):
+            results.append(kmeans(features, k, R=(start+7*repeats*ki+i), **kwargs))
+    return _select_best(features, results, method)
 
