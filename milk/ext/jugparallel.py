@@ -118,6 +118,9 @@ def kmeans_select_best(features, ks, repeats=1, method='AIC', R=None, **kwargs):
     Perform ``repeats`` calls to ``kmeans`` for each ``k`` in ``ks``, select
     the best one according to ``method.``
 
+    Note that, unlike a raw ``kmeans`` call, this is *always deterministic*
+    even if ``R=None``.
+
     Parameters
     ----------
     features : array-like
@@ -129,6 +132,7 @@ def kmeans_select_best(features, ks, repeats=1, method='AIC', R=None, **kwargs):
     method : str, optional
         Which method to use. Must be one of 'AIC' (default) or 'BIC'.
     R : random number source, optional
+        If you do not pass a value, the result will be deterministic
     kwargs : other options
         These are passed transparently to ``kmeans``
 
@@ -141,7 +145,10 @@ def kmeans_select_best(features, ks, repeats=1, method='AIC', R=None, **kwargs):
     from milk import kmeans
     from milk.utils import get_pyrandom
     kmeans = TaskGenerator(kmeans)
-    start = get_pyrandom(R).randint(0,1024*1024)
+    if R is not None:
+        start = get_pyrandom(R).randint(0,1024*1024)
+    else:
+        start = 7
     results = []
     for ki,k in enumerate(ks):
         for i in xrange(repeats):
