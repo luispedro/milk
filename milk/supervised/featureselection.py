@@ -73,7 +73,8 @@ def sda(features, labels, tolerance=None, significance_in=None, significance_out
     if ignoreidx.any():
         idxs, = np.where(~ignoreidx)
         F = sda(features[:,~ignoreidx],labels)
-        return idxs[F]
+        if len(F): return idxs[F]
+        return ignoreidx
     output = []
     D = W.diagonal()
     df1 = q-1
