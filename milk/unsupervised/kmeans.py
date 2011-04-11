@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# Copyright (C) 2008-2011, Luis Pedro Coelho <lpc@cmu.edu>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
 #  in the Software without restriction, including without limitation the rights
 #  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 #  copies of the Software, and to permit persons to whom the Software is
 #  furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 #  all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 #  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 #  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -276,18 +276,57 @@ def repeated_kmeans(fmatrix,k,iterations,distance='euclidean',max_iter=1000,R=No
 
     These are the same returns as the kmeans function
     '''
-    if distance == 'seuclidean':
-        fmatrix = zscore(fmatrix)
-        distance = 'euclidean'
-    if distance != 'euclidean':
-        raise NotImplementedError, "repeated_kmeans is only implemented for 'euclidean' or 'seuclidean' distance"
-    best = np.inf
+    kwargs['max_iter'] = max_iter
+    return select_best_kmeans(fmatrix, [k], repeats=iterations, method='loglike', distance=distance, **kwargs)
+
+
+def select_best_kmeans(fmatrix, ks, repeats=1, method='AIC', R=None, **kwargs):
+    '''
+    assignments,centroids = select_best_kmeans(fmatrix, ks, repeats=1, method='AIC', R=None, **kwargs)
+
+    Runs kmeans repeats times and returns the best result as evaluated
+    according to distance
+
+    See Also
+    --------
+    kmeans : runs kmeans once
+
+    Parameters
+    ----------
+    fmatrix : feature matrix
+    ks : sequence of integers
+        nr of centroids to try
+    iterations : integer, optional
+        Nr of repetitions for each value of k
+    R : random source, optional
+
+    Returns
+    -------
+    assignments : 1-D array of assignments
+    centroids : 2-D ndarray
+        centroids
+
+    These are the same returns as the kmeans function
+    '''
+    best = None
+    best_val = np.inf
     R = get_pyrandom(R)
-    for i in xrange(iterations):
-        A,C = kmeans(fmatrix, k, distance, max_iter=max_iter, R=R,**kwargs)
-        rss = residual_sum_squares(fmatrix,A,C,distance,**kwargs)
-        if rss < best:
-            Ab,Cb = A,C
-            best = rss
-    return Ab,Cb
+    from milk.unsupervised.gaussianmixture import AIC, BIC
+    if method == 'AIC':
+        method = AIC
+    elif method == 'BIC':
+        method = BIC
+    else:
+        raise ValueError('milk.kmeans.select_best_kmeans: unknown method: %s' % method)
+    if 'distance' in kwargs and kwargs['distance'] == 'seuclidean':
+        fmatrix = zscore(fmatrix)
+    for k in ks:
+        for i in xrange(repeats):
+            As,Cs = kmeans(fmatrix, k, R=R, **kwargs)
+            value = method(fmatrix, As, Cs)
+            if value < best_val:
+                best_val = value
+                best = As,Cs
+    return best
+
 
