@@ -1,7 +1,14 @@
-import jug
-from jug import value
-import jug.options
-from jug.tests.task_reset import task_reset
+try:
+    import jug
+    from jug import value
+    import jug.options
+    from jug.tests.task_reset import task_reset
+except ImportError:
+    from nose import SkipTest
+    def task_reset(f):
+        def g():
+            raise SkipTest()
+        return g
 
 @task_reset
 def test_nfoldcrossvalidation():
