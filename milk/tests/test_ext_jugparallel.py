@@ -24,7 +24,6 @@ def test_kmeans():
     from jug.task import alltasks
     store, space = jug.jug.init('milk/tests/data/jugparallel_kmeans_jugfile.py', 'dict_store')
     options = jug.options.default_options
-    assert len(alltasks) == 5
 
     jug.jug.execute(store, options)
     assert len(value(space['clustered'])) == 2

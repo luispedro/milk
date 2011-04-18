@@ -93,8 +93,12 @@ def nfoldcrossvalidation(features, labels, **kwargs):
     return mapreduce(_nfold_reduce, mapper, range(nfolds), map_step=1, reduce_step=(nfolds+1))
 
 
-@TaskGenerator
-def _select_best(features, results, method):
+def _select_min(s0, s1):
+    if s0[0] < s1[0]: return s0
+    else: return s1
+
+def _evaluate_solution(args):
+    features, results, method = args
     from milk.unsupervised.gaussianmixture import AIC, BIC
     if method == 'AIC':
         method = AIC
@@ -102,14 +106,13 @@ def _select_best(features, results, method):
         method = BIC
     else:
         raise ValueError('milk.ext.jugparallel.kmeans_select_best: unknown method: %s' % method)
-    best = None
-    bestval = float("Inf")
-    for assignments, centroids in results:
-        cur = method(features, assignments, centroids)
-        if cur < bestval:
-            bestval = cur
-            best = (assignments, centroids)
-    return best
+    assignments, centroids = results
+    value = method(features, assignments, centroids)
+    return value, results
+
+def _select_best(features, results, method):
+    features = identity(features)
+    return mapreduce(_select_min, _evaluate_solution, [(features,r,method) for r in results], reduce_step=32, map_step=8)
 
 def kmeans_select_best(features, ks, repeats=1, method='AIC', R=None, **kwargs):
     '''
@@ -153,5 +156,5 @@ def kmeans_select_best(features, ks, repeats=1, method='AIC', R=None, **kwargs):
     for ki,k in enumerate(ks):
         for i in xrange(repeats):
             results.append(kmeans(features, k, R=(start+7*repeats*ki+i), **kwargs))
-    return _select_best(features, results, method)
+    return _select_best(features, results, method)[1]
 
