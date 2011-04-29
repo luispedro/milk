@@ -42,6 +42,7 @@ try:
             [0.,1.]] )
     _y = np.array([2., 4.])
     _r = np.array([0.,0.])
+    np.dot(_x, _y, _r)
     if _r[0] != 6 or _r[1] != 4:
         raise NotImplementedError
     _dot3 = np.dot
