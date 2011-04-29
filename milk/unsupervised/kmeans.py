@@ -37,11 +37,12 @@ __all__ = [
 try:
     # This tests for the presence of 3-argument np.dot
     # with the 3rd argument being the output argument
-    _x = np.array([1])
-    _y = np.array([1])
-    _r = np.array([0])
-    np.dot(_x,_y,_r)
-    if _r[0] != 1:
+    _x = np.array([
+            [1., 1.],
+            [0.,1.]] )
+    _y = np.array([2., 4.])
+    _r = np.array([0.,0.])
+    if _r[0] != 6 or _r[1] != 4:
         raise NotImplementedError
     _dot3 = np.dot
 except:
