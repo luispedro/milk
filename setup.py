@@ -52,6 +52,7 @@ setup(name = 'milk',
       license = 'MIT',
       packages = packages,
       ext_modules = ext_modules,
+      test_suite = 'nose.collector',
       )
 
 
