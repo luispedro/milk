@@ -19,7 +19,7 @@ from __future__ import division
 import numpy as np
 import milk
 try:
-    from jug import TaskGenerator
+    from jug import TaskGenerator, value
     from jug.utils import identity
     from jug.mapreduce import mapreduce
 except ImportError:
@@ -33,10 +33,10 @@ class _nfold_one(object):
 
     def __call__(self, i):
         return milk.nfoldcrossvalidation(
-                    self.features,
-                    self.labels,
+                    value(self.features),
+                    value(self.labels),
                     folds=[i],
-                    **self.kwargs)
+                    **value(self.kwargs))
 
     def __jug_hash__(self):
         # jug.hash is only available in jug 0.9
@@ -50,7 +50,9 @@ class _nfold_one(object):
             ('labels', self.labels),
             ('kwargs', self.kwargs),
             ])
-        return M.hexdigest()
+        hexdigest = M.hexdigest()
+        self.__jug_hash__ = lambda: hexdigest
+        return hexdigest
 
 def _nfold_reduce(a,b):
     cmat = a[0] + b[0]
@@ -88,7 +90,7 @@ def nfoldcrossvalidation(features, labels, **kwargs):
     milk.nfoldcrossvalidation : The same functionality as a "normal" function
     jug.CompoundTask : This function can be used as argument to CompoundTask
     '''
-    mapper = identity(_nfold_one(features, labels, kwargs))
+    mapper = _nfold_one(features, labels, kwargs)
     nfolds = kwargs.get('nfolds', 10)
     return mapreduce(_nfold_reduce, mapper, range(nfolds), map_step=1, reduce_step=(nfolds+1))
 
