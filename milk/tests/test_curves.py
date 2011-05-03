@@ -8,3 +8,11 @@ def test_precision_recall():
     assert np.max(recall) <= 1.
     assert np.max(precision) <= 1.
     assert np.min(precision) >= 0.
+
+    labels = [0]*10 + [1] * 10
+    values = np.linspace(0,1.,20)
+    precision,recall = precision_recall(values, labels, 'steps', 10)
+    assert min(precision) >= .5
+    assert max(precision) == 1.
+    assert max(recall) == 1.
+
