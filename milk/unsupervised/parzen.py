@@ -62,3 +62,34 @@ def get_parzen_1class_rbf_loocv(features):
         return -1./(4*np.pi*h)*f(h) + val
     return f,fprime
 
+def parzen(features, h):
+    '''
+    f = parzen(features, h)
+
+    Parzen window smoothing
+
+    Parameters
+    ----------
+    features : ndarray
+        feature matrix
+    h : double
+        bandwidth
+
+    Returns
+    -------
+    f : callable (double^N -> double)
+        density function
+    '''
+    sum2 = np.array([np.dot(f,f) for f in features])
+    N = len(features)
+    beta = np.sqrt(2*h*np.pi)/N
+    def f(x):
+        dist = np.dot(features, -2*x)
+        dist += sum2
+        dist += np.dot(c,c)
+        dist /= 2.*h
+        np.exp(dist, dist)
+        val = dist.sum()
+        return val*beta
+    return f
+
