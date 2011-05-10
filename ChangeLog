@@ -1,4 +1,4 @@
-Version 0.3.9+
+Version 0.3.10 2011-05-10 by luispedro
 	* Add ext.jugparallel
 	* parallel nfold crossvalidation using jug
 	* parallel multiple kmeans runs using jug

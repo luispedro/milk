@@ -22,6 +22,18 @@ There is a strong emphasis on speed and low memory usage. Therefore, most of
 the performance sensitive code is in C++. This is behind Python-based
 interfaces for convenience.
 
+New in 0.3.10
+-------------
+- Add ext.jugparallel for integration with `jug <http://luispedro.org/software/jug>`_
+- parallel nfold crossvalidation using jug
+- parallel multiple kmeans runs using jug
+- cluster_agreement for non-ndarrays
+- Add histogram & normali(z|s)e options to ``milk.kmeans.assign_centroid``
+- Fix bug in sda when features were constant for a class
+- Add select_best_kmeans
+- Added defaultlearner as a better name than defaultclassifier
+- Add ``measures.curves.precision_recall``
+- Add ``unsupervised.parzen.parzen``
 New in 0.3.9
 ------------
 - Add ``folds`` argument to ``nfoldcrossvalidation``
@@ -56,11 +68,6 @@ New in 0.3.5
 - Fixes for 64 bit machines
 - Functions in measures.py all have same interface now.
 
-New in 0.3.4
-------------
-- Random forest learners
-- Decision trees sped up 20x
-- Much faster gridsearch  (finds optimum without computing all folds)
 
 Features
 --------
