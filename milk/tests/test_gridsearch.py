@@ -1,6 +1,6 @@
 import milk.supervised.gridsearch
 import milk.supervised.svm
-from milk.supervised.gridsearch import gridminimise, _allassignments
+from milk.supervised.gridsearch import gridminimise, _allassignments, gridsearch
 import numpy as np
 
 
@@ -61,13 +61,19 @@ class simple_learner:
 def test_gridminimise():
     features = np.arange(100)
     labels = np.tile((0,1), 50)
-    best = gridminimise(simple_learner(), features, labels, {'a': np.arange(4), 'b' : np.arange(-3,3), 'c' : np.linspace(2., 10) }, measure=(lambda _, p: p[0]))
+    paramspace = { 'a': np.arange(4), 'b' : np.arange(-3,3), 'c' : np.linspace(2., 10) }
+    best,value = gridminimise(simple_learner(), features, labels, paramspace, measure=(lambda _, p: p[0]), return_value=True)
     best = dict(best)
     val = f(best['a'], best['b'], best['c'])
+    assert value == val*100
     for a in np.arange(4):
         for b in np.arange(-3,3):
             for c in np.linspace(2., 10):
                 assert val <= f(a,b,c)
+    gs = gridsearch(simple_learner(), paramspace, measure=(lambda _, p: p[0]), annotate=True)
+    model = gs.train(features, labels)
+    assert model.value == value
+    assert model.arguments == val
 
 def test_gridminimise():
     from milksets.wine import load

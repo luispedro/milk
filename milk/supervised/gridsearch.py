@@ -33,9 +33,10 @@ def _set_assignment(obj,assignments):
     for k,v in assignments:
         obj.set_option(k,v)
 
-def gridminimise(learner, features, labels, params, measure=None, nfolds=10):
+def gridminimise(learner, features, labels, params, measure=None, nfolds=10, return_value=False):
     '''
-    best = gridminimise(learner, features, labels, params, measure={0/1 loss})
+    best = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=False)
+    best, value = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=True)
 
     Grid search for the settings of parameters that maximises a given measure
 
@@ -55,10 +56,14 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10):
         Default: 0/1 loss. This must be an *additive* function.
     nfolds : integer, optional
         nr of folds to run, default: 10
+    return_value : boolean, optional
+        Whether to return the error value as well. Default False
 
     Returns
     -------
     best : a sequence of assignments
+    value : float
+        Only returned if ``return_value`` is true
     '''
     # The algorithm is as follows:
     #
@@ -93,6 +98,8 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10):
         if iter == nfolds:
             (besti,) = np.where(next_pos & (iteration == iter))
             besti = besti[0]
+            if return_value:
+                return allassignments[besti], error[besti]
             return allassignments[besti]
         (ps,) = np.where(next_pos & (iteration == iter))
         p = ps[0]
@@ -106,7 +113,7 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10):
 
 class gridsearch(object):
     '''
-    G = gridsearch(base, measure=accuracy, nfolds=10, params={ 'param1 : [...], param2 : [...]})
+    G = gridsearch(base, measure=accuracy, nfolds=10, params={ param1 : [...], param2 : [...]}, annotate=False)
 
     Perform a grid search for the best parameter values.
 
@@ -114,10 +121,10 @@ class gridsearch(object):
     When G.train() is called, then for each combination of p1 in param1, p2 in
     param2, ... it performs::
 
-        base_classifier.param1 = p1
-        base_classifier.param2 = p2
+        base.param1 = p1
+        base.param2 = p2
         ...
-        value[p1, p2,...] = measure(crossvaliation(base_classifier)
+        value[p1, p2,...] = measure(crossvaliation(base)
 
     it then picks the highest set of parameters and re-learns a model on the
     whole data.
@@ -125,25 +132,35 @@ class gridsearch(object):
 
     Parameters
     -----------
-    base_classifier : classifier to use
+    base : classifier to use
     measure : function, optional
         a function that takes labels and outputs and returns the loss.
         Default: 0/1 loss. This must be an *additive* function.
     nfolds : integer, optional
         Nr of folds
     params : dictionary
+    annotate : boolean
+        Whether to annotate the returned model with ``arguments`` and ``value``
+        fields with the result of cross-validation. Defaults to False.
+
+    All of the above can be *passed as parameters to the constructor or set as
+    attributes*.
     '''
-    def __init__(self, base, measure=None, nfolds=10, params={}):
+    def __init__(self, base, measure=None, nfolds=10, params={}, annotate=False):
         self.params = params
         self.base = base
         self.nfolds = 10
         self.measure = measure
+        self.annotate = annotate
 
     def is_multi_class(self):
         return self.base.is_multi_class()
 
     def train(self, features, labels, normalisedlabels=False):
-        self.best = gridminimise(self.base, features, labels, self.params, self.measure, self.nfolds)
-        _set_assignment(self.base, self.best)
-        return self.base.train(features, labels, normalisedlabels=normalisedlabels)
-
+        best,value = gridminimise(self.base, features, labels, self.params, self.measure, self.nfolds, return_value=True)
+        _set_assignment(self.base, best)
+        model = self.base.train(features, labels, normalisedlabels=normalisedlabels)
+        if self.annotate:
+            model.arguments = best
+            model.value = value
+        return model
