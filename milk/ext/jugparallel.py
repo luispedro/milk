@@ -13,6 +13,7 @@ These are some functions that make it easier to take advantage of `jug
 All of the functions in this module return a jug.Task object and are usable
 with the ``CompoundTask`` interface in jug.
 
+None of this will make sense unless you understand and have used jug.
 '''
 
 from __future__ import division
