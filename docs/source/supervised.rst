@@ -18,8 +18,8 @@ Example
 
     classifier = milk.defaultclassifier()
     model = classifier.train(features, labels)
-    new_label = model.apply(np.random.randn(100))
-    new_label2 = model.apply(np.random.randn(100)*2)
+    new_label = model.apply(np.random.randn(20))
+    new_label2 = model.apply(np.random.randn(20)*2)
 
 Learners
 --------
