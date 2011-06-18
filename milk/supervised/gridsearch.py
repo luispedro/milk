@@ -33,7 +33,7 @@ def _set_assignment(obj,assignments):
     for k,v in assignments:
         obj.set_option(k,v)
 
-def gridminimise(learner, features, labels, params, measure=None, nfolds=10, return_value=False):
+def gridminimise(learner, features, labels, params, measure=None, nfolds=10, return_value=False, train_kwargs=None):
     '''
     best = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=False)
     best, value = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=True)
@@ -58,6 +58,9 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
         nr of folds to run, default: 10
     return_value : boolean, optional
         Whether to return the error value as well. Default False
+    train_kwargs : dict, optional
+        Options that are passed to the train() method of the classifier, using
+        the ``train(features, labels, **train_kwargs)`` syntax. Defaults to {}.
 
     Returns
     -------
@@ -82,6 +85,8 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
     if measure is None:
         def measure(real, preds):
             return np.sum(np.asarray(real) != np.asarray(preds))
+    if train_kwargs is None:
+        train_kwargs = {}
 
     labels,_ = normaliselabels(labels)
     allassignments = list(_allassignments(params))
@@ -105,7 +110,7 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
         p = ps[0]
         _set_assignment(learner, allassignments[p])
         train, test = folds[iter]
-        model = learner.train(features[train], labels[train], normalisedlabels=True)
+        model = learner.train(features[train], labels[train], normalisedlabels=True, **train_kwargs)
         preds = [model.apply(f) for f in features[test]]
         error[p] += measure(labels[test], preds)
         iteration[p] += 1
@@ -156,11 +161,12 @@ class gridsearch(object):
     def is_multi_class(self):
         return self.base.is_multi_class()
 
-    def train(self, features, labels, normalisedlabels=False):
-        best,value = gridminimise(self.base, features, labels, self.params, self.measure, self.nfolds, return_value=True)
+    def train(self, features, labels, normalisedlabels=False, **kwargs):
+        best,value = gridminimise(self.base, features, labels, self.params, self.measure, self.nfolds, return_value=True, train_kwargs=kwargs)
         _set_assignment(self.base, best)
-        model = self.base.train(features, labels, normalisedlabels=normalisedlabels)
+        model = self.base.train(features, labels, normalisedlabels=normalisedlabels, **kwargs)
         if self.annotate:
             model.arguments = best
             model.value = value
         return model
+
