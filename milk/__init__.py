@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2010, Luis Pedro Coelho <lpc@cmu.edu>
+# Copyright (C) 2008-2011, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -53,11 +53,24 @@ Example
 
 '''
 
-from .nfoldcrossvalidation import nfoldcrossvalidation
-from .supervised.defaultclassifier import defaultclassifier
-from .supervised.defaultlearner import defaultlearner
-from .unsupervised.kmeans import kmeans
-from milk_version import __version__
+try:
+    from .nfoldcrossvalidation import nfoldcrossvalidation
+    from .supervised.defaultclassifier import defaultclassifier
+    from .supervised.defaultlearner import defaultlearner
+    from .unsupervised.kmeans import kmeans
+    from milk_version import __version__
+except ImportError, e:
+    import sys
+    print >>sys.stderr, '''\
+Could not import submodules (exact error was: %s).
+
+There are many reasons for this error the most common one is that you have
+either not built the packages or have built (using `python setup.py build`) or
+installed them (using `python setup.py install`) and then proceeded to test
+milk **without changing the current directory**.
+
+Try installing and then changing to another directory before importing milk.
+''' % e
 
 __all__ = [
     '__version__',
