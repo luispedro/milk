@@ -32,12 +32,15 @@ void putpoints(PyArrayObject* grid, PyArrayObject* points, float L, int radius) 
 
     Py_BEGIN_ALLOW_THREADS
 
-    for (int i = 0; i != n; i++){
+    #pragma omp parallel
+    {
+    for (int i = 0; i < n; i++){
         const float* p = static_cast<float*>(PyArray_GETPTR1(points, i));
         int min_y = 0;
         int min_x = 0;
         float best = std::numeric_limits<float>::max();
-        for (int y = 0; y != rows; ++y) {
+        #pragma omp for
+        for (int y = 0; y < rows; ++y) {
             for (int x = 0; x != cols; ++x) {
                 float dist = 0.;
                 const float* gpoint = static_cast<float*>(PyArray_GETPTR2(grid, y, x));
@@ -45,9 +48,12 @@ void putpoints(PyArrayObject* grid, PyArrayObject* points, float L, int radius) 
                     dist += (p[j] - gpoint[j])*(p[j] - gpoint[j]);
                 }
                 if (dist < best) {
-                    best = dist;
-                    min_y = y;
-                    min_x = x;
+                    #pragma omp critical
+                    if (dist < best) {
+                        best = dist;
+                        min_y = y;
+                        min_x = x;
+                    }
                 }
             }
         }
@@ -66,6 +72,7 @@ void putpoints(PyArrayObject* grid, PyArrayObject* points, float L, int radius) 
                 }
             }
         }
+    }
     }
     Py_END_ALLOW_THREADS
 }

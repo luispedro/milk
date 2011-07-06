@@ -36,7 +36,11 @@ long_description = file('README.rst').read()
 
 kmeans_ext = Extension('milk.unsupervised._kmeans', sources = ['milk/unsupervised/_kmeans.cpp'])
 svm_ext = Extension('milk.supervised._svm', sources = ['milk/supervised/_svm.cpp'])
-som_ext = Extension('milk.unsupervised._som', sources = ['milk/unsupervised/_som.cpp'])
+som_ext = Extension('milk.unsupervised._som',
+                sources=['milk/unsupervised/_som.cpp'],
+                extra_compile_args=['-fopenmp'],
+                extra_link_args=['-lgomp'],
+                )
 tree_ext = Extension('milk.supervised._tree', sources = ['milk/supervised/_tree.cpp'])
 ext_modules = [kmeans_ext, svm_ext, som_ext, tree_ext]
 
