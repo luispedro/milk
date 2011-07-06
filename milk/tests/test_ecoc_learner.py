@@ -1,3 +1,5 @@
+from milk.supervised.multi import ecoc_learner
+from milk.supervised import svm
 import milk.tests.fast_classifier
 import milk.supervised.multi
 from milksets.yeast import load
@@ -14,3 +16,9 @@ def test_ecoc_learner():
     assert np.mean(testl == labels[1::2]) > 1./nlabels
     assert testl.min() >= 0
     assert testl.max() < nlabels
+
+# This failed at one point:
+    learner = ecoc_learner(svm.svm_to_binary(svm.svm_raw(kernel=svm.dot_kernel(), C=1.)))
+    model = learner.train(features[:200], labels[:200])
+    assert (model is not None)
+

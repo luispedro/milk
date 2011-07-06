@@ -205,7 +205,7 @@ class ecoc_learner(base_adaptor):
         codes = ~codes
         models = []
         for code in codes.T:
-            nlabels = np.zeros(len(labels), bool)
+            nlabels = np.zeros(len(labels), int)
             for ell,c in enumerate(code):
                 if c:
                     nlabels[labels == ell] = 1
