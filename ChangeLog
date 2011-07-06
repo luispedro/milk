@@ -1,6 +1,7 @@
 Version 0.3.10+
 	* Add warning to milk/__init__.py if import fails
 	* Add return value to ``gridminimise``
+	* Set random seed in ``precluster_learner``
 
 Version 0.3.10 2011-05-10 by luispedro
 	* Add ext.jugparallel

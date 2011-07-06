@@ -22,15 +22,16 @@ class precluster_learner(object):
     '''
     This learns a classifier by clustering the input features
     '''
-    def __init__(self, ks, base=None):
+    def __init__(self, ks, base=None, R=None):
         if base is None:
             base = defaultlearner()
         self.ks = ks
+        self.R = R
         self.base = base
 
     def train(self, features, labels, **kwargs):
-        allfeatures = np.concatenate(features)
-        assignments, centroids = select_best_kmeans(allfeatures, self.ks, 1, "AIC")
+        allfeatures = np.vstack(features)
+        assignments, centroids = select_best_kmeans(allfeatures, self.ks, repeats=1, method="AIC", R=self.R)
         histograms = [assign_centroids(f, centroids, histogram=True, normalise=1) for f in features]
         base_model = self.base.train(histograms, labels, **kwargs)
         return precluster_model(centroids, base_model)
