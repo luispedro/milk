@@ -4,6 +4,7 @@ Version 0.3.10+
 	* Set random seed in ``precluster_learner``
 	* Implemented Error-Correcting Output Codes for reduction of multi-class
 	to binary
+	* Add ``multi_strategy`` argument to ``defaultlearner()``
 
 Version 0.3.10 2011-05-10 by luispedro
 	* Add ext.jugparallel

@@ -13,15 +13,16 @@ __all__ = [
     'feature_selection_simple',
     ]
 
-def defaultlearner(mode='medium'):
+def defaultlearner(mode='medium', multi_strategy='1-vs-1'):
     '''
     learner = defaultlearner(mode='medium')
 
     Return the default classifier learner
 
     This is an SVM based classifier using the 1-vs-1 technique for multi-class
-    problems. The features will be first cleaned up (normalised to [-1, +1])
-    and go through SDA feature selection.
+    problems (by default, see the ``multi_strategy`` parameter). The features
+    will be first cleaned up (normalised to [-1, +1]) and go through SDA
+    feature selection.
 
     Parameters
     -----------
@@ -29,6 +30,9 @@ def defaultlearner(mode='medium'):
         One of ('fast','medium','slow', 'really-slow'). This defines the speed
         accuracy trade-off. It essentially defines how large the SVM parameter
         range is.
+    multi_strategy : str, optional
+        One of ('1-vs-1', '1-vs-rest', 'ecoc'). This defines the strategy used
+        to convert the base binary classifier to a multi-class classifier.
 
     Returns
     -------
@@ -52,10 +56,19 @@ def defaultlearner(mode='medium'):
     from . import svm
     from .normalise import chkfinite, interval_normalise
     from .featureselection import sda_filter, featureselector, linear_independent_features
-    from .multi import one_against_one
+    from .multi import one_against_one, one_against_rest, ecoc_learner
 
     assert mode in ('really-slow', 'slow', 'medium', 'fast'), \
         "milk.supervised.defaultlearner: mode must be one of 'fast','slow','medium'."
+    if multi_strategy == '1-vs-1':
+        multi_adaptor = one_against_one
+    elif multi_strategy == '1-vs-rest':
+        multi_adaptor = one_against_rest
+    elif multi_strategy == 'ecoc':
+        multi_adaptor = ecoc_learner
+    else:
+        raise ValueError('milk.supervised.defaultlearner: Unknown value for multi_strategy: %s' % multi_strategy)
+
     if mode == 'fast':
         c_range = np.arange(-2,4)
         sigma_range = np.arange(-2,3)
@@ -73,7 +86,7 @@ def defaultlearner(mode='medium'):
             interval_normalise(),
             featureselector(linear_independent_features),
             sda_filter(),
-            gridsearch(one_against_one(svm.svm_to_binary(svm.svm_raw())),
+            gridsearch(multi_adaptor(svm.svm_to_binary(svm.svm_raw())),
                         params={
                             'C': 2.**c_range,
                             'kernel': [svm.rbf_kernel(2.**i) for i in sigma_range],
