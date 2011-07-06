@@ -6,7 +6,7 @@
 
 from __future__ import division
 from .classifier import normaliselabels
-from .base import supervised_model
+from .base import supervised_model, base_adaptor
 import numpy as np
 
 __all__ = [
@@ -22,13 +22,7 @@ def _asanyarray(f):
     except:
         return np.array(f, dtype=object)
 
-class multi_adaptor(object):
-    def __init__(self, base):
-        self.base = base
-        if hasattr(base, 'set_option'):
-            self.set_option = base.set_option
-
-class one_against_rest(multi_adaptor):
+class one_against_rest(base_adaptor):
     '''
     Implements one vs. rest classification strategy to transform
     a binary classifier into a multi-class classifier.
@@ -80,7 +74,7 @@ class one_against_rest_model(object):
         return self.names[label]
 
 
-class one_against_one(multi_adaptor):
+class one_against_one(base_adaptor):
     '''
     Implements one vs. one classification strategy to transform
     a binary classifier into a multi-class classifier.
@@ -152,7 +146,7 @@ class one_against_rest_multi_model(object):
     def apply(self, feats):
         return [lab for lab,model in self.models.iteritems() if model.apply(feats)]
 
-class one_against_rest_multi(multi_adaptor):
+class one_against_rest_multi(base_adaptor):
     '''
     learner = one_against_rest_multi()
     model = learner.train(features, labels)
@@ -184,7 +178,7 @@ class ecoc_model(supervised_model):
         return np.argmin(errors)
         
 
-class ecoc_learner(multi_adaptor):
+class ecoc_learner(base_adaptor):
     '''
     Implements error-correcting output codes for reducing a multi-class problem
     to a set of binary problems.

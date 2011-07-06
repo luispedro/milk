@@ -25,3 +25,7 @@ def test_pickle():
     test = [model.apply(x) for x in X]
     test = np.array(test)
     assert (test == labels).mean() > .6
+
+def test_pickle_learner():
+    learner = milk.defaultlearner()
+    assert len(pickle.dumps(learner))
