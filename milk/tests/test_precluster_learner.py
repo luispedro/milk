@@ -4,7 +4,7 @@ from milk.tests.fast_classifier import fast_classifier
 
 def test_precluster():
     np.random.seed(22)
-    learner = precluster_learner([2], base=fast_classifier())
+    learner = precluster_learner([2], base=fast_classifier(), R=12)
 
     def c0():
         return np.random.rand(8)

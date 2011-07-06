@@ -3,7 +3,7 @@ class fast_classifier(object):
     def __init__(self):
         pass
 
-    def train(self, features, labels):
+    def train(self, features, labels, **kwargs):
         examples = {}
         for f,lab in zip(features, labels):
             if lab not in examples:
@@ -19,7 +19,8 @@ class fast_model(object):
         best = None
         best_val = +np.inf
         for k,v in self.examples.iteritems():
-            dist = np.dot(v-f, v-f)
+            d = v-f
+            dist = np.dot(d,d)
             if dist < best_val:
                 best = k
                 best_val = dist

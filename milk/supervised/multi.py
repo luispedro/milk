@@ -6,12 +6,14 @@
 
 from __future__ import division
 from .classifier import normaliselabels
+from .base import supervised_model
 import numpy as np
 
 __all__ = [
     'one_against_rest',
     'one_against_one',
     'one_against_rest_multi',
+    'ecoc_learner',
     ]
 
 def _asanyarray(f):
@@ -20,7 +22,13 @@ def _asanyarray(f):
     except:
         return np.array(f, dtype=object)
 
-class one_against_rest(object):
+class multi_adaptor(object):
+    def __init__(self, base):
+        self.base = base
+        if hasattr(base, 'set_option'):
+            self.set_option = base.set_option
+
+class one_against_rest(multi_adaptor):
     '''
     Implements one vs. rest classification strategy to transform
     a binary classifier into a multi-class classifier.
@@ -44,21 +52,12 @@ class one_against_rest(object):
     one_against_one
     '''
 
-    def __init__(self,base):
-        self.base = base
-        self.is_multi_class = True
-        self.options = {}
-
-    def set_option(self, k, v):
-        self.options[k] = v
 
     def train(self, features, labels, normalisedlabels=False):
         labels, names = normaliselabels(labels)
         nclasses = labels.max() + 1
         models  = []
         for i in xrange(nclasses):
-            for k,v in self.options.iteritems():
-                self.base.set_option(k, v)
             model = self.base.train(features, (labels == i).astype(int), normalisedlabels=True)
             models.append(model)
         return one_against_rest_model(models, names)
@@ -81,7 +80,7 @@ class one_against_rest_model(object):
         return self.names[label]
 
 
-class one_against_one(object):
+class one_against_one(multi_adaptor):
     '''
     Implements one vs. one classification strategy to transform
     a binary classifier into a multi-class classifier.
@@ -105,16 +104,6 @@ class one_against_one(object):
     one_against_rest
     '''
 
-
-    def __init__(self, base):
-        self.base = base
-        self.is_multi_class = True
-        self.options = {}
-
-
-    def set_option(self, k, v):
-        self.options[k] = v
-
     def train(self, features, labels, **kwargs):
         '''
         one_against_one.train(objs,labels)
@@ -125,8 +114,6 @@ class one_against_one(object):
         models = [ [None for i in xrange(nclasses)] for j in xrange(nclasses)]
         for i in xrange(nclasses):
             for j in xrange(i+1, nclasses):
-                for k,v in self.options.iteritems():
-                    self.base.set_option(k, v)
                 idxs = (labels == i) | (labels == j)
                 assert idxs.sum() > 0, 'milk.multi.one_against_one: Pair-wise classifier has no data'
                 # Fixme: here I could add a Null model or something
@@ -165,7 +152,7 @@ class one_against_rest_multi_model(object):
     def apply(self, feats):
         return [lab for lab,model in self.models.iteritems() if model.apply(feats)]
 
-class one_against_rest_multi(object):
+class one_against_rest_multi(multi_adaptor):
     '''
     learner = one_against_rest_multi()
     model = learner.train(features, labels)
@@ -174,12 +161,6 @@ class one_against_rest_multi(object):
     This for multi-label problem (i.e., each instance can have more than one label).
 
     '''
-
-    def __init__(self, base):
-        self.base = base
-        if hasattr(base, 'set_option'):
-            self.set_option = base.set_option
-
     def train(self, features, labels, normalisedlabels=False):
         '''
         '''
@@ -191,4 +172,49 @@ class one_against_rest_multi(object):
         for label in all_labels:
             models[label] = self.base.train(features, [(label in ls) for ls in labels])
         return one_against_rest_multi_model(models)
+
+class ecoc_model(supervised_model):
+    def __init__(self, models, codes):
+        self.models = models
+        self.codes = codes
+
+    def apply(self, f):
+        word = np.array([model.apply(f) for model in self.models], bool)
+        errors = (self.codes != word).sum(1)
+        return np.argmin(errors)
+        
+
+class ecoc_learner(multi_adaptor):
+    '''
+    Implements error-correcting output codes for reducing a multi-class problem
+    to a set of binary problems.
+
+    Reference
+    ---------
+    "Solving Multiclass Learning Problems via Error-Correcting Output Codes" by
+    T. G. Dietterich, G. Bakiri in Journal of Artificial Intelligence
+    Research, Vol 2, (1995), 263-286
+    '''
+
+    def train(self, features, labels, normalisedlabels=False, **kwargs):
+        if normalisedlabels:
+            labelset = np.unique(labels)
+        else:
+            labels,names = normaliselabels(labels)
+            labelset = np.arange(len(names))
+
+        k = len(labelset)
+        n = 2**(k-1)
+        codes = np.zeros((k,n),bool)
+        for k_ in xrange(1,k):
+            codes[k_].reshape( (-1, 2**(k-k_-1)) )[::2] = 1
+        codes = ~codes
+        models = []
+        for code in codes.T:
+            nlabels = np.zeros(len(labels), bool)
+            for ell,c in enumerate(code):
+                if c:
+                    nlabels[labels == ell] = 1
+            models.append(self.base.train(features, nlabels, normalisedlabels=True, **kwargs))
+        return ecoc_model(models, codes)
 
