@@ -6,6 +6,7 @@ Contents:
    :maxdepth: 2
 
    supervised
+   nfoldcrossvalidation
    featureselection
    adaboost
    clustering
