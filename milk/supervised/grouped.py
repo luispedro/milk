@@ -9,6 +9,7 @@ from __future__ import division
 import numpy as np
 from collections import defaultdict
 from .classifier import normaliselabels
+from .base import base_adaptor
 
 __all__ = [
     'voting_learner',
@@ -26,7 +27,7 @@ def _concatenate_features_labels(gfeatures, glabels):
             labels.extend( [label] * len(feats) )
         return features, labels
 
-class voting_learner(object):
+class voting_learner(base_adaptor):
     '''
     Implements a voting scheme for multiple sub-examples per example.
 
@@ -44,9 +45,6 @@ class voting_learner(object):
         res = voter.apply([ [f0, f1, f3] ])
 
     '''
-
-    def __init__(self, base):
-        self.base = base
 
     def train(self, gfeatures, glabels, normalisedlabels=False):
         features, labels = _concatenate_features_labels(gfeatures, glabels)
@@ -70,7 +68,7 @@ class voting_model(object):
                 most_votes = v
         return best
 
-class mean_learner(object):
+class mean_learner(base_adaptor):
     '''
     Implements a mean scheme for multiple sub-examples per example.
 
@@ -89,12 +87,6 @@ class mean_learner(object):
         res = model.apply([ [f0, f1, f3] ])
 
     '''
-
-    def __init__(self, base):
-        self.base = base
-        if hasattr(base, 'set_option'):
-            self.set_option = base.set_option
-
     def train(self, gfeatures, glabels, normalisedlabels=False):
         features, labels = _concatenate_features_labels(gfeatures, glabels)
         return mean_model(self.base.train(features, labels))
