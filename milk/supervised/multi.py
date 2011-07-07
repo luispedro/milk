@@ -204,7 +204,10 @@ class ecoc_learner(base_adaptor):
             codes[k_].reshape( (-1, 2**(k-k_-1)) )[::2] = 1
         codes = ~codes
         models = []
-        for code in codes.T:
+        # The last element of codes.T is not interesting (all 1s). The array is
+        # actually of size 2**(k-1)-1, but it is easier to compute the full
+        # 2**(k-1) and then ignore the last element.
+        for code in codes.T[:-1]:
             nlabels = np.zeros(len(labels), int)
             for ell,c in enumerate(code):
                 if c:
