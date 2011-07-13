@@ -16,6 +16,7 @@ Decision tree based classifier
 from __future__ import division
 import numpy as np
 from .classifier import normaliselabels
+from .base import supervised_model
 
 __all__ = [
     'tree_learner',
@@ -197,7 +198,7 @@ class tree_learner(object):
 
 tree_classifier = tree_learner
 
-class tree_model(object):
+class tree_model(supervised_model):
     '''
     tree model
     '''
@@ -211,7 +212,7 @@ class tree_model(object):
             return value > .5
         return value
 
-class stump_model(object):
+class stump_model(supervised_model):
     def __init__(self, idx, cutoff, names):
         self.names = names
         self.idx = idx

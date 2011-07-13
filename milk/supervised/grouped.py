@@ -9,7 +9,7 @@ from __future__ import division
 import numpy as np
 from collections import defaultdict
 from .classifier import normaliselabels
-from .base import base_adaptor
+from .base import base_adaptor, supervised_model
 
 __all__ = [
     'voting_learner',
@@ -52,7 +52,7 @@ class voting_learner(base_adaptor):
 voting_classifier = voting_learner
 
 
-class voting_model(object):
+class voting_model(supervised_model):
     def __init__(self, base):
         self.base = base
 
@@ -93,7 +93,7 @@ class mean_learner(base_adaptor):
 
 mean_classifier = mean_learner
 
-class mean_model(object):
+class mean_model(supervised_model):
     def __init__(self, base):
         self.base = base
 
@@ -122,7 +122,7 @@ def remove_outliers(features, limit, min_size):
     return features[selected]
 
 
-class filter_outliers_model(object):
+class filter_outliers_model(supervised_model):
     def __init__(self, limit, min_size):
         self.limit = limit
         self.min_size = min_size

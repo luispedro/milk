@@ -18,6 +18,7 @@ from __future__ import division
 import numpy as np
 import milk.supervised.tree
 from .normalise import normaliselabels
+from .base import supervised_model
 
 __all__ = [
     'rf_learner',
@@ -52,7 +53,7 @@ def _sample(features, labels, n, R):
         slabels.append(labels[idx])
     return np.array(sfeatures), np.array(slabels)
 
-class rf_model(object):
+class rf_model(supervised_model):
     def __init__(self, forest, names):
         self.forest = forest
         self.names = names

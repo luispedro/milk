@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2011, Luis Pedro Coelho <lpc@cmu.edu>
+# Copyright (C) 2008-2011, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # License: MIT. See COPYING.MIT file in the milk distribution
 
 from __future__ import division
 import numpy as np
 from .normalise import normaliselabels
+from .base import supervised_model
 
 __all__ = [
     'logistic_learner',
@@ -17,7 +18,7 @@ def _sigmoidal(z):
     if z < -300: return 0.
     return 1./(1+np.exp(-z))
 
-class logistic_model(object):
+class logistic_model(supervised_model):
     def __init__(self, bs):
         self.bs = bs
 

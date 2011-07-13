@@ -6,6 +6,7 @@
 from __future__ import division
 import numpy as np
 from .normalise import normaliselabels
+from .base import supervised_model
 
 '''
 AdaBoost
@@ -48,7 +49,7 @@ def _adaboost(features, labels, base, max_iters):
     return H, A
 
 
-class boost_model(object):
+class boost_model(supervised_model):
     def __init__(self, H, A, names):
         self.H = H
         self.A = A

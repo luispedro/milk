@@ -7,6 +7,7 @@
 from __future__ import division
 from collections import defaultdict
 import numpy as np
+from .base import supervised_model
 
 __all__ = [
     'kNN',
@@ -39,7 +40,7 @@ class kNN(object):
         features2 = np.sum(features**2, axis=1)
         return kNN_model(self.k, features, features2, labels)
 
-class kNN_model(object):
+class kNN_model(supervised_model):
     def __init__(self, k, features, features2, labels):
         self.k = k
         self.features = features
