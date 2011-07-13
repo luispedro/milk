@@ -29,9 +29,16 @@ class precluster_learner(object):
         self.R = R
         self.base = base
 
+    def set_option(self, k, v):
+        if k in ('R', 'ks'):
+            setattr(self, k, v)
+        else:
+            self.base.set_option(k,v)
+
     def train(self, features, labels, **kwargs):
         allfeatures = np.vstack(features)
         assignments, centroids = select_best_kmeans(allfeatures, self.ks, repeats=1, method="AIC", R=self.R)
         histograms = [assign_centroids(f, centroids, histogram=True, normalise=1) for f in features]
         base_model = self.base.train(histograms, labels, **kwargs)
         return precluster_model(centroids, base_model)
+
