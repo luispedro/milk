@@ -6,9 +6,10 @@
 from __future__ import division
 import numpy as np
 from milk.unsupervised.kmeans import select_best_kmeans, assign_centroids
+from .base import supervised_model
 from milk import defaultlearner
 
-class precluster_model(object):
+class precluster_model(supervised_model):
     def __init__(self, centroids, base):
         self.centroids = centroids
         self.base = base
