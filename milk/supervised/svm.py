@@ -332,7 +332,7 @@ def learn_sigmoid_constants(F,Y,
         ef = np.exp(fApB)
         emf = np.exp(-fApB)
 
-        p = np.choose(fApB >= 0, ( emf/(1.+emf), 1./(1.+emf) ))
+        p = np.choose(fApB >= 0, ( emf/(1.+emf), 1./(1.+ef) ))
         q = np.choose(fApB >= 0, ( 1/(1.+emf), ef/(1.+ef) ))
         d2 = p * q
         h11 = np.dot(F*F,d2) + sigma
