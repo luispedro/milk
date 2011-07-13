@@ -222,7 +222,7 @@ class svm_raw(object):
         assert not (np.isinf(self.C) or np.isnan(self.C)), 'milk.supervised.svm_raw: setting C to NaN or Inf causes problems.'
         features = np.asanyarray(features)
         if normalisedlabels:
-            Y = labels
+            Y = labels.copy()
         else:
             Y,_ = normaliselabels(labels)
         assert Y.max() == 1, 'milk.supervised.svm_raw can only handle binary problems'
@@ -284,17 +284,21 @@ def learn_sigmoid_constants(F,Y,
     Support Vector Machines" by Lin, Lin, and Weng.
     Machine Learning, Vol. 68, No. 3. (23 October 2007), pp. 267-276
     '''
-    # the deci[i] array is called F[i] in this code
+    # Below we use safe constructs to avoid using the overflown values, but we
+    # must compute them because of the way numpy works.
+    errorstate = np.seterr(over='ignore')
+
+    # the deci[i] array is called F in this code
     F = np.asanyarray(F)
     Y = np.asanyarray(Y)
     assert len(F) == len(Y)
     assert numpy.all( (Y == 1) | (Y == 0) )
-    from numpy import log, exp
-    N=len(F)
-    if max_iters is None: max_iters = 1000
+
+    if max_iters is None:
+        max_iters = 1000
 
     prior1 = Y.sum()
-    prior0 = N-prior1
+    prior0 = len(F)-prior1
 
     small_nr = 1e-4
 
@@ -304,38 +308,29 @@ def learn_sigmoid_constants(F,Y,
     T = Y*hi_t + (1-Y)*lo_t
 
     A = 0.
-    B = log( (prior0+1.)/(prior1+1.) )
+    B = np.log( (prior0+1.)/(prior1+1.) )
     def target(A,B):
-        fval = 0.
-        for i in xrange(N):
-            fApB = F[i]*A+B
-            if fApB >= 0:
-                fval += T[i]*fApB+log(1+exp(-fApB))
-            else:
-                fval += (T[i]-1.)*fApB+log(1+exp(fApB))
-        return fval
+        fApB = F*A + B
+        lef = np.log1p(np.exp(fApB))
+        lemf = np.log1p(np.exp(-fApB))
+        fvals = np.choose(fApB >= 0, ( T*fApB + lemf, (T-1.)*fApB + lef))
+        return np.sum(fvals)
+
     fval = target(A,B)
     for iter in xrange(max_iters):
-        h11=sigma
-        h22=sigma
-        h21=0.
-        g1=0.
-        g2=0.
-        for i in xrange(N):
-            fApB = F[i]*A+B
-            if (fApB >= 0):
-                p = exp(-fApB)/(1.+exp(-fApB))
-                q = 1./(1.+exp(-fApB))
-            else:
-                p = 1./(1.+exp(fApB))
-                q = exp(fApB)/(1.+exp(fApB))
-            d2 = p * q
-            h11 += F[i]*F[i]*d2
-            h22 += d2
-            h21 += F[i]*d2
-            d1 = T[i] - p
-            g1 += F[i]*d1
-            g2 += d1
+        fApB = F*A + B
+        ef = np.exp(fApB)
+        emf = np.exp(-fApB)
+
+        p = np.choose(fApB >= 0, ( emf/(1.+emf), 1./(1.+emf) ))
+        q = np.choose(fApB >= 0, ( 1/(1.+emf), ef/(1.+ef) ))
+        d2 = p * q
+        h11 = np.dot(F*F,d2) + sigma
+        h22 = np.sum(d2) + sigma
+        h21 = np.dot(F,d2)
+        d1 = T - p
+        g1 = np.dot(F,d1)
+        g2 = np.sum(d1)
         if abs(g1) < eps and abs(g2) < eps: # Stopping criteria
             break
         
@@ -343,8 +338,8 @@ def learn_sigmoid_constants(F,Y,
         dA = - (h22*g1 - h21*g2)/det
         dB = - (h21*g1 + h11*g2)/det
         gd = g1*dA + g2*dB
-        stepsize = 1.
 
+        stepsize = 1.
         while stepsize >= min_step:
             newA = A + stepsize*dA
             newB = B + stepsize*dB
@@ -355,9 +350,10 @@ def learn_sigmoid_constants(F,Y,
                 fval = newf
                 break
             stepsize /= 2
-        if stepsize < min_step:
+        else:
             print 'Line search fails'
             break
+    np.seterr(**errorstate)
     return A,B
 
 class svm_binary_model(object):
