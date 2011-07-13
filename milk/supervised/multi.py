@@ -167,16 +167,31 @@ class one_against_rest_multi(base_adaptor):
             models[label] = self.base.train(features, [(label in ls) for ls in labels])
         return one_against_rest_multi_model(models)
 
+def _solve_ecoc_model(codes, p):
+    try:
+        import scipy.optimize
+    except ImportError:
+        raise ImportError("milk.supervised.ecoc: fitting ECOC probability models requires scipy.optimize")
+
+    z,_ = scipy.optimize.nnls(codes.T, p)
+    z /= z.sum()
+    return z
+
 class ecoc_model(supervised_model):
-    def __init__(self, models, codes):
+    def __init__(self, models, codes, return_probability):
         self.models = models
         self.codes = codes
+        self.return_probability = return_probability
 
     def apply(self, f):
-        word = np.array([model.apply(f) for model in self.models], bool)
-        errors = (self.codes != word).sum(1)
-        return np.argmin(errors)
-        
+        word = np.array([model.apply(f) for model in self.models])
+        if self.return_probability:
+            return _solve_ecoc_model(self.codes, word)
+        else:
+            word = word.astype(bool)
+            errors = (self.codes != word).sum(1)
+            return np.argmin(errors)
+
 
 class ecoc_learner(base_adaptor):
     '''
@@ -189,6 +204,9 @@ class ecoc_learner(base_adaptor):
     T. G. Dietterich, G. Bakiri in Journal of Artificial Intelligence
     Research, Vol 2, (1995), 263-286
     '''
+    def __init__(self, base, probability=False):
+        base_adaptor.__init__(self, base)
+        self.probability = probability
 
     def train(self, features, labels, normalisedlabels=False, **kwargs):
         if normalisedlabels:
@@ -203,15 +221,16 @@ class ecoc_learner(base_adaptor):
         for k_ in xrange(1,k):
             codes[k_].reshape( (-1, 2**(k-k_-1)) )[::2] = 1
         codes = ~codes
-        models = []
-        # The last element of codes.T is not interesting (all 1s). The array is
+        # The last column of codes is not interesting (all 1s). The array is
         # actually of size 2**(k-1)-1, but it is easier to compute the full
         # 2**(k-1) and then ignore the last element.
-        for code in codes.T[:-1]:
+        codes = codes[:,:-1]
+        models = []
+        for code in codes.T:
             nlabels = np.zeros(len(labels), int)
             for ell,c in enumerate(code):
                 if c:
                     nlabels[labels == ell] = 1
             models.append(self.base.train(features, nlabels, normalisedlabels=True, **kwargs))
-        return ecoc_model(models, codes)
+        return ecoc_model(models, codes, self.probability)
 

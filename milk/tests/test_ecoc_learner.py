@@ -1,4 +1,5 @@
 from milk.supervised.multi import ecoc_learner
+from milk.supervised.classifier import ctransforms
 from milk.supervised import svm
 import milk.tests.fast_classifier
 import milk.supervised.multi
@@ -22,3 +23,15 @@ def test_ecoc_learner():
     model = learner.train(features[:200], labels[:200])
     assert (model is not None)
 
+def test_ecoc_probability():
+    features,labels = load()
+    features = features[labels < 5]
+    labels = labels[labels < 5]
+    raw = svm.svm_raw(kernel=svm.dot_kernel(), C=1.)
+    base = ctransforms(raw, svm.svm_sigmoidal_correction())
+    learner = ecoc_learner(base, probability=True)
+    model = learner.train(features[::2], labels[::2])
+    results = map(model.apply, features[1::2])
+    results = np.array(results)
+    assert results.shape[1] == len(set(labels))
+    assert np.mean(results.argmax(1) == labels[1::2]) > .5
