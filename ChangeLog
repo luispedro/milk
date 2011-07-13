@@ -3,8 +3,10 @@ Version 0.3.10+
 	* Add return value to ``gridminimise``
 	* Set random seed in ``precluster_learner``
 	* Implemented Error-Correcting Output Codes for reduction of multi-class
-	to binary
+	to binary (including probability estimation)
 	* Add ``multi_strategy`` argument to ``defaultlearner()``
+	* Make the dot kernel in svm much, much, faster
+	* Make sigmoidal fitting for SVM probability estimates faster
 
 Version 0.3.10 2011-05-10 by luispedro
 	* Add ext.jugparallel
