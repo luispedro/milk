@@ -122,18 +122,16 @@ class gridsearch(object):
 
     Perform a grid search for the best parameter values.
 
-
     When G.train() is called, then for each combination of p1 in param1, p2 in
-    param2, ... it performs::
+    param2, ... it performs (effectively)::
 
         base.param1 = p1
         base.param2 = p2
         ...
-        value[p1, p2,...] = measure(crossvaliation(base)
+        value[p1, p2,...] = measure(nfoldcrossvalidation(..., learner=base))
 
     it then picks the highest set of parameters and re-learns a model on the
     whole data.
-
 
     Parameters
     -----------
@@ -150,6 +148,11 @@ class gridsearch(object):
 
     All of the above can be *passed as parameters to the constructor or set as
     attributes*.
+
+    See Also
+    --------
+    gridminimise : function
+        Implements the basic functionality behind this object
     '''
     def __init__(self, base, measure=None, nfolds=10, params={}, annotate=False):
         self.params = params
