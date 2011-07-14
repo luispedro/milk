@@ -1,4 +1,4 @@
-// Copyright (C) 2010, Luis Pedro Coelho <lpc@cmu.edu>
+// Copyright (C) 2010, Luis Pedro Coelho <luis@luispedro.org>
 // License: MIT
 
 #include <iostream>

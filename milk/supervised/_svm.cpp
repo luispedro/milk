@@ -1,4 +1,4 @@
-// Copyright (C) 2008, Luís Pedro Coelho <lpc@cmu.edu>
+// Copyright (C) 2008, Luis Pedro Coelho <luis@luispedro.org>
 // Copyright (c) 2000-2008 Chih-Chung Chang and Chih-Jen Lin (LIBSVM Code)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
