@@ -1,4 +1,5 @@
 Version 0.3.10+
+	* Set random seed in random forest learner
 	* Add warning to milk/__init__.py if import fails
 	* Add return value to ``gridminimise``
 	* Set random seed in ``precluster_learner``

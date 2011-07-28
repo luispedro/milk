@@ -19,6 +19,7 @@ import numpy as np
 import milk.supervised.tree
 from .normalise import normaliselabels
 from .base import supervised_model
+from ..utils import get_nprandom
 
 __all__ = [
     'rf_learner',
@@ -62,7 +63,7 @@ class rf_model(supervised_model):
         rf = len(self.forest)
         votes = sum(t.apply(features) for t in self.forest)
         return (votes > (rf//2))
-        
+
 
 class rf_learner(object):
     '''
@@ -76,16 +77,19 @@ class rf_learner(object):
         Nr of trees to learn (default: 101)
     frac : float, optional
         Sample fraction
+    R : np.random object
+        Source of randomness
     '''
-    def __init__(self, rf=101, frac=.7):
+    def __init__(self, rf=101, frac=.7, R=None):
         self.rf = rf
         self.frac = frac
+        self.R = get_nprandom(R)
 
     def train(self, features, labels, normalisedlabels=False, names=None, **kwargs):
         N,M = features.shape
         m = int(self.frac*M)
         n = int(self.frac*M)
-        R = np.random
+        R = get_nprandom(kwargs.get('R', self.R))
         tree = milk.supervised.tree.tree_learner()
         forest = []
         if not normalisedlabels:
