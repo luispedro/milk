@@ -40,6 +40,7 @@ _extensions = {
 
         'milk.supervised._svm' : ['milk/supervised/_svm.cpp'],
         'milk.supervised._tree' : ['milk/supervised/_tree.cpp'],
+        'milk.supervised._perceptron' : ['milk/supervised/_perceptron.cpp'],
 }
 ext_modules = [
     Extension(ext, sources=sources) for ext,sources in _extensions.iteritems()
