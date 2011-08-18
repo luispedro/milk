@@ -106,7 +106,7 @@ def getfold(labels, fold, nfolds=None, origins=None):
             return t,s
     raise ValueError('milk.getfold: Attempted to get fold %s but the number of actual folds was too small (%s)' % (fold,i))
 
-def nfoldcrossvalidation(features, labels, nfolds=None, learner=None, origins=None, return_predictions=False, folds=None, classifier=None):
+def nfoldcrossvalidation(features, labels, nfolds=None, learner=None, origins=None, return_predictions=False, folds=None, initial_measure=0, classifier=None,):
     '''
     Perform n-fold cross validation
 
@@ -137,6 +137,8 @@ def nfoldcrossvalidation(features, labels, nfolds=None, learner=None, origins=No
         whether to return predictions (default: False)
     folds : sequence of int, optional
         which folds to generate
+    initial_measure : any, optional
+        what initial value to use for the results reduction (default: 0)
 
 
     Returns
@@ -179,7 +181,7 @@ def nfoldcrossvalidation(features, labels, nfolds=None, learner=None, origins=No
             predictions[testingset] = cur_preds
         results.append(measure(labels[testingset], cur_preds))
 
-    result = reduce(operator.add, results)
+    result = reduce(operator.add, results, initial_measure)
     if return_predictions:
         return result, names, predictions
     return result, names
