@@ -164,7 +164,10 @@ def nfoldcrossvalidation(features, labels, nfolds=None, learner=None, origins=No
         predictions = np.empty_like(labels)
         predictions.fill(-1) # This makes it clearer if there are bugs in the programme
 
-    features = np.asanyarray(features)
+    try:
+        features = np.asanyarray(features)
+    except:
+        features = np.asanyarray(features, dtype=object)
 
     nclasses = labels.max() + 1
     results = []

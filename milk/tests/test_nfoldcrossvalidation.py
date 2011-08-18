@@ -30,6 +30,16 @@ def test_nfoldcrossvalidation_simple():
     assert cmat.shape == (3,3)
     assert len(clabels) == 3
 
+def test_nfoldcrossvalidation_simple_list():
+    from milksets import wine
+    features, labels = wine.load()
+    features = features[::2]
+    labels = labels[::2]
+
+    cmat,clabels = nfoldcrossvalidation(list(features), list(labels), classifier=fast_classifier())
+    assert cmat.shape == (3,3)
+    assert len(clabels) == 3
+
 class test_classifier(object):
     def __init__(self,N):
         self.tested = np.zeros(N,bool)
