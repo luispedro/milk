@@ -14,7 +14,7 @@ extern "C" {
 namespace {
 
 template <typename T>
-int perceptron(PyArrayObject* data_arr, const int* labels, PyArrayObject* weights_arr, double eta) {
+int perceptron(PyArrayObject* data_arr, const long* labels, PyArrayObject* weights_arr, double eta) {
     const T* data = reinterpret_cast<T*>(PyArray_DATA(data_arr));
     T* weights = reinterpret_cast<T*>(PyArray_DATA(weights_arr));
     const int N0 = PyArray_DIM(data_arr, 0);
@@ -52,7 +52,7 @@ PyObject* py_perceptron(PyObject* self, PyObject* args) {
     }
     if (!PyArray_Check(data) || !PyArray_ISCONTIGUOUS(data) ||
         !PyArray_Check(weights) || !PyArray_ISCONTIGUOUS(weights) ||
-        !PyArray_Check(labels) || !PyArray_ISCONTIGUOUS(labels) || !PyArray_EquivTypenums(PyArray_TYPE(labels), NPY_INT) ||
+        !PyArray_Check(labels) || !PyArray_ISCONTIGUOUS(labels) || !PyArray_EquivTypenums(PyArray_TYPE(labels), NPY_LONG) ||
         PyArray_TYPE(data) != PyArray_TYPE(weights)||
         PyArray_NDIM(data) != 2 || PyArray_NDIM(weights) != 1 || PyArray_DIM(data,1) + 1 != PyArray_DIM(weights,0)) {
         PyErr_SetString(PyExc_RuntimeError,errmsg);
@@ -60,9 +60,9 @@ PyObject* py_perceptron(PyObject* self, PyObject* args) {
     }
     int nr_errors;
     if (PyArray_TYPE(data) == NPY_FLOAT) {
-        nr_errors = perceptron<float>(data, reinterpret_cast<const int*>(PyArray_DATA(labels)), weights, eta);
+        nr_errors = perceptron<float>(data, reinterpret_cast<const long*>(PyArray_DATA(labels)), weights, eta);
     } else if (PyArray_TYPE(data) == NPY_DOUBLE) {
-        nr_errors = perceptron<double>(data, reinterpret_cast<const int*>(PyArray_DATA(labels)), weights, eta);
+        nr_errors = perceptron<double>(data, reinterpret_cast<const long*>(PyArray_DATA(labels)), weights, eta);
     } else {
         PyErr_SetString(PyExc_RuntimeError, errmsg);
         return 0;
