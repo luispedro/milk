@@ -49,10 +49,7 @@ class Grid1(multiprocessing.Process):
 
     def run(self):
         while True:
-            try:
-                index,fold = self.inq.get(timeout=16)
-            except multiprocessing.Queue.Empty:
-                return
+            index,fold = self.inq.get()
             _set_options(self.learner, self.options[index])
             train, test = self.folds[fold]
             model = self.learner.train(self.features[train], self.labels[train], normalisedlabels=True, **self.train_kwargs)
@@ -145,6 +142,9 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
         outqueue.put((i,0))
         executing.add(i)
         avail = parallel.get_proc()
+        # We get one extra this way
+        # This is because the main process won't be doing any work
+        # There is always at least one worker process
         if not avail:
             break
     while True:
@@ -152,9 +152,8 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
         executing.remove(p)
         iteration[p] += 1
         error[p] += err
-        inorder = error.argsort()
-        if iteration[inorder[0]] == nfolds:
-            best = inorder[0]
+        best = error.argmin()
+        if iteration[best] == nfolds:
             for w in workers[1:]:
                 w.terminate()
                 w.join()
@@ -164,6 +163,7 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
             if return_value:
                 return options[best], error[best]
             return options[best]
+        inorder = error.argsort()
         for i in inorder:
             if iteration[i] < nfolds and i not in executing:
                 executing.add(i)
