@@ -7,6 +7,7 @@
 from __future__ import division
 import numpy as np
 from .classifier import normaliselabels
+import multiprocessing
 
 __all__ = [
     'gridminimise',
@@ -29,11 +30,38 @@ def _allassignments(options):
     for ks,vs in izip(repeat(options.keys()), product(*options.values())):
         yield zip(ks,vs)
 
-def _set_assignment(obj,assignments):
-    for k,v in assignments:
-        obj.set_option(k,v)
+def _set_options(learner, options):
+    for k,v in options:
+        learner.set_option(k,v)
 
-def gridminimise(learner, features, labels, params, measure=None, nfolds=10, return_value=False, train_kwargs=None):
+class Grid1(multiprocessing.Process):
+    def __init__(self, learner, features, labels, measure, train_kwargs, options, folds, inq, outq):
+        self.learner = learner
+        self.features = features
+        self.labels = labels
+        self.measure = measure
+        self.train_kwargs = train_kwargs
+        self.options = options
+        self.folds = folds
+        self.inq = inq
+        self.outq = outq
+        super(Grid1, self).__init__()
+
+    def run(self):
+        while True:
+            try:
+                index,fold = self.inq.get(timeout=16)
+            except multiprocessing.Queue.Empty:
+                return
+            _set_options(self.learner, self.options[index])
+            train, test = self.folds[fold]
+            model = self.learner.train(self.features[train], self.labels[train], normalisedlabels=True, **self.train_kwargs)
+            preds = [model.apply(f) for f in self.features[test]]
+            error = self.measure(self.labels[test], preds)
+            self.outq.put( (index, error) )
+
+
+def gridminimise(learner, features, labels, params, measure=None, nfolds=10, return_value=False, train_kwargs=None, nprocs=None):
     '''
     best = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=False)
     best, value = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=True)
@@ -61,6 +89,10 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
     train_kwargs : dict, optional
         Options that are passed to the train() method of the classifier, using
         the ``train(features, labels, **train_kwargs)`` syntax. Defaults to {}.
+    nprocs : integer, optional
+        Number of processors to use. By default, uses the
+        ``milk.utils.parallel`` framework to check the number of
+        processors.
 
     Returns
     -------
@@ -82,6 +114,7 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
     # could only be worse even if we never computed the whole error!
 
     from ..measures.nfoldcrossvalidation import foldgenerator
+    from ..utils import parallel
     if measure is None:
         def measure(real, preds):
             return np.sum(np.asarray(real) != np.asarray(preds))
@@ -89,31 +122,53 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
         train_kwargs = {}
 
     labels,_ = normaliselabels(labels)
-    allassignments = list(_allassignments(params))
-    N = len(allassignments)
-    iteration = np.zeros(N, int)
-    error = np.zeros(N, float)
+    options = list(_allassignments(params))
+    iteration = np.zeros(len(options), int)
+    error = np.zeros(len(options), float)
     folds = [(Tr.copy(), Te.copy()) for Tr,Te in foldgenerator(labels, nfolds)]
     # foldgenerator might actually decide on a smaller number of folds,
     # depending on the distribution of class sizes:
     nfolds = len(folds)
+    assert nfolds
+    inqueue = multiprocessing.Queue()
+    outqueue = multiprocessing.Queue()
+    executing = set()
+    workers = []
+    if nprocs is None:
+        nprocs = len(options)
+    else:
+        nprocs = min(nprocs, len(options))
+    for i in xrange(nprocs):
+        w = Grid1(learner, features, labels, measure, train_kwargs, options, folds, inqueue, outqueue)
+        w.start()
+        workers.append(w)
+        outqueue.put((i,0))
+        executing.add(i)
+        avail = parallel.get_proc()
+        if not avail:
+            break
     while True:
-        next_pos = (error == error.min())
-        iter = iteration[next_pos].max()
-        if iter == nfolds:
-            (besti,) = np.where(next_pos & (iteration == iter))
-            besti = besti[0]
-            if return_value:
-                return allassignments[besti], error[besti]
-            return allassignments[besti]
-        (ps,) = np.where(next_pos & (iteration == iter))
-        p = ps[0]
-        _set_assignment(learner, allassignments[p])
-        train, test = folds[iter]
-        model = learner.train(features[train], labels[train], normalisedlabels=True, **train_kwargs)
-        preds = [model.apply(f) for f in features[test]]
-        error[p] += measure(labels[test], preds)
+        p,err = outqueue.get()
+        executing.remove(p)
         iteration[p] += 1
+        error[p] += err
+        inorder = error.argsort()
+        if iteration[inorder[0]] == nfolds:
+            best = inorder[0]
+            for w in workers[1:]:
+                w.terminate()
+                w.join()
+                parallel.release_proc()
+            workers[0].terminate()
+            workers[0].join()
+            if return_value:
+                return options[best], error[best]
+            return options[best]
+        for i in inorder:
+            if iteration[i] < nfolds and i not in executing:
+                executing.add(i)
+                inqueue.put((i, iteration[i]))
+                break
 
 
 class gridsearch(object):
@@ -166,7 +221,7 @@ class gridsearch(object):
 
     def train(self, features, labels, normalisedlabels=False, **kwargs):
         best,value = gridminimise(self.base, features, labels, self.params, self.measure, self.nfolds, return_value=True, train_kwargs=kwargs)
-        _set_assignment(self.base, best)
+        _set_options(self.base, best)
         model = self.base.train(features, labels, normalisedlabels=normalisedlabels, **kwargs)
         if self.annotate:
             model.arguments = best
