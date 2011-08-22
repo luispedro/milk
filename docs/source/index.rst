@@ -11,9 +11,10 @@ Contents:
    adaboost
    clustering
    randomnumbers
-   benchmarks
    examples
+   parallel
    extensions
+   benchmarks
    milksets
    api
 
