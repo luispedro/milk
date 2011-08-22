@@ -50,12 +50,16 @@ class Grid1(multiprocessing.Process):
     def run(self):
         while True:
             index,fold = self.inq.get()
-            _set_options(self.learner, self.options[index])
-            train, test = self.folds[fold]
-            model = self.learner.train(self.features[train], self.labels[train], normalisedlabels=True, **self.train_kwargs)
-            preds = [model.apply(f) for f in self.features[test]]
-            error = self.measure(self.labels[test], preds)
-            self.outq.put( (index, error) )
+            try:
+                _set_options(self.learner, self.options[index])
+                train, test = self.folds[fold]
+                model = self.learner.train(self.features[train], self.labels[train], normalisedlabels=True, **self.train_kwargs)
+                preds = [model.apply(f) for f in self.features[test]]
+                error = self.measure(self.labels[test], preds)
+                self.outq.put( (index, error) )
+            except Exception, e:
+                self.outq.put( ('error', e) )
+                return
 
 
 def gridminimise(learner, features, labels, params, measure=None, nfolds=10, return_value=False, train_kwargs=None, nprocs=None):
@@ -147,19 +151,24 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
         # There is always at least one worker process
         if not avail:
             break
+    def shutdown():
+        for w in workers[1:]:
+            w.terminate()
+            w.join()
+            parallel.release_proc()
+        workers[0].terminate()
+        workers[0].join()
     while True:
         p,err = outqueue.get()
+        if p == 'error':
+            shutdown()
+            raise err
         executing.remove(p)
         iteration[p] += 1
         error[p] += err
         best = error.argmin()
         if iteration[best] == nfolds:
-            for w in workers[1:]:
-                w.terminate()
-                w.join()
-                parallel.release_proc()
-            workers[0].terminate()
-            workers[0].join()
+            shutdown()
             if return_value:
                 return options[best], error[best]
             return options[best]
