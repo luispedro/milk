@@ -150,6 +150,8 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
         nprocs = len(options)
     else:
         nprocs = min(nprocs, len(options))
+    assert nprocs > 0, 'milk.supervised.gridminimise: nprocs <= 0!!'
+
     for i in xrange(nprocs):
         w = Grid1(learner, features, labels, measure, train_kwargs, options, folds, inqueue, outqueue)
         w.start()
@@ -162,33 +164,31 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
         # There is always at least one worker process
         if not avail:
             break
-    def shutdown():
+    try:
+        while True:
+            p,err = outqueue.get()
+            if p == 'error':
+                raise RuntimeError(err)
+            executing.remove(p)
+            iteration[p] += 1
+            error[p] += err
+            best = error.argmin()
+            if iteration[best] == nfolds:
+                if return_value:
+                    return options[best], error[best]
+                return options[best]
+            for next in error.argsort():
+                if iteration[next] < nfolds and next not in executing:
+                    executing.add(next)
+                    inqueue.put((next, iteration[next]))
+                    break
+    finally:
         for w in workers[1:]:
             w.terminate()
             w.join()
             parallel.release_proc()
         workers[0].terminate()
         workers[0].join()
-    while True:
-        p,err = outqueue.get()
-        if p == 'error':
-            shutdown()
-            raise RuntimeError(err)
-        executing.remove(p)
-        iteration[p] += 1
-        error[p] += err
-        best = error.argmin()
-        if iteration[best] == nfolds:
-            shutdown()
-            if return_value:
-                return options[best], error[best]
-            return options[best]
-        inorder = error.argsort()
-        for i in inorder:
-            if iteration[i] < nfolds and i not in executing:
-                executing.add(i)
-                inqueue.put((i, iteration[i]))
-                break
 
 
 class gridsearch(object):
