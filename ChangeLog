@@ -1,4 +1,6 @@
 Version 0.3.10+
+	* Use multiprocessing to take advantage of multi core machines (off by
+	default).
 	* Add perceptron learner
 	* Set random seed in random forest learner
 	* Add warning to milk/__init__.py if import fails
