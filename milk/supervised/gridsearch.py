@@ -58,7 +58,18 @@ class Grid1(multiprocessing.Process):
                 error = self.measure(self.labels[test], preds)
                 self.outq.put( (index, error) )
             except Exception, e:
-                self.outq.put( ('error', e) )
+                import traceback
+                errstr = r'''\
+Error in milk.gridminimise internal
+
+Exception was: %s
+
+Original Traceback:
+%s
+
+(Since this was run on a different process, this is not a real stack trace).
+''' % (e, traceback.format_exc())
+                self.outq.put( ('error', errstr) )
                 return
 
 
@@ -162,7 +173,7 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
         p,err = outqueue.get()
         if p == 'error':
             shutdown()
-            raise err
+            raise RuntimeError(err)
         executing.remove(p)
         iteration[p] += 1
         error[p] += err

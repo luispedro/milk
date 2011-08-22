@@ -1,6 +1,7 @@
 import milk.supervised.gridsearch
 import milk.supervised.svm
 from milk.supervised.gridsearch import gridminimise, _allassignments, gridsearch
+from nose.tools import raises
 import numpy as np
 
 
@@ -42,6 +43,24 @@ test_gridsearch.slow = True
 def test_all_assignements():
     assert len(list(_allassignments({'C': [0,1], 'kernel' : ['a','b','c']}))) == 2 * 3
 
+class error_learner(object):
+    def train(self, features, labels, **kwargs):
+        raise ValueError('oops')
+    
+    def set_option(self, k, v):
+        pass
+
+@raises(Exception)
+def test_with_error():
+    from milksets.wine import load
+    features, labels = load()
+    learner = error_learner()
+    G = milk.supervised.gridsearch(
+        error_learner(),
+        params = { 'error' : range(3), 'error2' : range(5) }
+        )
+    G.train(features,labels)
+    
 
 class simple_model:
     def __init__(self, c):
