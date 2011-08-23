@@ -11,6 +11,7 @@ Version 0.3.10+
 	* Add ``multi_strategy`` argument to ``defaultlearner()``
 	* Make the dot kernel in svm much, much, faster
 	* Make sigmoidal fitting for SVM probability estimates faster
+	* Fix bug in randomforest (patch by Wei on milk-users mailing list)
 
 Version 0.3.10 2011-05-10 by luispedro
 	* Add ext.jugparallel

@@ -88,7 +88,7 @@ class rf_learner(object):
     def train(self, features, labels, normalisedlabels=False, names=None, **kwargs):
         N,M = features.shape
         m = int(self.frac*M)
-        n = int(self.frac*M)
+        n = int(self.frac*N)
         R = get_nprandom(kwargs.get('R', self.R))
         tree = milk.supervised.tree.tree_learner()
         forest = []
