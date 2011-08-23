@@ -48,18 +48,20 @@ class Grid1(multiprocessing.Process):
         super(Grid1, self).__init__()
 
     def run(self):
-        while True:
-            index,fold = self.inq.get()
-            try:
+        try:
+            while True:
+                index,fold = self.inq.get()
+                if index == 'shutdown':
+                    return
                 _set_options(self.learner, self.options[index])
                 train, test = self.folds[fold]
                 model = self.learner.train(self.features[train], self.labels[train], normalisedlabels=True, **self.train_kwargs)
                 preds = [model.apply(f) for f in self.features[test]]
                 error = self.measure(self.labels[test], preds)
                 self.outq.put( (index, error) )
-            except Exception, e:
-                import traceback
-                errstr = r'''\
+        except Exception, e:
+            import traceback
+            errstr = r'''\
 Error in milk.gridminimise internal
 
 Exception was: %s
@@ -69,8 +71,7 @@ Original Traceback:
 
 (Since this was run on a different process, this is not a real stack trace).
 ''' % (e, traceback.format_exc())
-                self.outq.put( ('error', errstr) )
-                return
+            self.outq.put( ('error', errstr) )
 
 
 def gridminimise(learner, features, labels, params, measure=None, nfolds=10, return_value=False, train_kwargs=None, nprocs=None):
@@ -183,12 +184,12 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
                     inqueue.put((next, iteration[next]))
                     break
     finally:
-        for w in workers[1:]:
-            w.terminate()
+        for w in workers:
+            inqueue.put( ('shutdown', None) )
+        for w in workers:
             w.join()
+        for i in xrange(len(workers)-1):
             parallel.release_proc()
-        workers[0].terminate()
-        workers[0].join()
 
 
 class gridsearch(object):
