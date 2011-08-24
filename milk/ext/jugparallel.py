@@ -24,7 +24,7 @@ try:
     from jug.utils import identity
     from jug.mapreduce import mapreduce
 except ImportError:
-    raise ImportError('milk.ext.jugparallel requires jug (http://luispedro.org/software/jug')
+    raise ImportError('milk.ext.jugparallel requires jug (http://luispedro.org/software/jug)')
 
 class _nfold_one(object):
     def __init__(self, features, labels, kwargs):
@@ -40,7 +40,7 @@ class _nfold_one(object):
                     **value(self.kwargs))
 
     def __jug_hash__(self):
-        # jug.hash is only available in jug 0.9
+        # jug.hash is only available in jug 0.8
         # This is also the first version that would call __jug_hash__
         # So, we import it here only.
         from jug import hash
@@ -125,7 +125,9 @@ def kmeans_select_best(features, ks, repeats=1, method='AIC', R=None, **kwargs):
     the best one according to ``method.``
 
     Note that, unlike a raw ``kmeans`` call, this is *always deterministic*
-    even if ``R=None``.
+    even if ``R=None`` (which is interpreted as being equivalent to setting it
+    to a fixed value). Otherwise, the jug paradigm would be broken as different
+    runs would give different results.
 
     Parameters
     ----------
@@ -138,7 +140,7 @@ def kmeans_select_best(features, ks, repeats=1, method='AIC', R=None, **kwargs):
     method : str, optional
         Which method to use. Must be one of 'AIC' (default) or 'BIC'.
     R : random number source, optional
-        If you do not pass a value, the result will be deterministic
+        Even you do not pass a value, the result will be deterministic.
     kwargs : other options
         These are passed transparently to ``kmeans``
 
