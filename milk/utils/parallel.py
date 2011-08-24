@@ -10,6 +10,27 @@ max_procs = 1
 _used_procs = multiprocessing.Value('i', 1)
 _plock = multiprocessing.Lock()
 
+def set_max_processors(value=None):
+    '''
+    set_max_processors(value=None)
+
+    Set the maximum number of processors to ``value`` (or to the number of
+    physical CPUs if ``None``).
+
+    Note that this is valid for the current process and its children, but not
+    the parent.
+
+    Parameters
+    ----------
+    value : int, optional
+        Number of processors to use. Defaults to number of CPUs (as returned by
+        ``multiprocessing.cpu_count()``).
+    '''
+    global max_procs
+    if value is None:
+        value = multiprocessing.cpu_count()
+    max_procs = value
+
 def get_proc():
     '''
     available = get_proc()
