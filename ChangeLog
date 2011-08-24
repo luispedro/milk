@@ -1,4 +1,4 @@
-Version 0.3.10+
+Version 0.4.0 2011-08-24 by luispedro
 	* Use multiprocessing to take advantage of multi core machines (off by
 	default).
 	* Add perceptron learner

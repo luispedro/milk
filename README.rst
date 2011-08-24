@@ -92,6 +92,23 @@ Recent History
 
 The ChangeLog file contains a more complete history.
 
+
+New in 0.4.0
+~~~~~~~~~~~~
+- Use multiprocessing to take advantage of multi core machines (off by
+  default).
+- Add perceptron learner
+- Set random seed in random forest learner
+- Add warning to milk/__init__.py if import fails
+- Add return value to ``gridminimise``
+- Set random seed in ``precluster_learner``
+- Implemented Error-Correcting Output Codes for reduction of multi-class
+  to binary (including probability estimation)
+- Add ``multi_strategy`` argument to ``defaultlearner()``
+- Make the dot kernel in svm much, much, faster
+- Make sigmoidal fitting for SVM probability estimates faster
+- Fix bug in randomforest (patch by Wei on milk-users mailing list)
+
 New in 0.3.10
 ~~~~~~~~~~~~~
 - Add ext.jugparallel for integration with `jug <http://luispedro.org/software/jug>`_
@@ -133,9 +150,4 @@ New in 0.3.6
 - weights option to some learners
 - stump learner
 - Adaboost (result of above changes)
-
-New in 0.3.5
-~~~~~~~~~~~~
-- Fixes for 64 bit machines
-- Functions in measures.py all have same interface now.
 

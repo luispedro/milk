@@ -71,6 +71,7 @@ As you can see, you do not have to do anything except call
 without an argument sets the number of processes to the number of CPUs).
 
 ::
+
     import milk
 
     # Import the parallel module

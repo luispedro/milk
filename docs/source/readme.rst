@@ -22,6 +22,22 @@ There is a strong emphasis on speed and low memory usage. Therefore, most of
 the performance sensitive code is in C++. This is behind Python-based
 interfaces for convenience.
 
+New in 0.4.0
+------------
+- Use multiprocessing to take advantage of multi core machines (off by
+  default).
+- Add perceptron learner
+- Set random seed in random forest learner
+- Add warning to milk/__init__.py if import fails
+- Add return value to ``gridminimise``
+- Set random seed in ``precluster_learner``
+- Implemented Error-Correcting Output Codes for reduction of multi-class
+  to binary (including probability estimation)
+- Add ``multi_strategy`` argument to ``defaultlearner()``
+- Make the dot kernel in svm much, much, faster
+- Make sigmoidal fitting for SVM probability estimates faster
+- Fix bug in randomforest (patch by Wei on milk-users mailing list)
+
 New in 0.3.10
 -------------
 - Add ext.jugparallel for integration with `jug <http://luispedro.org/software/jug>`_
@@ -55,19 +71,6 @@ New in 0.3.7
 - Source demos included (in source and documentation)
 - Add cluster agreement metrics
 - Fix nfoldcrossvalidation bug when using origins
-
-New in 0.3.6
-------------
-- Unsupervised (1-class) kernel density modeling
-- Fix for when SDA returns empty
-- weights option to some learners
-- stump learner
-- Adaboost (result of above changes)
-
-New in 0.3.5
-------------
-- Fixes for 64 bit machines
-- Functions in measures.py all have same interface now.
 
 
 Features
