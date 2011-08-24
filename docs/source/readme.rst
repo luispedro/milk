@@ -34,6 +34,7 @@ New in 0.3.10
 - Added defaultlearner as a better name than defaultclassifier
 - Add ``measures.curves.precision_recall``
 - Add ``unsupervised.parzen.parzen``
+
 New in 0.3.9
 ------------
 - Add ``folds`` argument to ``nfoldcrossvalidation``

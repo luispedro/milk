@@ -64,7 +64,7 @@ In general, be a true Python library (and not just a wrapper around something
 else). For example:
 
 - If an SVM classifier takes a kernel as a parameter, then it should accept any
-2-argument Python function (in fact, anything that's callable in Python).
+  2-argument Python function (in fact, anything that's callable in Python).
 - Objects (like classifiers) should be pickle-able.
 
 You Don't Pay For What You Don't Use
