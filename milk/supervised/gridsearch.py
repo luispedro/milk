@@ -52,6 +52,8 @@ class Grid1(multiprocessing.Process):
             while True:
                 index,fold = self.inq.get()
                 if index == 'shutdown':
+                    self.outq.close()
+                    self.outq.join_thread()
                     return
                 _set_options(self.learner, self.options[index])
                 train, test = self.folds[fold]
@@ -188,6 +190,8 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
     finally:
         for w in workers:
             inqueue.put( ('shutdown', None) )
+        inqueue.close()
+        inqueue.join_thread()
         for w in workers:
             w.join()
         for i in xrange(len(workers)-1):
