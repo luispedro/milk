@@ -93,6 +93,10 @@ Recent History
 The ChangeLog file contains a more complete history.
 
 
+New in 0.4.1
+~~~~~~~~~~~~
+- Fix important bug in multi-process gridsearch
+
 New in 0.4.0
 ~~~~~~~~~~~~
 - Use multiprocessing to take advantage of multi core machines (off by

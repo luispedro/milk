@@ -22,6 +22,10 @@ There is a strong emphasis on speed and low memory usage. Therefore, most of
 the performance sensitive code is in C++. This is behind Python-based
 interfaces for convenience.
 
+New in 0.4.1
+------------
+- Fix important bug in multi-process gridsearch
+
 New in 0.4.0
 ------------
 - Use multiprocessing to take advantage of multi core machines (off by
