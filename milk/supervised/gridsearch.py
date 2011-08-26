@@ -154,11 +154,13 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
     assert nprocs > 0, 'milk.supervised.gridminimise: nprocs <= 0!!'
 
     for i in xrange(nprocs):
+        inqueue.put((i,0))
+        executing.add(i)
+
         w = Grid1(learner, features, labels, measure, train_kwargs, options, folds, inqueue, outqueue)
         w.start()
         workers.append(w)
-        outqueue.put((i,0))
-        executing.add(i)
+
         avail = parallel.get_proc()
         # We get one extra this way
         # This is because the main process won't be doing any work

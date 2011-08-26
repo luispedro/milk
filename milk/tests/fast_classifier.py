@@ -3,6 +3,9 @@ class fast_classifier(object):
     def __init__(self):
         pass
 
+    def set_option(self, _k, _v):
+        pass
+
     def train(self, features, labels, **kwargs):
         examples = {}
         for f,lab in zip(features, labels):

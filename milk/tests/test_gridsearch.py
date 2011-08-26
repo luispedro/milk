@@ -1,6 +1,7 @@
 import milk.supervised.gridsearch
 import milk.supervised.svm
 from milk.supervised.gridsearch import gridminimise, _allassignments, gridsearch
+from milk.tests.fast_classifier import fast_classifier
 from nose.tools import raises
 import numpy as np
 
@@ -101,3 +102,11 @@ def test_gridminimise():
     cval, = x
     assert cval == ('C', .5)
 
+def test_gridminimise_return():
+    from milksets.wine import load
+    features,labels = load()
+    learner = fast_classifier()
+    gridminimise(learner, features, labels, { 'ignore' : [0] })
+    _,error = gridminimise(learner, features, labels, { 'ignore' : [0] }, return_value=True, nfolds=5)
+    cmat,_ = milk.nfoldcrossvalidation(features, labels, learner=learner, nfolds=5)
+    assert error == cmat.sum()-cmat.trace()
