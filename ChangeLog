@@ -1,6 +1,8 @@
 Version 0.4.1+
 	* Add multi_label argument to normaliselabels
 	* Add multi_label argument to nfoldcrossvalidation.foldgenerator
+	* Do not fork a process in gridminimise if nproces == 1 (makes for easier
+	debugging, at the cost of slightly more complex code).
 
 Version 0.4.1 2011-08-25 by luispedro
 	* Fix important bug in multi-process gridsearch

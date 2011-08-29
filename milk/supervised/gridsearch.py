@@ -47,6 +47,14 @@ class Grid1(multiprocessing.Process):
         self.outq = outq
         super(Grid1, self).__init__()
 
+    def execute_one(self, index, fold):
+        _set_options(self.learner, self.options[index])
+        train, test = self.folds[fold]
+        model = self.learner.train(self.features[train], self.labels[train], normalisedlabels=True, **self.train_kwargs)
+        preds = [model.apply(f) for f in self.features[test]]
+        error = self.measure(self.labels[test], preds)
+        return error
+
     def run(self):
         try:
             while True:
@@ -55,11 +63,7 @@ class Grid1(multiprocessing.Process):
                     self.outq.close()
                     self.outq.join_thread()
                     return
-                _set_options(self.learner, self.options[index])
-                train, test = self.folds[fold]
-                model = self.learner.train(self.features[train], self.labels[train], normalisedlabels=True, **self.train_kwargs)
-                preds = [model.apply(f) for f in self.features[test]]
-                error = self.measure(self.labels[test], preds)
+                error = self.execute_one(index, fold)
                 self.outq.put( (index, error) )
         except Exception, e:
             import traceback
@@ -145,33 +149,47 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
     # depending on the distribution of class sizes:
     nfolds = len(folds)
     assert nfolds
-    inqueue = multiprocessing.Queue()
-    outqueue = multiprocessing.Queue()
-    executing = set()
-    workers = []
     if nprocs is None:
         nprocs = len(options)
     else:
         nprocs = min(nprocs, len(options))
     assert nprocs > 0, 'milk.supervised.gridminimise: nprocs <= 0!!'
 
-    for i in xrange(nprocs):
-        inqueue.put((i,0))
-        executing.add(i)
+    executing = set()
+    workers = []
+    if nprocs > 1:
+        inqueue = multiprocessing.Queue()
+        outqueue = multiprocessing.Queue()
+        for i in xrange(nprocs):
+            inqueue.put((i,0))
+            executing.add(i)
 
-        w = Grid1(learner, features, labels, measure, train_kwargs, options, folds, inqueue, outqueue)
-        w.start()
-        workers.append(w)
+            w = Grid1(learner, features, labels, measure, train_kwargs, options, folds, inqueue, outqueue)
+            w.start()
+            workers.append(w)
 
-        avail = parallel.get_proc()
-        # We get one extra this way
-        # This is because the main process won't be doing any work
-        # There is always at least one worker process
-        if not avail:
-            break
+            avail = parallel.get_proc()
+            # We get one extra this way
+            # This is because the main process won't be doing any work
+            # There is always at least one worker process
+            if not avail:
+                break
+        getnext = outqueue.get
+        queuejob = lambda next, fold: inqueue.put( (next, fold) )
+    else:
+        worker = Grid1(learner, features, labels, measure, train_kwargs, options, folds, None, None)
+        queue = []
+        def queuejob(index,fold):
+            queue.append((index,fold))
+        def getnext():
+            index,fold = queue.pop()
+            return index, worker.execute_one(index,fold)
+        queuejob(0,0)
+        executing.add(0)
+
     try:
         while True:
-            p,err = outqueue.get()
+            p,err = getnext()
             if p == 'error':
                 raise RuntimeError(err)
             executing.remove(p)
@@ -185,17 +203,18 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
             for next in error.argsort():
                 if iteration[next] < nfolds and next not in executing:
                     executing.add(next)
-                    inqueue.put((next, iteration[next]))
+                    queuejob(next, iteration[next])
                     break
     finally:
-        for w in workers:
-            inqueue.put( ('shutdown', None) )
-        inqueue.close()
-        inqueue.join_thread()
-        for w in workers:
-            w.join()
-        for i in xrange(len(workers)-1):
-            parallel.release_proc()
+        if len(workers):
+            for w in workers:
+                inqueue.put( ('shutdown', None) )
+            inqueue.close()
+            inqueue.join_thread()
+            for w in workers:
+                w.join()
+            for i in xrange(len(workers)-1):
+                parallel.release_proc()
 
 
 class gridsearch(object):
