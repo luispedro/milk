@@ -1,3 +1,6 @@
+Version 0.4.1+
+	* Add multi_label argument to normaliselabels
+
 Version 0.4.1 2011-08-25 by luispedro
 	* Fix important bug in multi-process gridsearch
 

@@ -5,9 +5,7 @@
 # License: MIT. See COPYING.MIT file in the milk distribution
 
 from __future__ import division
-from collections import defaultdict
 import numpy as np
-from .classifier import normaliselabels
 
 __all__ = [
     'zscore',
@@ -82,12 +80,13 @@ def sample_to_2min(labels):
 
     Parameters
     ----------
-        * labels: sequence of labels
+    labels : sequence of labels
 
-    Output
-    ------
-        * selected: a Boolean numpy.ndarray
+    Returns
+    -------
+    selected : a Boolean numpy.ndarray
     '''
+    from collections import defaultdict
     counts = defaultdict(int)
     for n in labels:
         counts[n] += 1
@@ -124,4 +123,42 @@ class chkfinite(object):
 
     def __repr__(self):
         return 'chkfinite()'
+
+def normaliselabels(labels, multi_label=False):
+    '''
+    normalised, names = normaliselabels(labels, multi_label=False)
+
+    If not ``multi_label`` (the default), normalises the labels to be integers
+    from 0 through N-1. Otherwise, assume that each label is actually a
+    sequence of labels.
+
+    ``normalised`` is a np.array, while ``names`` is a list mapping the indices to
+    the old names.
+
+    Parameters
+    ----------
+    labels : any iterable of labels
+    multi_label : bool, optional
+        Whether labels are actually composed of multiple labels
+
+    Returns
+    ------
+    normalised : a numpy ndarray
+        If not ``multi_label``, this is an array of integers 0 .. N-1;
+        otherwise, it is a boolean array of size len(labels) x N
+    names : list of label names
+    '''
+    if multi_label:
+        names = set()
+        for ell in labels: names.update(ell)
+        names = list(sorted(names))
+        normalised = np.zeros( (len(labels), len(names)), bool)
+        for i,ls in enumerate(labels):
+            for ell in map(names.index, ls):
+                normalised[i,ell] = True
+        return normalised, names
+    else:
+        names = sorted(set(labels))
+        normalised = map(names.index, labels)
+        return np.array(normalised), names
 
