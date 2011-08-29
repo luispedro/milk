@@ -130,4 +130,21 @@ def test_predictions():
     assert np.all((predictions == 0)|(predictions == 1))
     assert cmat.trace() == np.sum(predictions == labels)
 
+def test_multi():
+    np.random.seed(30)
+    r = np.random.random
+    for _ in xrange(10):
+        labels = []
+        p = np.array([.24,.5,.1,.44])
+        for i in xrange(100):
+            cur = [j for j in xrange(4) if r() < p[j]]
+            if not cur: cur = [0]
+            labels.append(cur)
 
+
+        seen = np.zeros(100, int)
+        for Tr,Te in foldgenerator(labels, 5, multi_label=True):
+            assert np.sum(Tr & Te) == 0
+            seen[Te] += 1
+        assert np.sum(seen) == 100
+        assert np.ptp(seen) == 0
