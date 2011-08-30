@@ -139,6 +139,10 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
         measure = zero_one_loss
     if train_kwargs is None:
         train_kwargs = {}
+    try:
+        features = np.asanyarray(features)
+    except:
+        features = np.array(features, dtype=object)
 
     labels,_ = normaliselabels(labels)
     options = list(_allassignments(params))
@@ -154,6 +158,7 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
     else:
         nprocs = min(nprocs, len(options))
     assert nprocs > 0, 'milk.supervised.gridminimise: nprocs <= 0!!'
+    nprocs = parallel.get_procs(nprocs, use_current=True)
 
     executing = set()
     workers = []
@@ -167,13 +172,6 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
             w = Grid1(learner, features, labels, measure, train_kwargs, options, folds, inqueue, outqueue)
             w.start()
             workers.append(w)
-
-            avail = parallel.get_proc()
-            # We get one extra this way
-            # This is because the main process won't be doing any work
-            # There is always at least one worker process
-            if not avail:
-                break
         getnext = outqueue.get
         queuejob = lambda next, fold: inqueue.put( (next, fold) )
     else:
@@ -213,8 +211,7 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
             inqueue.join_thread()
             for w in workers:
                 w.join()
-            for i in xrange(len(workers)-1):
-                parallel.release_proc()
+        parallel.release_procs(len(workers), count_current=True)
 
 
 class gridsearch(object):
