@@ -1,5 +1,5 @@
 import numpy as np
-from milk.supervised.precluster_learner import precluster_learner
+from milk.supervised.precluster import precluster_learner
 from milk.tests.fast_classifier import fast_classifier
 
 def test_precluster():
