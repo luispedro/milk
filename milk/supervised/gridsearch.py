@@ -82,8 +82,8 @@ Original Traceback:
 
 def gridminimise(learner, features, labels, params, measure=None, nfolds=10, return_value=False, train_kwargs=None, nprocs=None):
     '''
-    best = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=False)
-    best, value = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=True)
+    best = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=False, nprocs=None)
+    best, value = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=True, nprocs=None)
 
     Grid search for the settings of parameters that maximises a given measure
 
