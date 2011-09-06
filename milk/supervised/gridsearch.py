@@ -211,7 +211,7 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
             inqueue.join_thread()
             for w in workers:
                 w.join()
-        parallel.release_procs(len(workers), count_current=True)
+        parallel.release_procs(nprocs, count_current=True)
 
 
 class gridsearch(object):
