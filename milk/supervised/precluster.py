@@ -145,8 +145,11 @@ class select_precluster(object):
 
         base = codebook_learner(self.base)
         base.normalise = self.normalise
-        (best,) = gridminimise(base, features, labels, { 'codebook' : codebooks }, nfolds=self.nfolds)
-        _,codebook = best
+        if len(codebooks) > 1:
+            (best,) = gridminimise(base, features, labels, { 'codebook' : codebooks }, nfolds=self.nfolds)
+            _,codebook = best
+        else:
+            (codebook,) = codebooks
         base.codebook = codebook
         return base.train(features, labels)
 

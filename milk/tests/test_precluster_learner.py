@@ -43,3 +43,12 @@ def test_codebook_learner():
     assert model.apply(([c0() for i in xrange(35)],[]))
     assert not model.apply(([c1() for i in xrange(35)],[]))
 
+def test_codebook_learner_case1():
+    learner = select_precluster([2], base=fast_classifier())
+    learner.rmax = 1
+    features, labels = gen_data(23, 1)
+    model = learner.train(features,labels)
+
+    assert model.apply(([c0() for i in xrange(35)],[]))
+    assert not model.apply(([c1() for i in xrange(35)],[]))
+
