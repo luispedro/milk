@@ -85,12 +85,12 @@ class rf_learner(object):
         self.frac = frac
         self.R = get_nprandom(R)
 
-    def train(self, features, labels, normalisedlabels=False, names=None, **kwargs):
+    def train(self, features, labels, normalisedlabels=False, names=None, return_label=True, **kwargs):
         N,M = features.shape
         m = int(self.frac*M)
         n = int(self.frac*N)
         R = get_nprandom(kwargs.get('R', self.R))
-        tree = milk.supervised.tree.tree_learner()
+        tree = milk.supervised.tree.tree_learner(return_label)
         forest = []
         if not normalisedlabels:
             labels,names = normaliselabels(labels)
