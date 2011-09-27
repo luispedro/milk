@@ -65,7 +65,7 @@ class rf_model(supervised_model):
         votes = sum(t.apply(features) for t in self.forest)
         if return_label:
             return (votes > (rf//2))
-        return votes
+        return votes / rf
 
 
 class rf_learner(object):
