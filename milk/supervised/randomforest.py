@@ -55,14 +55,17 @@ def _sample(features, labels, n, R):
     return np.array(sfeatures), np.array(slabels)
 
 class rf_model(supervised_model):
-    def __init__(self, forest, names):
+    def __init__(self, forest, names, return_label = True):
         self.forest = forest
         self.names = names
+        self.return_label = return_label
 
     def apply(self, features):
         rf = len(self.forest)
         votes = sum(t.apply(features) for t in self.forest)
-        return (votes > (rf//2))
+        if return_label:
+            return (votes > (rf//2))
+        return votes
 
 
 class rf_learner(object):
@@ -100,6 +103,6 @@ class rf_learner(object):
             forest.append(
                     tree.train(*_sample(features, labels, n, R),
                                **{'normalisedlabels' : True})) # This syntax is necessary for Python 2.5
-        return rf_model(forest, names)
+        return rf_model(forest, names, return_label)
 
 
