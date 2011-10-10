@@ -47,7 +47,7 @@ def slow_information_gain(labels0, labels1):
     counts = np.empty(nlabels, np.double)
     for arg in (labels0, labels1):
         H -= len(arg)/float(N) * set_entropy(arg, counts)
-    return H        
+    return H
 
 def test_information_gain():
     np.random.seed(22)
@@ -74,4 +74,4 @@ def test_z1_loss():
     W1 = np.ones(10)
     assert z1_loss(L0, L1) == z1_loss(L0, L1, W0, W1)
     assert z1_loss(L0, L1) != z1_loss(L0, L1, W0, .8*W1)
-
+    assert z1_loss(L0, L1) > 0

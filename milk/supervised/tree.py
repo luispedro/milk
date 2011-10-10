@@ -95,8 +95,8 @@ def z1_loss(labels0, labels1, weights0=None, weights1=None):
     def _acc(labels, weights):
         c = (labels.mean() > .5)
         if weights is not None:
-            return -np.dot((labels != c), weights)
-        return -np.sum(labels != c)
+            return np.dot((labels != c), weights)
+        return np.sum(labels != c)
     return _acc(labels0, weights0) + _acc(labels1, weights1)
 
 
