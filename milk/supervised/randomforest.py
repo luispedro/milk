@@ -55,14 +55,17 @@ def _sample(features, labels, n, R):
     return np.array(sfeatures), np.array(slabels)
 
 class rf_model(supervised_model):
-    def __init__(self, forest, names):
+    def __init__(self, forest, names, return_label = True):
         self.forest = forest
         self.names = names
+        self.return_label = return_label
 
     def apply(self, features):
         rf = len(self.forest)
         votes = sum(t.apply(features) for t in self.forest)
-        return (votes > (rf//2))
+        if return_label:
+            return (votes > (rf//2))
+        return votes / rf
 
 
 class rf_learner(object):
@@ -85,12 +88,12 @@ class rf_learner(object):
         self.frac = frac
         self.R = get_nprandom(R)
 
-    def train(self, features, labels, normalisedlabels=False, names=None, **kwargs):
+    def train(self, features, labels, normalisedlabels=False, names=None, return_label=True, **kwargs):
         N,M = features.shape
         m = int(self.frac*M)
         n = int(self.frac*N)
         R = get_nprandom(kwargs.get('R', self.R))
-        tree = milk.supervised.tree.tree_learner()
+        tree = milk.supervised.tree.tree_learner(return_label)
         forest = []
         if not normalisedlabels:
             labels,names = normaliselabels(labels)
@@ -100,6 +103,6 @@ class rf_learner(object):
             forest.append(
                     tree.train(*_sample(features, labels, n, R),
                                **{'normalisedlabels' : True})) # This syntax is necessary for Python 2.5
-        return rf_model(forest, names)
+        return rf_model(forest, names, return_label)
 
 
