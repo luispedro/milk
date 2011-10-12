@@ -93,7 +93,7 @@ class rf_learner(object):
         m = int(self.frac*M)
         n = int(self.frac*N)
         R = get_nprandom(kwargs.get('R', self.R))
-        tree = milk.supervised.tree.tree_learner(return_label)
+        tree = milk.supervised.tree.tree_learner(return_label=return_label)
         forest = []
         if not normalisedlabels:
             labels,names = normaliselabels(labels)
