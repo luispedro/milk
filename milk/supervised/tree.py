@@ -219,7 +219,10 @@ class stump_model(supervised_model):
         self.cutoff = cutoff
 
     def apply(self, f):
-        return self.names[f[self.idx] > self.cutoff]
+        value = f[self.idx] > self.cutoff
+        if self.names is not None:
+            return self.names[value]
+        return value
 
     def __repr__(self):
         return '<stump(%s, %s)>' % (self.idx, self.cutoff)
@@ -231,5 +234,8 @@ class stump_learner(object):
     def train(self, features, labels, normalisedlabels=False, weights=None, **kwargs):
         if not normalisedlabels:
             labels,names = normaliselabels(labels)
+        else:
+            names = kwargs.get('names')
         idx,cutoff = _split(features, labels, weights, z1_loss, subsample=None, R=None)
         return stump_model(idx, cutoff, names)
+

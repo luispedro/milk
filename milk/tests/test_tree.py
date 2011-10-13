@@ -1,7 +1,7 @@
 import milk.supervised.tree
 import milk.supervised._tree
 from milk.supervised._tree import set_entropy
-from milk.supervised.tree import information_gain
+from milk.supervised.tree import information_gain, stump_learner
 import numpy as np
 
 def test_tree():
@@ -75,3 +75,12 @@ def test_z1_loss():
     assert z1_loss(L0, L1) == z1_loss(L0, L1, W0, W1)
     assert z1_loss(L0, L1) != z1_loss(L0, L1, W0, .8*W1)
     assert z1_loss(L0, L1) > 0
+
+
+def test_stump_learner():
+    learner = stump_learner()
+    np.random.seed(111)
+    features = np.random.random_sample((40,2))
+    features[:20,0] += .5
+    labels = np.repeat((0,1),20)
+    model = learner.train(features, labels, normalisedlabels=True)
