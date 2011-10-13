@@ -80,7 +80,12 @@ def test_z1_loss():
 def test_stump_learner():
     learner = stump_learner()
     np.random.seed(111)
-    features = np.random.random_sample((40,2))
-    features[:20,0] += .5
-    labels = np.repeat((0,1),20)
-    model = learner.train(features, labels, normalisedlabels=True)
+    for i in xrange(8):
+        features = np.random.random_sample((40,2))
+        features[:20,0] += .5
+        labels = np.repeat((0,1),20)
+        model = learner.train(features, labels, normalisedlabels=True)
+        assert not model.apply([0.01,.5])
+        assert model.apply(np.random.random_sample(2)+.8)
+        assert model.idx == 0
+

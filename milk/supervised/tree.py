@@ -48,7 +48,7 @@ def _split(features, labels, weights, criterion, subsample, R):
         features = features[:, samples]
         f = subsample
     best = None
-    best_val = -1.
+    best_val = float('-Inf')
     for i in xrange(f):
         domain_i = sorted(set(features[:,i]))
         for d in domain_i[1:]:
@@ -90,7 +90,7 @@ def z1_loss(labels0, labels1, weights0=None, weights1=None):
     z = z1_loss(labels0, labels1)
     z = z1_loss(labels0, labels1, weights0, weights1)
 
-    zero-one loss split for tree learning
+    zero-one loss
     '''
     def _acc(labels, weights):
         c = (labels.mean() > .5)
@@ -98,6 +98,15 @@ def z1_loss(labels0, labels1, weights0=None, weights1=None):
             return np.dot((labels != c), weights)
         return np.sum(labels != c)
     return _acc(labels0, weights0) + _acc(labels1, weights1)
+
+def neg_z1_loss(labels0, labels1, weights0=None, weights1=None):
+    '''
+    z = neg_z1_loss(labels0, labels1)
+    z = neg_z1_loss(labels0, labels1, weights0, weights1)
+
+    zero-one loss, with the sign reversed so it can be *maximised*.
+    '''
+    return -z1_loss(labels0,labels1,weights0,weights1)
 
 
 
@@ -236,6 +245,6 @@ class stump_learner(object):
             labels,names = normaliselabels(labels)
         else:
             names = kwargs.get('names')
-        idx,cutoff = _split(features, labels, weights, z1_loss, subsample=None, R=None)
+        idx,cutoff = _split(features, labels, weights, neg_z1_loss, subsample=None, R=None)
         return stump_model(idx, cutoff, names)
 
