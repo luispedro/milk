@@ -63,7 +63,7 @@ def zero_one_loss(real, predicted, normalisedlabels=False, names=None):
         the number of instances where `real` differs from `predicted`
     '''
     return np.sum(np.asanyarray(real) != np.asanyarray(predicted))
-    
+
 
 def waccuracy(real, predicted=None, normalisedlabels=False, names=None):
     '''
