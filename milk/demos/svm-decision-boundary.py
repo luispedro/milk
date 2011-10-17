@@ -20,6 +20,7 @@ y = -w[0]/w[1]*x + b/w[1]
 plot(features[labels == 1][:,0], features[labels == 1][:,1], 'bx')
 plot(features[labels == 0][:,0], features[labels == 0][:,1], 'ro')
 plot(x,y)
+savefig('svm-demo-points.pdf')
 
 clf()
 
@@ -39,6 +40,6 @@ sfeatures += 50
 plot(sfeatures[labels == 0][:,0], sfeatures[labels == 0][:,1], 'bo')
 plot(sfeatures[labels == 1][:,0], sfeatures[labels == 1][:,1], 'ro')
 imshow(values.T)
-savefig('decision-boundary.png')
+savefig('svm-demo-boundary.pdf')
 
 
