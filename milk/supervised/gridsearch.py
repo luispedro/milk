@@ -135,8 +135,8 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
     from ..measures.nfoldcrossvalidation import foldgenerator
     from ..utils import parallel
     if measure is None:
-        def measure(real, preds):
-            return np.sum(np.asarray(real) != np.asarray(preds))
+        from ..measures.measures import zero_one_loss
+        measure = zero_one_loss
     if train_kwargs is None:
         train_kwargs = {}
 
