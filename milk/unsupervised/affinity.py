@@ -6,15 +6,14 @@
 #       Gael Varoquaux <gael.varoquaux@normalesup.org>
 #
 # License: MIT. See COPYING.MIT file in the milk distribution
-"""Algorithms for clustering : Meanshift and Affinity propagation
+"""Affinity propagation
 
 Original Authors (for scikits.learn):
         Alexandre Gramfort alexandre.gramfort@inria.fr
         Gael Varoquaux gael.varoquaux@normalesup.org
 
-I have made this implementation more careful about allocating intermediate
-arrays.
-
+Luis Pedro Coelho made the implementation more careful about allocating
+intermediate arrays.
 """
 
 import numpy as np
