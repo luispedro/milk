@@ -98,20 +98,26 @@ class one_against_one(base_adaptor):
     one_against_rest
     '''
 
-    def train(self, features, labels, **kwargs):
+    def train(self, features, labels, weights=None, **kwargs):
         '''
         one_against_one.train(objs,labels)
         '''
         labels, names = normaliselabels(labels)
+        if weights is not None:
+            weights = np.asanyarray(weights)
         features = _asanyarray(features)
         nclasses = labels.max() + 1
         models = [ [None for i in xrange(nclasses)] for j in xrange(nclasses)]
+        child_kwargs = kwargs.copy()
+        child_kwargs['normalisedlabels'] = True
         for i in xrange(nclasses):
             for j in xrange(i+1, nclasses):
                 idxs = (labels == i) | (labels == j)
-                assert idxs.sum() > 0, 'milk.multi.one_against_one: Pair-wise classifier has no data'
-                # Fixme: here I could add a Null model or something
-                model = self.base.train(features[idxs], (labels[idxs]==i).astype(int), normalisedlabels=True)
+                if not np.any(idxs):
+                    raise ValueError('milk.multi.one_against_one: Pair-wise classifier has no data')
+                if weights is not None:
+                    child_kwargs['weights'] = weights[idxs]
+                model = self.base.train(features[idxs], (labels[idxs]==i).astype(int), **child_kwargs)
                 models[i][j] = model
         return one_against_one_model(models, names)
 
@@ -155,7 +161,7 @@ class one_against_rest_multi(base_adaptor):
     This for multi-label problem (i.e., each instance can have more than one label).
 
     '''
-    def train(self, features, labels, normalisedlabels=False):
+    def train(self, features, labels, normalisedlabels=False, weights=None):
         '''
         '''
         import operator
@@ -163,8 +169,12 @@ class one_against_rest_multi(base_adaptor):
         for ls in labels:
             all_labels.update(ls)
         models = {}
+        kwargs = { 'normalisedlabels': True }
+        if weights is not None:
+            kwargs['weights'] = weights
         for label in all_labels:
-            models[label] = self.base.train(features, [(label in ls) for ls in labels])
+            nlabels = np.array([int(label in ls) for ls in labels])
+            models[label] = self.base.train(features, nlabels, **kwargs)
         return one_against_rest_multi_model(models)
 
 def _solve_ecoc_model(codes, p):
