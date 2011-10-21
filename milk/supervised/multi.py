@@ -56,7 +56,7 @@ class one_against_rest(base_adaptor):
             models.append(model)
         return one_against_rest_model(models, names)
 
-class one_against_rest_model(object):
+class one_against_rest_model(supervised_model):
     def __init__(self, models, names):
         self.models = models
         self.nclasses = len(self.models)
@@ -122,7 +122,7 @@ class one_against_one(base_adaptor):
         return one_against_one_model(models, names)
 
 
-class one_against_one_model(object):
+class one_against_one_model(supervised_model):
     def __init__(self, models, names):
         self.models = models
         self.names = names
@@ -145,7 +145,7 @@ class one_against_one_model(object):
                     votes[j] += 1
         return self.names[votes.argmax(0)]
 
-class one_against_rest_multi_model(object):
+class one_against_rest_multi_model(supervised_model):
     def __init__(self, models):
         self.models = models
 
