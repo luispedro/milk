@@ -245,6 +245,9 @@ class stump_learner(object):
             labels,names = normaliselabels(labels)
         else:
             names = kwargs.get('names')
-        idx,cutoff = _split(features, labels, weights, neg_z1_loss, subsample=None, R=None)
+        split = _split(features, labels, weights, neg_z1_loss, subsample=None, R=None)
+        if split is None:
+            raise ValueError('milk.supervised.stump_learner: Unable to find split (all features are the same)')
+        idx,cutoff = split
         return stump_model(idx, cutoff, names)
 
