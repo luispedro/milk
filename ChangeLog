@@ -1,4 +1,5 @@
 Version 0.4.1+
+	* Fix parallel gridminimise on Windows
 	* Add multi_label argument to normaliselabels
 	* Add multi_label argument to nfoldcrossvalidation.foldgenerator
 	* Do not fork a process in gridminimise if nprocs == 1 (makes for easier
