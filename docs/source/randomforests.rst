@@ -6,8 +6,9 @@ If you are not familiar with random forests, in general, `Wikipedia
 <http://en.wikipedia.org/wiki/Random_forest>`__ is a good place to start
 reading. The current article deals only with how to use them in **milk**.
 
-Random forests are *binary classifiers*, so you need to use a transformer to
-turn them into multi-class learners if you have multi-class data.
+Random forests as implemented in milk are *binary classifiers*, so you need to
+use a transformer to turn them into multi-class learners if you have
+multi-class data.
 
 ::
 
