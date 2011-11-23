@@ -41,7 +41,6 @@ def accuracy(real, other=None, normalisedlabels=False, names=None):
         cmatrix = np.asanyarray(real)
         return cmatrix.trace()/cmatrix.sum()
     else:
-        real = cmatrix
         return np.mean(np.asanyarray(real) != other)
 
 def zero_one_loss(real, predicted, normalisedlabels=False, names=None):
