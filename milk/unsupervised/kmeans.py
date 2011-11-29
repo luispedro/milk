@@ -30,6 +30,7 @@ from .normalise import zscore
 
 __all__ = [
         'kmeans',
+        'select_best_kmeans',
         'repeated_kmeans',
         ]
 

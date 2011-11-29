@@ -15,7 +15,7 @@ Unsupervised Learning
 - Non-negative matrix factorisation: both direct and with sparsity constraints
 '''
 
-from kmeans import kmeans,repeated_kmeans
+from kmeans import kmeans,repeated_kmeans, select_best_kmeans
 from gaussianmixture import *
 from pca import pca
 import nnmf
@@ -26,6 +26,7 @@ from .som import som
 __all__ = [
     'kmeans',
     'repeated_kmeans',
+    'select_best_kmeans',
     'pca',
     'pdist',
     'plike',
