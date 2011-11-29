@@ -313,11 +313,13 @@ def select_best_kmeans(fmatrix, ks, repeats=1, method='AIC', R=None, **kwargs):
     best = None
     best_val = np.inf
     R = get_pyrandom(R)
-    from milk.unsupervised.gaussianmixture import AIC, BIC
+    from milk.unsupervised.gaussianmixture import AIC, BIC, log_likelihood
     if method == 'AIC':
         method = AIC
     elif method == 'BIC':
         method = BIC
+    elif method == 'loglike':
+        method = log_likelihood
     else:
         raise ValueError('milk.kmeans.select_best_kmeans: unknown method: %s' % method)
     if 'distance' in kwargs and kwargs['distance'] == 'seuclidean':

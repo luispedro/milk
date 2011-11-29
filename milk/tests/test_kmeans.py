@@ -1,6 +1,6 @@
 import numpy as np
 import milk.unsupervised
-from milk.unsupervised.kmeans import assign_centroids
+from milk.unsupervised.kmeans import assign_centroids, repeated_kmeans
 
 def test_kmeans():
     np.random.seed(132)
@@ -40,3 +40,11 @@ def test_non_contiguous_fmatrix():
     features = features.astype(np.int32)
     assigns, centroids = milk.unsupervised.kmeans(features, 3, R=2, max_iters=10)
     assert np.all(assign_centroids(features, centroids) == assigns)
+
+
+def test_repeated_kmeans():
+    np.random.seed(132)
+    features = np.random.rand(201,30)
+    cids,cs = repeated_kmeans(features, 3, 2)
+    assert len(cids) == len(features)
+
