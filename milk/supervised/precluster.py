@@ -15,9 +15,10 @@ class precluster_model(supervised_model):
     def __init__(self, centroids, base):
         self.centroids = centroids
         self.base = base
+        self.normalise = True
 
     def apply(self, features):
-        histogram = assign_centroids(features, self.centroids, histogram=True, normalise=1)
+        histogram = assign_centroids(features, self.centroids, histogram=True, normalise=self.normalise)
         return self.base.apply(histogram)
 
 
@@ -31,6 +32,7 @@ class precluster_learner(object):
         self.ks = ks
         self.R = R
         self.base = base
+        self.normalise = True
 
     def set_option(self, k, v):
         if k in ('R', 'ks'):
@@ -41,7 +43,7 @@ class precluster_learner(object):
     def train(self, features, labels, **kwargs):
         allfeatures = np.vstack(features)
         assignments, centroids = select_best_kmeans(allfeatures, self.ks, repeats=1, method="AIC", R=self.R)
-        histograms = [assign_centroids(f, centroids, histogram=True, normalise=1) for f in features]
+        histograms = [assign_centroids(f, centroids, histogram=True, normalise=self.normalise) for f in features]
         base_model = self.base.train(histograms, labels, **kwargs)
         return precluster_model(centroids, base_model)
 
