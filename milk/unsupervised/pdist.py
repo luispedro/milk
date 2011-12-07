@@ -44,7 +44,7 @@ def pdist(X, Y=None, distance='euclidean2'):
     D += y2
 
     # Because of numerical imprecision, we might get negative numbers
-    # (which cause problems down the road, .e.g., when doing the sqrt):
+    # (which cause problems down the road, e.g., when doing the sqrt):
     np.maximum(D, 0, D)
     if distance == 'euclidean':
         np.sqrt(D, D)
