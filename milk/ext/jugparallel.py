@@ -114,7 +114,10 @@ def kmeans_select_best(features, ks, repeats=1, method='AIC', R=None, **kwargs):
     method : str, optional
         Which method to use. Must be one of 'AIC' (default) or 'BIC'.
     R : random number source, optional
-        Even you do not pass a value, the result will be deterministic.
+        Even you do not pass a value, the result will be deterministic. This is
+        different from the typical behaviour of ``R``, but, when using jug,
+        reproducibility is often but, when using jug, reproducibility is often
+        a desired feature.
     kwargs : other options
         These are passed transparently to ``kmeans``
 
