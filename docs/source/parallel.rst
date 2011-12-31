@@ -81,7 +81,7 @@ without an argument sets the number of processes to the number of CPUs).
     from milksets.wine import load
 
     # Use all available processors
-    parallel.set_max_procs()
+    parallel.set_max_processors()
 
     # Load the data
     features, labels = load()
@@ -101,7 +101,7 @@ Naturally, you can combine both of these features::
     from milksets.wine import load
 
     # Use all available processors
-    parallel.set_max_procs()
+    parallel.set_max_processors()
 
     # Load the data
     features, labels = load()
