@@ -7,6 +7,7 @@ Version 0.4.1+
 	debugging, at the cost of slightly more complex code).
 	* Add milk.supervised.multi_label
 	* Fix ext.jugparallel when features is a Task
+	* Add milk.measures.bayesian_significance
 
 Version 0.4.1 2011-08-25 by luispedro
 	* Fix important bug in multi-process gridsearch

@@ -1,7 +1,7 @@
 import milk.measures.measures
 import numpy as np
 import numpy
-from milk.measures import accuracy, waccuracy
+from milk.measures import accuracy, waccuracy, bayesian_significance
 
 def test_100():
     C=numpy.zeros((2,2))
@@ -44,4 +44,9 @@ def test_confusion_matrix():
     for i in xrange(3):
         for j in xrange(3):
             assert cmat[i,j] == np.sum( (labels0 == i) & (labels1 == j) )
+
+
+
+def test_significance():
+    assert np.allclose(.5, [bayesian_significance(1024,i,i) for i in xrange(0, 1025, 3)])
 

@@ -127,7 +127,39 @@ def confusion_matrix(real, predicted, normalisedlabels=False, names=None):
     return cmat
 
 
+def bayesian_significance(n, c0, c1):
+    '''
+    sig = bayesian_significance(n, c0, c1)
+
+    Computes the Bayesian significance of the difference between a classifier
+    that gets ``c0`` correct versus one that gets ``c1`` right on ``n``
+    examples.
+
+    Parameters
+    ----------
+    n : int
+        Total number of examples
+    c0 : int
+        Examples that first classifier got correct
+    c1 : int
+        Examples that second classifier got correct
+
+    Returns
+    -------
+    sig : float
+        Significance value
+    '''
+    def _logp(r, n, c):
+        return c*np.log(r)+(n-c)*np.log(1-r)
+    r = np.linspace(.0001,.9999,100)
+    lp0 = _logp(r,n,c0)
+    lp1 = _logp(r,n,c1)
+    mat = lp0 + lp1[:,np.newaxis]
+    mat -= mat.max()
+    mat = np.exp(mat)
+    mat /= mat.sum()
+    sig = np.triu(mat).sum()-mat.trace()/2.
+    return min(sig, 1. - sig)
+
 
 ## TODO: Implement http://en.wikipedia.org/wiki/Matthews_Correlation_Coefficient
-
-
