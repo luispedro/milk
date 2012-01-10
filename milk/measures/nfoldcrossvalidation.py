@@ -185,11 +185,17 @@ def nfoldcrossvalidation(features, labels, nfolds=None, learner=None, origins=No
     except:
         features = np.asanyarray(features, dtype=object)
 
+    if origins is not None:
+        origins = np.asanyarray(origins)
+
     nclasses = labels.max() + 1
     results = []
     measure = confusion_matrix
+    train_kwargs = {}
     for trainingset,testingset in foldgenerator(labels, nfolds, origins=origins, folds=folds):
-        model = learner.train(features[trainingset], labels[trainingset])
+        if origins is not None:
+            train_kwargs = { 'corigins' : origins[trainingset] }
+        model = learner.train(features[trainingset], labels[trainingset], **train_kwargs)
         cur_preds = np.array([model.apply(f) for f in features[testingset]])
         if return_predictions:
             predictions[testingset] = cur_preds
