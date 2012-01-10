@@ -63,8 +63,9 @@ def nfoldcrossvalidation(features, labels, **kwargs):
     milk.nfoldcrossvalidation : The same functionality as a "normal" function
     jug.CompoundTask : This function can be used as argument to CompoundTask
     '''
-    features,labels = map(identity, (features,labels))
     nfolds = kwargs.get('nfolds', 10)
+    features,labels = map(identity, (features,labels))
+    kwargs = {k:identity(v) for k,v in kwargs.iteritems()}
     nfold_one = TaskGenerator(milk.nfoldcrossvalidation)
     mapped = [nfold_one(features, labels, folds=[i], **kwargs) for i in xrange(nfolds)]
     return jug_reduce(_nfold_reduce, mapped)
