@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2011, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 #
 # License: MIT. See COPYING.MIT file in the milk distribution
@@ -13,7 +13,7 @@ __all__ = [
     'feature_selection_simple',
     ]
 
-def defaultlearner(mode='medium', multi_strategy='1-vs-1'):
+def defaultlearner(mode='medium', multi_strategy='1-vs-1', expanded=False):
     '''
     learner = defaultlearner(mode='medium')
 
@@ -33,10 +33,14 @@ def defaultlearner(mode='medium', multi_strategy='1-vs-1'):
     multi_strategy : str, optional
         One of ('1-vs-1', '1-vs-rest', 'ecoc'). This defines the strategy used
         to convert the base binary classifier to a multi-class classifier.
+    expanded : boolean, optional
+        If true, then instead of a single learner, it returns a list of
+        possible learners.
 
     Returns
     -------
-    learner : classifier learner object
+    learner : classifier learner object or list
+        If `expanded`, then it returns a list
 
     See Also
     --------
@@ -81,17 +85,17 @@ def defaultlearner(mode='medium', multi_strategy='1-vs-1'):
     else: # mode == 'slow'
         c_range = np.arange(-9,5)
         sigma_range = np.arange(-7,4)
-    return ctransforms(
-            chkfinite(),
-            interval_normalise(),
-            featureselector(linear_independent_features),
-            sda_filter(),
+
+    kernels = [svm.rbf_kernel(2.**i) for i in sigma_range]
+    Cs = 2.**c_range
+
+    if expanded:
+        return [ctransforms(feature_selection_simple(),
+                    multi_adaptor(svm.svm_to_binary(svm.svm_raw(C=C, kernel=kernel))))
+                    for C in Cs for kernel in kernels]
+    return ctransforms(feature_selection_simple(),
             gridsearch(multi_adaptor(svm.svm_to_binary(svm.svm_raw())),
-                        params={
-                            'C': 2.**c_range,
-                            'kernel': [svm.rbf_kernel(2.**i) for i in sigma_range],
-                        }
-                        ))
+                        params={ 'C': Cs, 'kernel': kernels, }))
 
 
 def feature_selection_simple():

@@ -1,4 +1,5 @@
 import numpy as np
+import milk
 import milk.supervised.defaultclassifier
 import pickle
 
@@ -29,3 +30,17 @@ def test_pickle():
 def test_pickle_learner():
     learner = milk.defaultlearner()
     assert len(pickle.dumps(learner))
+
+def test_expandend():
+    np.random.seed(23232432)
+    X = np.random.rand(100,10)
+    labels = np.zeros(100)
+    X[50:] += .5
+    labels[50:] = 1
+    learners = milk.defaultlearner(expanded=True)
+    for learner in learners:
+        model = learner.train(X, labels)
+        test = [model.apply(x) for x in X]
+        test = np.array(test)
+        assert set(test) == set(labels)
+
