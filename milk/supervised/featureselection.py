@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2011, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
 #
 # License: MIT. See COPYING.MIT file in the milk distribution
 
@@ -23,6 +23,8 @@ _SIGNIFICANCE_OUT = .15
 
 def _sweep(A, k, flag):
     Akk = A[k,k]
+    if Akk == 0:
+        Akk = 1.e-5
 
     # cross[i,j] = A[i,k] * A[k,j]
     cross = (A[:,k][:, np.newaxis] * A[k])

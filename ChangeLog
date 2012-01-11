@@ -1,4 +1,5 @@
 Version 0.4.1+
+	* Fix corner case in SDA
 	* Fix repeated_kmeans
 	* Fix parallel gridminimise on Windows
 	* Add multi_label argument to normaliselabels
