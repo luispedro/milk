@@ -204,6 +204,7 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
                     queuejob(next, iteration[next])
                     break
     finally:
+        assert np.max(iteration) <= nfolds
         if len(workers):
             for w in workers:
                 inqueue.put( ('shutdown', None) )
