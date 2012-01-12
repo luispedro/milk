@@ -29,7 +29,7 @@ __all__ = [
 def _svm_apply(SVM, q):
     '''
     f_i = _svm_apply(SVM, q)
-   
+
     @internal: This is mostly used for testing
     '''
     X,Y,Alphas,b,C,kernel=SVM
@@ -53,8 +53,8 @@ def svm_learn_smo(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
     Implements the Sequential Minimum Optimisation Algorithm from Platt's
         "Fast training of support vector machines using sequential minimal optimization"
         in Advances in kernel methods: support vector learning
-             Pages: 185 - 208   
-             Year of Publication: 1999 
+             Pages: 185 - 208
+             Year of Publication: 1999
              ISBN:0-262-19416-3
     '''
     assert numpy.all(numpy.abs(Y) == 1)
@@ -66,27 +66,46 @@ def svm_learn_smo(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
     _svm.eval_SMO(X,Y,Alphas0,params,kernel,cache_size)
     return Alphas0, params[0]
 
-def svm_learn_libsvm(X,Y,kernel,C,eps=1e-4,tol=1e-2,cache_size=(1<<20)):
+def svm_learn_libsvm(features, labels, kernel, C, eps=1e-4, tol=1e-2, cache_size=(1<<20), alphas=None):
     '''
     Learn a svm classifier using LIBSVM optimiser
-
-    X: data
-    Y: labels in SVM format (ie Y[i] in (1,-1))
 
     This is a very raw interface. In general, you should use a class
         like svm_classifier.
 
     This uses the LIBSVM optimisation algorithm
+
+    Parameters
+    ----------
+    X : ndarray
+        data
+    Y : ndarray
+        labels in SVM format (ie Y[i] in (1,-1))
+    kernel : kernel
+    C : float
+    eps : float, optional
+    tol : float, optional
+    cache_size : int, optional
+    alphas : ndarray, optional
+
+    Returns
+    -------
+    alphas : ndarray
+    b : float
     '''
-    assert numpy.all(numpy.abs(Y) == 1)
-    assert len(X) == len(Y)
-    N = len(Y)
-    Y = Y.astype(numpy.int32)
-    p = -numpy.ones(N,numpy.double)
-    params = numpy.array([0,C,eps,tol],numpy.double)
-    Alphas0 = numpy.zeros(N, numpy.double)
-    _svm.eval_LIBSVM(X,Y,Alphas0,p,params,kernel,cache_size)
-    return Alphas0, params[0]
+    if not np.all(np.abs(labels) == 1):
+        raise ValueError('milk.supervised.svm.svm_learn_libsvm: Y[i] != (-1,+1)')
+    assert len(features) == len(labels)
+    n = len(labels)
+    labels = labels.astype(np.int32)
+    p = -np.ones(n, np.double)
+    params = np.array([0,C,eps,tol], dtype=np.double)
+    if alphas is None:
+        alphas = np.zeros(n, np.double)
+    elif alphas.dtype != np.double or len(alphas) != n:
+        raise ValueError('milk.supervised.svm_learn_libsvm: alphas is in wrong format')
+    _svm.eval_LIBSVM(features, labels, alphas, p, params, kernel, cache_size)
+    return alphas, params[0]
 
 
 class preprocessed_rbf_kernel(object):
@@ -226,7 +245,7 @@ class svm_raw(object):
         self.algorithm = 'libsvm'
 
 
-    def train(self, features, labels, normalisedlabels=False):
+    def train(self, features, labels, normalisedlabels=False, **kwargs):
         assert self.kernel is not None, 'milk.supervised.svm_raw.train: kernel not set!'
         assert self.algorithm in ('libsvm','smo'), 'milk.supervised.svm_raw: unknown algorithm (%s)' % self.algorithm
         assert not (np.isinf(self.C) or np.isnan(self.C)), 'milk.supervised.svm_raw: setting C to NaN or Inf causes problems.'
@@ -254,7 +273,7 @@ class svm_raw(object):
         Y = Y[svsi]
         Yw = w * Y
         return svm_raw_model(svs, Yw, b, self.kernel)
-    
+
     def get_params(self):
         return self.C, self.eps,self.tol
 
@@ -343,7 +362,7 @@ def learn_sigmoid_constants(F,Y,
         g2 = np.sum(d1)
         if abs(g1) < eps and abs(g2) < eps: # Stopping criteria
             break
-        
+
         det = h11*h22 - h21*h21
         dA = - (h22*g1 - h21*g2)/det
         dB = - (h21*g1 + h11*g2)/det
@@ -437,7 +456,7 @@ class svm_sigmoidal_correction(object):
     '''
     def __init__(self):
         self.max_iters = None
-    
+
     def train(self, features, labels, normalisedlabels=False):
         A,B = learn_sigmoid_constants(features,labels,self.max_iters)
         return svm_sigmoidal_correction_model(A, B)
@@ -455,7 +474,7 @@ def sigma_value_fisher(features,labels):
     value_s = f(s)
 
     Computes a function which computes how good the value of sigma
-    is for the features. This function should be *minimised* for a 
+    is for the features. This function should be *minimised* for a
     good value of sigma.
 
     Parameters
