@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2011, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,6 +23,7 @@
 from __future__ import division
 import numpy as np
 from .normalise import normaliselabels
+from .base import supervised_model
 
 __all__ = ['normaliselabels', 'ctransforms']
 
@@ -48,7 +49,7 @@ class fixed_threshold_learner(object):
         return threshold_model(self.threshold)
 
 
-class ctransforms_model(object):
+class ctransforms_model(supervised_model):
     '''
     model = ctransforms_model(models)
 
