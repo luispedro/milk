@@ -93,6 +93,24 @@ Recent History
 The ChangeLog file contains a more complete history.
 
 
+New in 0.4.2 (16 Jan 2012)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Make defaultlearner able to take extra arguments
+- Make ctransforms_model a supervised_model (adds apply_many)
+- Add expanded argument to defaultlearner
+- Fix corner case in SDA
+- Fix repeated_kmeans
+- Fix parallel gridminimise on Windows
+- Add multi_label argument to normaliselabels
+- Add multi_label argument to nfoldcrossvalidation.foldgenerator
+- Do not fork a process in gridminimise if nprocs == 1 (makes for easier
+  debugging, at the cost of slightly more complex code).
+- Add milk.supervised.multi_label
+- Fix ext.jugparallel when features is a Task
+- Add milk.measures.bayesian_significance
+
+
 New in 0.4.1
 ~~~~~~~~~~~~
 - Fix important bug in multi-process gridsearch
