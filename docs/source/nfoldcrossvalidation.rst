@@ -38,6 +38,6 @@ evaluate the per patient accuracy.
 API Documentation
 -----------------
 
-.. automodule:: milk.measurements.nfoldcrossvalidation
+.. automodule:: milk.measures.nfoldcrossvalidation
     :members:
 
