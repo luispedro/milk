@@ -1,4 +1,5 @@
 Version 0.4.1+
+	* Make defaultlearner able to take extra arguments
 	* Make ctransforms_model a supervised_model (adds apply_many)
 	* Add expanded argument to defaultlearner
 	* Fix corner case in SDA

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2011, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 #
 # License: MIT. See COPYING.MIT file in the milk distribution
 
 from __future__ import division
 import numpy as np
+from .base import supervised_model
 
 __all__ = [
     'zscore',
@@ -47,7 +48,7 @@ class zscore_normalise(object):
     A preprocessor that normalises features to z scores.
     '''
 
-    def train(self, features, labels, normalisedlabels=False):
+    def train(self, features, labels, **kwargs):
         shift = features.mean(0)
         factor = np.std(features,0)
         return subtract_divide_model(shift, factor)
@@ -57,7 +58,7 @@ class interval_normalise(object):
     Linearly scale to the interval [-1,1] (per libsvm recommendation)
 
     '''
-    def train(self, features, labels, normalisedlabels=False):
+    def train(self, features, labels, **kwargs):
         ptp = features.ptp(0)
         shift = features.min(0) + ptp/2.
         factor = ptp/2.
@@ -102,7 +103,7 @@ def sample_to_2min(labels):
 
 
 
-class chkfinite(object):
+class chkfinite(supervised_model):
     '''
     Fill NaN & Inf values
 
@@ -111,7 +112,7 @@ class chkfinite(object):
     def __init__(self):
         pass
 
-    def train(self, features, labels, normalisedlabels=False):
+    def train(self, features, labels, **kwargs):
         return self
 
     def apply(self, features):

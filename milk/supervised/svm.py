@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2011, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 #
 # License: MIT. See COPYING.MIT file in the milk distribution
@@ -398,7 +398,7 @@ class svm_binary(object):
     assert model.apply(f) in labels
     '''
 
-    def train(self, features, labels, normalisedlabels=False):
+    def train(self, features, labels, normalisedlabels=False, **kwargs):
         if normalisedlabels:
             return svm_binary_model( (0,1) )
         assert len(labels) >= 2, 'Cannot train from a single example'
@@ -428,10 +428,10 @@ class svm_to_binary(object):
         '''
         self.base = svm_base
 
-    def train(self, features, labels, normalisedlabels=False):
-        model = self.base.train(features, labels, normalisedlabels=normalisedlabels)
+    def train(self, features, labels, **kwargs):
+        model = self.base.train(features, labels, **kwargs)
         binary = svm_binary()
-        binary_model = binary.train(features, labels, normalisedlabels=normalisedlabels)
+        binary_model = binary.train(features, labels, **kwargs)
         return ctransforms_model([model, binary_model])
 
     def set_option(self, opt, value):
@@ -457,7 +457,7 @@ class svm_sigmoidal_correction(object):
     def __init__(self):
         self.max_iters = None
 
-    def train(self, features, labels, normalisedlabels=False):
+    def train(self, features, labels, **kwargs):
         A,B = learn_sigmoid_constants(features,labels,self.max_iters)
         return svm_sigmoidal_correction_model(A, B)
 
@@ -533,10 +533,10 @@ class fisher_tuned_rbf_svm(object):
         self.sigmas = sigmas
         self.base = base
 
-    def train(self, features, labels, normalisedlabels=False):
+    def train(self, features, labels, **kwargs):
         f = sigma_value_fisher(features, labels)
         fs = [f(s) for s in self.sigmas]
         self.sigma = self.sigmas[np.argmin(fs)]
         self.base.set_option('kernel',rbf_kernel(self.sigma))
-        return self.base.train(features,labels)
+        return self.base.train(features, labels, **kwargs)
 

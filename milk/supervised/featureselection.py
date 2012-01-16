@@ -219,7 +219,7 @@ class featureselector(object):
     def __init__(self, selector):
         self.selector = selector
 
-    def train(self, features, labels, normalisedlabels=False):
+    def train(self, features, labels, **kwargs):
         idxs = self.selector(features, labels)
         if len(idxs) == 0:
             import warnings

@@ -76,13 +76,13 @@ class ctransforms(object):
         self.transforms = args
 
 
-    def train(self, features, labels, normalisedlabels=False):
+    def train(self, features, labels, **kwargs):
         models = []
         model = None
         for T in self.transforms:
             if model is not None:
                 features = np.array([model.apply(f) for f in features])
-            model = T.train(features, labels, normalisedlabels=normalisedlabels)
+            model = T.train(features, labels, **kwargs)
             models.append(model)
         return ctransforms_model(models)
 
