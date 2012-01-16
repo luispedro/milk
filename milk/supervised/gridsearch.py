@@ -193,11 +193,11 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
             executing.remove(p)
             iteration[p] += 1
             error[p] += err
-            best = error.argmin()
-            if iteration[best] == nfolds:
-                if return_value:
-                    return options[best], error[best]
-                return options[best]
+            for best in np.where(error == error.min())[0]:
+                if iteration[best] == nfolds:
+                    if return_value:
+                        return options[best], error[best]
+                    return options[best]
             for next in error.argsort():
                 if iteration[next] < nfolds and next not in executing:
                     executing.add(next)
