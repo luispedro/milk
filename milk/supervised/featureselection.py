@@ -15,6 +15,8 @@ __all__ = [
     'filterfeatures',
     'featureselector',
     'sda_filter',
+    'rank_corr',
+    'select_n_best',
     ]
 
 def _sweep(A, k, flag):
@@ -236,4 +238,52 @@ class featureselector(object):
 
 def sda_filter():
     return featureselector(sda)
+
+def rank_corr(features, labels):
+    '''
+    rs = rank_corr(features, labels)
+
+    Computes the following expression::
+
+        rs[i] = max_e COV²(rank(features[:,i]), labels == e)
+
+    This is appropriate for numeric features and categorical labels.
+
+    Parameters
+    ----------
+    features : ndarray
+        feature matrix
+    labels : sequence
+
+    Returns
+    -------
+    rs : ndarray of float
+        rs are the rank correlations
+    '''
+    features = np.asanyarray(features)
+    labels = np.asanyarray(labels)
+    binlabels = [(labels == ell) for ell in set(labels)]
+    rs = []
+    for feat in features.T:
+        ranks = feat.argsort()
+        corrcoefs = [np.corrcoef(ranks, labs)[0,1] for labs in binlabels]
+        corrcoefs = np.array(corrcoefs)
+        corrcoefs **= 2
+        rs.append(np.max(corrcoefs))
+    return np.array(rs)
+
+class select_n_best(object):
+    '''
+    select_n_best(n, measure)
+
+    Selects the `n` features that score the highest in `measure`
+    '''
+    def __init__(self, n, measure):
+        self.n = n
+        self.measure = measure
+
+    def train(self, features, labels, **kwargs):
+        values = self.measure(features, labels)
+        values = values.argsort()
+        return filterfeatures(values[:self.n])
 
