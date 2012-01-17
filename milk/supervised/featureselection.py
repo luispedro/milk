@@ -17,10 +17,6 @@ __all__ = [
     'sda_filter',
     ]
 
-_TOLERANCE = 0
-_SIGNIFICANCE_IN = .15
-_SIGNIFICANCE_OUT = .15
-
 def _sweep(A, k, flag):
     Akk = A[k,k]
     if Akk == 0:
@@ -37,9 +33,9 @@ def _sweep(A, k, flag):
     B[k,k] = -1./Akk
     return B
 
-def sda(features, labels, tolerance=None, significance_in=None, significance_out=None):
+def sda(features, labels, tolerance=0, significance_in=.15, significance_out=.15):
     '''
-    features_idx = sda(features,labels)
+    features_idx = sda(features, labels, tolerance=0, significance_in=.15, significance_out=.15)
 
     Perform Stepwise Discriminant Analysis for feature selection
 
@@ -50,15 +46,23 @@ def sda(features, labels, tolerance=None, significance_in=None, significance_out
     Jennrich, R.I. (1977), "Stepwise Regression" & "Stepwise Discriminant Analysis,"
     both in Statistical Methods for Digital Computers, eds.
     K. Enslein, A. Ralston, and H. Wilf, New York; John Wiley & Sons, Inc.
-    '''
-    import scipy.stats
 
-    if tolerance is None:
-        tolerance = _TOLERANCE
-    if significance_in is None:
-        significance_in = _SIGNIFICANCE_IN
-    if significance_out is None:
-        significance_out = _SIGNIFICANCE_OUT
+    Parameters
+    ----------
+    features : ndarray
+        feature matrix. There should not be any perfectly correlated features.
+    labels : 1-array
+        labels
+    tolerance : float, optional
+    significance_in : float, optional
+    significance_out : float, optional
+
+    Returns
+    -------
+    features_idx : sequence
+        sequence of integer indices
+    '''
+    from scipy import stats
 
     assert len(features) == len(labels), 'milk.supervised.featureselection.sda: length of features not the same as length of labels'
     N, m = features.shape
@@ -92,7 +96,7 @@ def sda(features, labels, tolerance=None, significance_in=None, significance_out
             k = k[0]
             Fremove = (N-p-q+1)/(q-1)*(V_m-1)
             df2 = N-p-q+1
-            PrF = 1 - scipy.stats.f.cdf(Fremove,df1,df2)
+            PrF = 1 - stats.f.cdf(Fremove,df1,df2)
             if PrF > significance_out:
                 #print 'removing ',k, 'V(k)', 1./V_m, 'Fremove', Fremove, 'df1', df1, 'df2', df2, 'PrF', PrF
                 if k == last_enter_k:
@@ -110,7 +114,7 @@ def sda(features, labels, tolerance=None, significance_in=None, significance_out
             k = k[0]
             Fenter = (N-p-q)/(q-1) * (1-V_m)/V_m
             df2 = N-p-q
-            PrF = 1 - scipy.stats.f.cdf(Fenter,df1,df2)
+            PrF = 1 - stats.f.cdf(Fenter,df1,df2)
             if PrF < significance_in:
                 #print 'adding ',k, 'V(k)', 1./V_m, 'Fenter', Fenter, 'df1', df1, 'df2', df2, 'PrF', PrF
                 W = _sweep(W,k,-1)
