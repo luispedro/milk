@@ -262,15 +262,22 @@ def rank_corr(features, labels):
     '''
     features = np.asanyarray(features)
     labels = np.asanyarray(labels)
-    binlabels = [(labels == ell) for ell in set(labels)]
-    rs = []
-    for feat in features.T:
-        ranks = feat.argsort()
-        corrcoefs = [np.corrcoef(ranks, labs)[0,1] for labs in binlabels]
-        corrcoefs = np.array(corrcoefs)
-        corrcoefs **= 2
-        rs.append(np.max(corrcoefs))
-    return np.array(rs)
+
+    n = len(features)
+    ranks = features.argsort(0)
+    ranks = ranks.astype(float)
+    binlabels = np.array([(labels == ell) for ell in set(labels)], dtype=float)
+    mx = ranks.mean(0)
+    my = binlabels.mean(1)
+    sx = ranks.std(0)
+    sy = binlabels.std(1)
+
+    r = np.dot(binlabels,ranks)
+    r -= np.outer(n*my, mx)
+    r /= np.outer(sy, sx)
+    r /= n # Use n [instead of n-1] to match numpy's corrcoef
+    r **= 2
+    return r.max(0)
 
 class select_n_best(object):
     '''
