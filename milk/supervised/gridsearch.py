@@ -80,7 +80,7 @@ Original Traceback:
             self.outq.put( ('error', errstr) )
 
 
-def gridminimise(learner, features, labels, params, measure=None, nfolds=10, return_value=False, train_kwargs=None, nprocs=None):
+def gridminimise(learner, features, labels, params, measure=None, nfolds=10, return_value=False, train_kwargs=None, nprocs=None, origins=None):
     '''
     best = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=False, nprocs=None)
     best, value = gridminimise(learner, features, labels, params, measure={0/1 loss}, nfolds=10, return_value=True, nprocs=None)
@@ -148,7 +148,7 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
     options = list(_allassignments(params))
     iteration = np.zeros(len(options), int)
     error = np.zeros(len(options), float)
-    folds = [(Tr.copy(), Te.copy()) for Tr,Te in foldgenerator(labels, nfolds)]
+    folds = [(Tr.copy(), Te.copy()) for Tr,Te in foldgenerator(labels, nfolds=nfolds, origins=origins)]
     # foldgenerator might actually decide on a smaller number of folds,
     # depending on the distribution of class sizes:
     nfolds = len(folds)
