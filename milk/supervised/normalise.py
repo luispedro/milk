@@ -7,6 +7,7 @@
 from __future__ import division
 import numpy as np
 from .base import supervised_model
+from ..unsupervised.normalise import zscore
 
 __all__ = [
     'zscore',
@@ -17,16 +18,6 @@ __all__ = [
     'normaliselabels'
 ]
 
-def zscore(features):
-    """
-    features = zscore(features)
-
-    Returns a copy of features which has been normalised to zscores 
-    """
-    mu = features.mean(0)
-    sigma = np.std(features,0)
-    sigma[sigma == 0] = 1
-    return (features - mu) / sigma
 
 class subtract_divide_model(object):
     def __init__(self, shift, factor):
