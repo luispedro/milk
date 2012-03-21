@@ -35,19 +35,19 @@ def _sweep(A, k, flag):
     B[k,k] = -1./Akk
     return B
 
-def sda(features, labels, tolerance=0, significance_in=.15, significance_out=.15):
+def sda(features, labels, tolerance=.01, significance_in=.05, significance_out=.05):
     '''
-    features_idx = sda(features, labels, tolerance=0, significance_in=.15, significance_out=.15)
+    features_idx = sda(features, labels, tolerance=.01, significance_in=.05, significance_out=.05)
 
-    Perform Stepwise Discriminant Analysis for feature selection
+    Stepwise Discriminant Analysis for feature selection
 
-    Pre filter the feature matrix to remove linearly dependent features
+    Pre-filter the feature matrix to remove linearly dependent features
     before calling this function. Behaviour is undefined otherwise.
 
-    This implements the algorithm described in
-    Jennrich, R.I. (1977), "Stepwise Regression" & "Stepwise Discriminant Analysis,"
-    both in Statistical Methods for Digital Computers, eds.
-    K. Enslein, A. Ralston, and H. Wilf, New York; John Wiley & Sons, Inc.
+    This implements the algorithm described in Jennrich, R.I. (1977), "Stepwise
+    Regression" & "Stepwise Discriminant Analysis," both in Statistical Methods
+    for Digital Computers, eds.  K. Enslein, A. Ralston, and H. Wilf, New York;
+    John Wiley & Sons, Inc.
 
     Parameters
     ----------
@@ -80,9 +80,10 @@ def sda(features, labels, tolerance=0, significance_in=.15, significance_out=.15
     ignoreidx = ( W.diagonal() == 0 )
     if ignoreidx.any():
         idxs, = np.where(~ignoreidx)
-        F = sda(features[:,~ignoreidx],labels)
-        if len(F): return idxs[F]
-        return ignoreidx
+        if not len(idxs):
+            return np.arange(m)
+        selected = sda(features[:,~ignoreidx],labels)
+        return idxs[selected]
     output = []
     D = W.diagonal()
     df1 = q-1
@@ -127,7 +128,7 @@ def sda(features, labels, tolerance=0, significance_in=.15, significance_out=.15
         break
 
     output.sort(reverse=True)
-    return np.array([x[1] for x in output])
+    return np.array([idx for _,idx in output])
 
 
 def linearly_independent_subset(V, threshold=1.e-5, return_orthogonal_basis=False):
