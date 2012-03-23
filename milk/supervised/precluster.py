@@ -64,7 +64,8 @@ class codebook_model(supervised_model):
 
 class codebook_learner(base_adaptor):
     def set_option(self, k, v):
-        assert k == 'codebook'
+        if k != 'codebook':
+            raise KeyError('milk.precluster.codebook_learner: unknown option `%s`' % k)
         self.codebook = v
 
     def train(self, features, labels, **kwargs):
@@ -109,10 +110,10 @@ Original Traceback:
 
 class select_precluster(object):
 
-    def __init__(self, ks, base, normalise=True):
+    def __init__(self, ks, base, normalise=True, rmax=16):
         self.base = base
         self.ks = ks
-        self.rmax = 16
+        self.rmax = rmax
         self.sample = 16
         self.nfolds = 5
         self.normalise = normalise
