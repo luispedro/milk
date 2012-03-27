@@ -14,6 +14,7 @@ __all__ = [
     'one_against_one',
     'one_against_rest_multi',
     'ecoc_learner',
+    'multi_tree_learner',
     ]
 
 def _asanyarray(f):
@@ -243,4 +244,74 @@ class ecoc_learner(base_adaptor):
                     nlabels[labels == ell] = 1
             models.append(self.base.train(features, nlabels, normalisedlabels=True, **kwargs))
         return ecoc_model(models, codes, self.probability)
+
+
+def split(counts):
+    groups = ([],[])
+    weights = np.zeros(2, float)
+
+    in_order = counts.argsort()
+    for s in in_order[::-1]:
+        g = weights.argmin()
+        groups[g].append(s)
+        weights[g] += counts[s]
+    return groups
+
+
+class multi_tree_model(supervised_model):
+    def __init__(self, model):
+        self.model = model
+
+    def apply(self, feats):
+        def ap_recursive(smodel):
+            if len(smodel) == 1:
+                return smodel[0]
+            model,left,right = smodel
+            if model.apply(feats): return ap_recursive(left)
+            else: return ap_recursive(right)
+        return ap_recursive(self.model)
+
+class multi_tree_learner(base_adaptor):
+    '''
+    Implements a multi-class learner as a tree of binary decisions.
+
+    At each level, labels are split into 2 groups in a way that attempt to
+    balance the number of examples on each side (and not the number of labels
+    on each side). This mean that on a 4 class problem with a distribution like
+    [ 50% 25% 12.5% 12.5%], the "optimal" splits are
+
+             o
+            / \
+           /   \
+          [0]   o
+               / \
+             [1]  o
+                 / \
+                [2][3]
+
+    where all comparisons are perfectly balanced.
+    '''
+
+    def train(self, features, labels, normalisedlabels=False, **kwargs):
+        if not normalisedlabels:
+            labels,names = normaliselabels(labels)
+            labelset = np.arange(len(names))
+        else:
+            labels = np.asanyarray(labels)
+            labelset = np.arange(labels.max()+1)
+
+
+        def recursive(labelset, counts):
+            if len(labelset) == 1:
+                return labelset
+            g0,g1 = split(counts)
+            nlabels = np.array([(ell in g0) for ell in labels], int)
+            model = self.base.train(features, nlabels, normaliselabels=True, **kwargs)
+            m0 = recursive(labelset[g0], counts[g0])
+            m1 = recursive(labelset[g1], counts[g1])
+            return (model, m0, m1)
+        counts = np.zeros(labels.max()+1)
+        for ell in labels:
+            counts[ell] += 1
+        return multi_tree_model(recursive(np.arange(labels.max()+1), counts))
 

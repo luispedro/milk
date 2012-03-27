@@ -1,6 +1,7 @@
 Version 0.4.2+
 	* Add select_n_best & rank_corr to featureselection
 	* Add Euclidean MDS
+	* Add tree multi-class strategy
 
 Version 0.4.2 2012-01-16 by luispedro
 	* Make defaultlearner able to take extra arguments
