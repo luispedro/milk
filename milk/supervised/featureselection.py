@@ -35,7 +35,7 @@ def _sweep(A, k, flag):
     B[k,k] = -1./Akk
     return B
 
-def sda(features, labels, tolerance=.01, significance_in=.05, significance_out=.05):
+def sda(features, labels, tolerance=.01, significance_in=.05, significance_out=.05, loose=False):
     '''
     features_idx = sda(features, labels, tolerance=.01, significance_in=.05, significance_out=.05)
 
@@ -122,7 +122,8 @@ def sda(features, labels, tolerance=.01, significance_in=.05, significance_out=.
                 #print 'adding ',k, 'V(k)', 1./V_m, 'Fenter', Fenter, 'df1', df1, 'df2', df2, 'PrF', PrF
                 W = _sweep(W,k,-1)
                 T = _sweep(T,k,-1)
-                output.append((Fenter,k))
+                if loose or (PrF < 0.0001):
+                    output.append((Fenter,k))
                 last_enter_k = k
                 continue
         break
