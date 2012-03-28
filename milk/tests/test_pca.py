@@ -21,7 +21,6 @@ def test_mds():
         X = milk.unsupervised.mds(features,4)
         D = pdist(features)
         D2 = pdist(X)
-# This is really lax, but the numerics kill us
-        assert np.mean( (D - D2) ** 2) < 0.1
+        assert np.mean( (D - D2) ** 2) < 10e-4
 
 

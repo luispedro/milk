@@ -70,7 +70,7 @@ def mds(features, ndims, zscore=False):
         X = normalise.zscore(features)
     P2 = pdist(features)
     n = len(P2)
-    J = np.eye(n) - .25* np.ones((n,n))
+    J = np.eye(n) - (1./n)* np.ones((n,n))
     B = -.5 * np.dot(J,np.dot(P2,J))
     w,v = np.linalg.eig(B)
 
