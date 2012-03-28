@@ -8,6 +8,7 @@ from __future__ import division
 import numpy as np
 from numpy import linalg
 from . import normalise
+from .pdist import pdist
 
 __all__ = [
     'pca',
@@ -67,16 +68,17 @@ def mds(features, ndims, zscore=False):
     '''
     if zscore:
         X = normalise.zscore(features)
-    dists = milk.unsupervised.pdist(features)
-    mu = dists.mean()
-    dists -= dists.mean(0)
-    dists = dists.T
-    dists -= dists.mean(0)
-    dists = dists.T
-    dists += mu
+    P2 = pdist(features)
+    n = len(P2)
+    J = np.eye(n) - .25* np.ones((n,n))
+    B = -.5 * np.dot(J,np.dot(P2,J))
+    w,v = np.linalg.eig(B)
 
-    u,s,v = np.linalg.svd(dists)
-    s = np.diag(np.sqrt(s))
-    X = np.dot(u, s)
-    return X[:,1:(ndims+1)]
+
+    w = w[:ndims]
+    s = np.sign(w)
+    w = np.abs(w).real
+    w = np.diag(np.sqrt(s * w))
+    X = np.dot(v[:,:ndims], w)
+    return X.real
 

@@ -13,3 +13,15 @@ def test_pca():
     assert X.shape == Y.shape
     assert ((np.dot(V[:4].T,Y[:,:4].T).T-Xn)**2).sum()/(Xn**2).sum() < .3
 
+def test_mds():
+    from milk.unsupervised import pdist
+    np.random.seed(232)
+    for _ in xrange(12):
+        features = np.random.random_sample((12,4))
+        X = milk.unsupervised.mds(features,4)
+        D = pdist(features)
+        D2 = pdist(X)
+# This is really lax, but the numerics kill us
+        assert np.mean( (D - D2) ** 2) < 0.1
+
+
