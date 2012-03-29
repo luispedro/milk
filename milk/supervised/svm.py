@@ -6,6 +6,7 @@
 
 from __future__ import division
 from .classifier import normaliselabels, ctransforms_model
+from .base import supervised_model
 from collections import deque
 import numpy
 import numpy as np
@@ -203,7 +204,7 @@ class dot_kernel(object):
     def preprocess(self, svs):
         return preprocessed_dot_kernel(svs)
 
-class svm_raw_model(object):
+class svm_raw_model(supervised_model):
     def __init__(self, svs, Yw, b, kernel):
         self.svs = svs
         self.Yw = Yw
@@ -385,7 +386,7 @@ def learn_sigmoid_constants(F,Y,
     np.seterr(**errorstate)
     return A,B
 
-class svm_binary_model(object):
+class svm_binary_model(supervised_model):
     def __init__(self, classes):
         self.classes = classes
     def apply(self,f):
@@ -439,7 +440,7 @@ class svm_to_binary(object):
 
 
 
-class svm_sigmoidal_correction_model(object):
+class svm_sigmoidal_correction_model(supervised_model):
     def __init__(self, A, B):
         self.A = A
         self.B = B
