@@ -2,9 +2,11 @@ Version 0.4.2+
 	* Add select_n_best & rank_corr to featureselection
 	* Add Euclidean MDS
 	* Add tree multi-class strategy
+	* Fix adaboost with boolean weak learners (issue #6, reported by audy
+	(Austin Richardson))
 
 Version 0.4.2 2012-01-16 by luispedro
-	* Make defaultlearner able to take extra arguments
+	* Make defaultlearner able to take extra argumentsaudy (Austin Richardson)
 	* Make ctransforms_model a supervised_model (adds apply_many)
 	* Add expanded argument to defaultlearner
 	* Fix corner case in SDA
