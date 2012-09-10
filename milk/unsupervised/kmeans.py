@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2011, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -203,6 +203,8 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, **kwargs):
         An array of `k'` centroids
     '''
     fmatrix = np.asanyarray(fmatrix)
+    if not np.issubdtype(fmatrix.dtype, np.float):
+        fmatrix = fmatrix.astype(np.float)
     if distance == 'seuclidean':
         fmatrix = zscore(fmatrix)
         distance = 'euclidean'
