@@ -4,6 +4,7 @@ Version 0.4.2+
 	* Add tree multi-class strategy
 	* Fix adaboost with boolean weak learners (issue #6, reported by audy
 	(Austin Richardson))
+	* Add ``axis`` arguments to zscore()
 
 Version 0.4.2 2012-01-16 by luispedro
 	* Make defaultlearner able to take extra argumentsaudy (Austin Richardson)

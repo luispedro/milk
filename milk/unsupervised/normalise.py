@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2010, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
+# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -23,15 +24,32 @@ from __future__ import division
 import numpy as np
 __all__ = ['zscore']
 
-def zscore(features):
+def zscore(features, axis=0, inplace=False):
     """
-    features = zscore(features)
+    features = zscore(features, axis=0, inplace=False)
 
     Returns a copy of features which has been normalised to zscores 
-    """
-    mu = features.mean(0)
-    sigma = np.std(features,0)
-    sigma[sigma == 0] = 1
-    return (features - mu) / sigma
 
-# vim: set ts=4 sts=4 sw=4 expandtab smartindent:
+    Parameters
+    ----------
+    features : ndarray
+        2-D input array
+    axis : integer, optional
+    inplace : boolean, optional
+        Whether to operate inline
+    """
+    if features.ndim != 2:
+        raise('milk.unsupervised.zscore: Can only handle 2-D arrays')
+    mu = features.mean(axis)
+    sigma = np.std(features, axis)
+    sigma[sigma == 0] = 1.
+    if not inplace:
+        features = features.copy()
+    if axis == 0:
+        features -= mu
+        features /= sigma
+    elif axis == 1:
+        features -= mu[:,None]
+        features /= sigma[:,None]
+    return features
+
