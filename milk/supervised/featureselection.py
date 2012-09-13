@@ -204,14 +204,23 @@ class filterfeatures(object):
     '''
     selector = filterfeatures(idxs)
 
-    Returns a transformer which selects the features given
-     by idxs
+    Returns a transformer which selects the features given by idxs. I.e.,
+    ``apply(features)`` is equivalent to ``features[idxs]``
+
+    Parameters
+    ----------
+    idxs : ndarray
+        This can be either an array of integers (positions) or an array of booleans
     '''
     def __init__(self, idxs):
         self.idxs = idxs
 
     def apply(self, features):
         return features[self.idxs]
+
+    def apply_many(self, features):
+        features = np.asanyarray(features)
+        return features[:,self.idxs]
 
     def __repr__(self):
         return 'filterfeatures(%s)' % self.idxs
