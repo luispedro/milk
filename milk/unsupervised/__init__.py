@@ -22,6 +22,7 @@ import nnmf
 from nnmf import *
 from pdist import pdist, plike
 from .som import som
+from .normalise import zscore
 
 __all__ = [
     'kmeans',
@@ -32,5 +33,6 @@ __all__ = [
     'plike',
     'mds'
     'som',
+    'zscore',
     ] + \
     nnmf.__all__
