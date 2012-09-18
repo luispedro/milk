@@ -1,4 +1,4 @@
-Version 0.4.2+
+Version 0.4.3 2012-09-19 by luispedro
 	* Add select_n_best & rank_corr to featureselection
 	* Add Euclidean MDS
 	* Add tree multi-class strategy

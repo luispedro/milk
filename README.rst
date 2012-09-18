@@ -93,6 +93,16 @@ Recent History
 The ChangeLog file contains a more complete history.
 
 
+New in 0.4.3 (17 Sept 2012)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Add select_n_best & rank_corr to featureselection
+- Add Euclidean MDS
+- Add tree multi-class strategy
+- Fix adaboost with boolean weak learners (issue #6, reported by audy
+  (Austin Richardson))
+- Add ``axis`` arguments to zscore()
+
+
 New in 0.4.2 (16 Jan 2012)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
