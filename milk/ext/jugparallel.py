@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2011-2012, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # License: MIT. See COPYING.MIT file in the milk distribution
 '''
@@ -65,7 +65,7 @@ def nfoldcrossvalidation(features, labels, **kwargs):
     '''
     nfolds = kwargs.get('nfolds', 10)
     features,labels = map(identity, (features,labels))
-    kwargs = {k:identity(v) for k,v in kwargs.iteritems()}
+    kwargs = dict( (k,identity(v)) for k,v in kwargs.iteritems())
     nfold_one = TaskGenerator(milk.nfoldcrossvalidation)
     mapped = [nfold_one(features, labels, folds=[i], **kwargs) for i in xrange(nfolds)]
     return jug_reduce(_nfold_reduce, mapped)
