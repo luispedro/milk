@@ -39,7 +39,10 @@ define_macros = []
 if os.environ.get('DEBUG'):
     undef_macros = ['NDEBUG']
     if os.environ.get('DEBUG') == '2':
-        define_macros = [('_GLIBCXX_DEBUG','1')]
+        define_macros = [
+                ('_GLIBCXX_DEBUG','1'),
+                ('EIGEN_INTERNAL_DEBUGGING', '1'),
+                ]
 
 
 _extensions = {
@@ -49,12 +52,14 @@ _extensions = {
         'milk.supervised._svm' : ['milk/supervised/_svm.cpp'],
         'milk.supervised._tree' : ['milk/supervised/_tree.cpp'],
         'milk.supervised._perceptron' : ['milk/supervised/_perceptron.cpp'],
+        'milk.supervised._lasso' : ['milk/supervised/_lasso.cpp'],
 }
 ext_modules = [
     Extension(key,
                 sources=sources,
                 undef_macros=undef_macros,
                 define_macros=define_macros,
+                extra_compile_args=['--std=c++0x'],
                 )
         for key,sources in _extensions.items()
 ]

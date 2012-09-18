@@ -2,6 +2,7 @@
 milk/supervised/_svm.so
 milk/supervised/_tree.so
 milk/supervised/_perceptron.so
+milk/supervised/_lasso.so
 milk/unsupervised/_som.so
 milk/unsupervised/_kmeans.so
 build
