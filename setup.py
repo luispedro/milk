@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2011, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,6 +21,7 @@
 #  THE SOFTWARE.
 
 from __future__ import division
+import os
 try:
     import setuptools
 except:
@@ -33,6 +34,13 @@ On linux, the package is often called python-setuptools'''
 from numpy.distutils.core import setup, Extension
 execfile('milk/milk_version.py')
 long_description = file('README.rst').read()
+undef_macros = []
+define_macros = []
+if os.environ.get('DEBUG'):
+    undef_macros = ['NDEBUG']
+    if os.environ.get('DEBUG') == '2':
+        define_macros = [('_GLIBCXX_DEBUG','1')]
+
 
 _extensions = {
         'milk.unsupervised._kmeans' : ['milk/unsupervised/_kmeans.cpp'],
@@ -43,7 +51,12 @@ _extensions = {
         'milk.supervised._perceptron' : ['milk/supervised/_perceptron.cpp'],
 }
 ext_modules = [
-    Extension(ext, sources=sources) for ext,sources in _extensions.iteritems()
+    Extension(key,
+                sources=sources,
+                undef_macros=undef_macros,
+                define_macros=define_macros,
+                )
+        for key,sources in _extensions.items()
 ]
 
 packages = filter(lambda p: p.startswith('milk'), setuptools.find_packages())
