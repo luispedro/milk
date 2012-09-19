@@ -23,53 +23,73 @@ int random_int(T& random, const int max) {
     std::uniform_int_distribution<int> dist(0, max - 1);
     return dist(random);
 }
-
 inline
 float soft(float val, float lam) {
     return copysign(fdim(fabs(val), lam), val);
 }
+struct lasso_solver {
+    lasso_solver(const MatrixXf& X, const MatrixXf& Y, MatrixXf& B, const int max_iter, const float lam, int maxnops=-1, const float eps=1e-15)
+        :X(X)
+        ,Y(Y)
+        ,B(B)
+        ,max_iter(max_iter)
+        ,maxnops(maxnops == -1 ? 2*B.size() : maxnops)
+        ,lam(lam)
+        ,eps(eps)
+        { }
 
-int coordinate_descent(const MatrixXf& X, const MatrixXf& Y, MatrixXf& B, const int max_iter, const float lam, int maxnops=-1, const float eps=1e-15) {
-    std::mt19937 r;
-    MatrixXf residuals = Y - B*X;
-    if (maxnops == -1) {
-        maxnops = 2*B.size();
-    }
-    int nops = 0;
-    int i = 0;
-    int j = 0;
-    for (int it = 0; it != max_iter; ++it) {
+    void next_coords(int& i, int& j) {
         ++j;
         if (j == B.cols()) {
             j = 0;
             ++i;
             if (i == B.rows()) i = 0;
         }
-        // Given everything else as fixed, this comes down to a very simple
-        // 1-dimensional problem. We remember the current value:
-        const float prev = B(i,j);
-        float xy = 0.0;
-        float x2 = 0.0;
-        for (int k = 0; k != Y.cols(); ++k) {
-            if (isnan(Y(i,k))) continue;
-            x2 += X(j,k)*X(j,k);
-            xy += X(j,k)*residuals(i,k);
-        }
-        const float step = (x2 == 0. ? 0. : (xy/x2));
-        const float best = soft(prev + step, lam);
-        if (fabs(best - prev) < eps) {
-            ++nops;
-            if (nops > maxnops) return it;
-        } else {
-            assert(!isnan(best));
-            nops = 0;
-            B(i,j) = best;
-            // This is slow, but whatever
-            residuals = Y - B*X;
-        }
     }
-    return max_iter;
-}
+
+
+
+    int solve() {
+        MatrixXf residuals = Y - B*X;
+        int nops = 0;
+        int i = 0;
+        int j = -1;
+        for (int it = 0; it != max_iter; ++it) {
+            this->next_coords(i, j);
+            // Given everything else as fixed, this comes down to a very simple
+            // 1-dimensional problem. We remember the current value:
+            const float prev = B(i,j);
+            float xy = 0.0;
+            float x2 = 0.0;
+            for (int k = 0; k != Y.cols(); ++k) {
+                if (isnan(Y(i,k))) continue;
+                x2 += X(j,k)*X(j,k);
+                xy += X(j,k)*residuals(i,k);
+            }
+            const float step = (x2 == 0. ? 0. : (xy/x2));
+            const float best = soft(prev + step, lam);
+            if (fabs(best - prev) < eps) {
+                ++nops;
+                if (nops > maxnops) return it;
+            } else {
+                assert(!isnan(best));
+                nops = 0;
+                B(i,j) = best;
+                // This is slow, but whatever
+                residuals = Y - B*X;
+            }
+        }
+        return max_iter;
+    }
+    std::mt19937 r;
+    const MatrixXf& X;
+    const MatrixXf& Y;
+    MatrixXf& B;
+    const int max_iter;
+    const int maxnops;
+    const float lam;
+    const float eps;
+};
 
 Map<MatrixXf> as_eigen(PyArrayObject* arr) {
     assert(PyArray_EquivTypenums(PyArray_TYPE(arr), NPY_FLOAT32));
@@ -101,7 +121,8 @@ PyObject* py_lasso(PyObject* self, PyObject* args) {
     MatrixXf mY = as_eigen(Y);
     MatrixXf mB = as_eigen(B);
     max_iter *= mB.size();
-    const int iters = coordinate_descent(mX, mY, mB, max_iter, lam, -1, eps);
+    lasso_solver solver(mX, mY, mB, max_iter, lam, -1, eps);
+    const int iters = solver.solve();
     float* rB = static_cast<float*>(PyArray_DATA(B));
     for (int y = 0; y != mB.rows(); ++y) {
         for (int x = 0; x != mB.cols(); ++x) {
