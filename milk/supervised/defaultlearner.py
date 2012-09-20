@@ -6,12 +6,37 @@
 
 from __future__ import division
 import numpy as np
+from milk.supervised.base import supervised_model
 
 __all__ = [
     'defaultlearner',
     'svm_simple',
     'feature_selection_simple',
     ]
+
+class default_learner(object):
+    def __init__(self, preproc, classifier, multi_adapter):
+        self.preproc = preproc
+        self.classifier = classifier
+        self.multi_adapter = preproc
+
+    def train(self, features, labels):
+        model = self.preproc.train(features, labels)
+        nfeatures = model.apply_many(features)
+        classifier = self.classifier
+        if len(set(labels)) > 2:
+            classifier = self.multi_adapter(classifier)
+        cmodel = classifier.train(nfeatures, labels)
+        return default_model(classifier, cmodel)
+
+class default_model(supervised_model):
+    def __init__(self, preproc, classify):
+        self.preproc = preproc
+        self.classify = classify
+
+    def apply(self, features):
+        features = self.preproc.apply(features)
+        return self.classify.apply(features)
 
 def defaultlearner(mode='medium', multi_strategy='1-vs-1', expanded=False):
     '''
