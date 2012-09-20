@@ -51,33 +51,37 @@ struct lasso_solver {
 
 
     int solve() {
-        MatrixXf residuals = Y - B*X;
+        MatrixXf residuals;
         int nops = 0;
         int i = 0;
         int j = -1;
         for (int it = 0; it != max_iter; ++it) {
+            // This resets the residuals matrix to the real values to avoid drift due to approximations
+            if (!(it % 512)) residuals = Y - B*X;
             this->next_coords(i, j);
-            // Given everything else as fixed, this comes down to a very simple
-            // 1-dimensional problem. We remember the current value:
+
+            // We now set βᵢⱼ holding everything else fixed.  This comes down
+            // to a very simple 1-dimensional problem.
+            // We remember the current value in order to compute update below
             const float prev = B(i,j);
             float xy = 0.0;
             float x2 = 0.0;
             for (int k = 0; k != Y.cols(); ++k) {
-                if (isnan(Y(i,k))) continue;
+                if (std::isnan(Y(i,k))) continue;
                 x2 += X(j,k)*X(j,k);
                 xy += X(j,k)*residuals(i,k);
             }
-            const float step = (x2 == 0. ? 0. : (xy/x2));
-            const float best = soft(prev + step, lam);
+            const float raw_step = (x2 == 0. ? 0. : (xy/x2));
+            const float best = soft(prev + raw_step, lam);
             if (fabs(best - prev) < eps) {
                 ++nops;
                 if (nops > maxnops) return it;
             } else {
-                assert(!isnan(best));
+                const float step = best - prev;
+                assert(!std::isnan(best));
                 nops = 0;
                 B(i,j) = best;
-                // This is slow, but whatever
-                residuals = Y - B*X;
+                residuals.row(i) -= step*X.row(j);
             }
         }
         return max_iter;
