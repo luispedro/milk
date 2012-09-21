@@ -4,11 +4,16 @@ import _lasso
 
 def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
     '''
-    B = lasso(X, Y, B={np.zeros()}, lam=1. max_iter={1024}, tol={1e-15})
+    B = lasso(X, Y, B={np.zeros()}, lam=1. max_iter={1024}, tol={1e-5})
 
     Solve LASSO Optimisation
 
         B* = arg min_B || Y - BX ||₂² + λ||B||₁
+
+    Milk uses coordinate descent, looping through the coordinates in order
+    (with an active set strategy to update only non-zero βs, if possible). The
+    problem is convex and the solution is guaranteed to be optimal (within
+    floating point accuracy).
 
     Parameters
     ----------
@@ -25,7 +30,11 @@ def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
     max_iter : int, optional
         Maximum nr of iterations (default: 1024)
     tol : float, optional
-        Tolerance. Used for floating point "equality" comparisions (default: 1e-15)
+        Tolerance. Whenever a parameter is to be updated by a value smaller
+        than ``tolerance``, that is considered a null update. Be careful that
+        if the value is too small, performance will degrade horribly.
+        (default: 1e-5)
+
     Returns
     -------
     B : ndarray
@@ -39,7 +48,7 @@ def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
     if max_iter is None:
         max_iter = 1024
     if tol is None:
-        tol = 1e-15
+        tol = 1e-5
     if X.shape[0] != B.shape[1] or \
         Y.shape[0] != B.shape[0] or \
         X.shape[1] != Y.shape[1]:

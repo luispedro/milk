@@ -6,6 +6,7 @@
 #include <cmath>
 #include <random>
 #include <cassert>
+#include <queue>
 #include <eigen3/Eigen/Dense>
 
 using namespace Eigen;
@@ -29,13 +30,12 @@ float soft(const float val, const float lam) {
 }
 typedef Map<Matrix<float, Dynamic, Dynamic, RowMajor>, Aligned> MapXAf;
 struct lasso_solver {
-    lasso_solver(const MapXAf& X, const MapXAf& Y, const MapXAf& W, MapXAf& B, const int max_iter, const float lam, int maxnops=-1, const float eps=1e-15)
+    lasso_solver(const MapXAf& X, const MapXAf& Y, const MapXAf& W, MapXAf& B, const int max_iter, const float lam, const float eps)
         :X(X)
         ,Y(Y)
         ,W(W)
         ,B(B)
         ,max_iter(max_iter)
-        ,maxnops(maxnops == -1 ? 2*B.size() : maxnops)
         ,lam(lam)
         ,eps(eps)
         { }
@@ -45,21 +45,25 @@ struct lasso_solver {
         if (j == B.cols()) {
             j = 0;
             ++i;
-            if (i == B.rows()) i = 0;
+            if (i == B.rows()) {
+                i = 0;
+            }
         }
     }
 
 
 
     int solve() {
-        MatrixXf residuals;
-        int nops = 0;
+        MatrixXf residuals = Y - B*X;
+        MatrixXi active(B.rows(), B.cols());
+        active.fill(1);
+        int nactive = B.size();
         int i = 0;
         int j = -1;
+        bool changed = false;
         for (int it = 0; it != max_iter; ++it) {
-            // This resets the residuals matrix to the real values to avoid drift due to approximations
-            if (!(it % 512)) residuals = Y - B*X;
             this->next_coords(i, j);
+            if (!active(i,j)) continue;
 
             // We now set βᵢⱼ holding everything else fixed.  This comes down
             // to a very simple 1-dimensional problem.
@@ -71,17 +75,26 @@ struct lasso_solver {
                 x2 += W(i,k)*X(j,k)*X(j,k);
                 xy += W(i,k)*X(j,k)*residuals(i,k);
             }
-            const float raw_step = (x2 == 0. ? 0. : (xy/x2));
+            const float raw_step = xy/x2;
             const float best = soft(prev + raw_step, lam);
-            if (fabs(best - prev) < eps) {
-                ++nops;
-                if (nops > maxnops) return it;
+            const float step = best - prev;
+            if (std::fabs(step) < eps) {
+                active(i,j) = 0;
+                --nactive;
+                if (!nactive) {
+                    if (!changed) return it;
+                    // Reset the residuals matrix to the best values to avoid
+                    // drift due to successive rounding:
+                    residuals = Y - B*X;
+                    active.fill(1);
+                    nactive = active.size();
+                    changed = false;
+                }
             } else {
-                const float step = best - prev;
                 assert(!std::isnan(best));
-                nops = 0;
                 B(i,j) = best;
                 residuals.row(i) -= step*X.row(j);
+                changed = true;
             }
         }
         return max_iter;
@@ -92,7 +105,6 @@ struct lasso_solver {
     const MapXAf& W;
     MapXAf& B;
     const int max_iter;
-    const int maxnops;
     const float lam;
     const float eps;
 };
@@ -132,7 +144,7 @@ PyObject* py_lasso(PyObject* self, PyObject* args) {
     MapXAf mW = as_eigen(W);
     MapXAf mB = as_eigen(B);
     max_iter *= mB.size();
-    lasso_solver solver(mX, mY, mW, mB, max_iter, lam, -1, eps);
+    lasso_solver solver(mX, mY, mW, mB, max_iter, lam, eps);
     const int iters = solver.solve();
 
     return Py_BuildValue("i", iters);
