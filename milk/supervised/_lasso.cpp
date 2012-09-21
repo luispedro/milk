@@ -27,7 +27,7 @@ inline
 float soft(float val, float lam) {
     return copysign(fdim(fabs(val), lam), val);
 }
-typedef Map<MatrixXf, Aligned> MapXAf;
+typedef Map<Matrix<float, Dynamic, Dynamic, RowMajor>, Aligned> MapXAf;
 struct lasso_solver {
     lasso_solver(const MapXAf& X, const MapXAf& Y, const MapXAf& W, MapXAf& B, const int max_iter, const float lam, int maxnops=-1, const float eps=1e-15)
         :X(X)
@@ -65,12 +65,9 @@ struct lasso_solver {
             // to a very simple 1-dimensional problem.
             // We remember the current value in order to compute update below
             const float prev = B(i,j);
-            float xy = 0.0;
             float x2 = 0.0;
-            for (int k = 0; k != Y.cols(); ++k) {
-                if (std::isnan(Y(i,k))) continue;
-                x2 += X(j,k)*X(j,k);
-                xy += X(j,k)*residuals(i,k);
+            float xy = 0.0;
+            for (int k = 0, cols = Y.cols(); k != cols; ++k) {
                 x2 += W(i,k)*X(j,k)*X(j,k);
                 xy += W(i,k)*X(j,k)*residuals(i,k);
             }
@@ -119,11 +116,13 @@ PyObject* py_lasso(PyObject* self, PyObject* args) {
     float lam;
     float eps;
     if (!PyArg_ParseTuple(args, "OOOOiff", &X, &Y, &W, &B, &max_iter, &lam, &eps)) return NULL;
-    if (!PyArray_Check(X) || //!PyArray_ISCARRAY_RO(X) ||
-        !PyArray_Check(Y) || //!PyArray_ISCARRAY_RO(Y) ||
-        !PyArray_Check(B) || //!PyArray_ISCARRAY(B) ||
+    if (!PyArray_Check(X) || !PyArray_ISCARRAY_RO(X) ||
+        !PyArray_Check(Y) || !PyArray_ISCARRAY_RO(Y) ||
+        !PyArray_Check(W) || !PyArray_ISCARRAY_RO(W) ||
+        !PyArray_Check(B) || !PyArray_ISCARRAY(B) ||
         !PyArray_EquivTypenums(PyArray_TYPE(X), NPY_FLOAT32) ||
         !PyArray_EquivTypenums(PyArray_TYPE(Y), NPY_FLOAT32) ||
+        !PyArray_EquivTypenums(PyArray_TYPE(W), NPY_FLOAT32) ||
         !PyArray_EquivTypenums(PyArray_TYPE(B), NPY_FLOAT32)) {
         PyErr_SetString(PyExc_RuntimeError,errmsg);
         return 0;
