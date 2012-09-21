@@ -24,8 +24,8 @@ int random_int(T& random, const int max) {
     return dist(random);
 }
 inline
-float soft(float val, float lam) {
-    return copysign(fdim(fabs(val), lam), val);
+float soft(const float val, const float lam) {
+    return std::copysign(std::fdim(std::fabs(val), lam), val);
 }
 typedef Map<Matrix<float, Dynamic, Dynamic, RowMajor>, Aligned> MapXAf;
 struct lasso_solver {
