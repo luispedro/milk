@@ -46,3 +46,14 @@ def test_lasso_walk():
         assert not np.all(Bs[0] == Bs[1])
         assert len(Bs) == 3
 
+def test_lasso_walk_nans():
+    np.random.seed(5)
+    for i in xrange(3):
+        X = np.random.rand(100,10)
+        Y = np.random.rand(5,10)
+        B = np.random.rand(5,100)
+        for j in xrange(12):
+            Y.flat[np.random.randint(0,Y.size-1)] = float('nan')
+        B  = milk.supervised.lasso_walk(X,Y, nr_steps=6)
+        assert np.all(~np.isnan(B))
+
