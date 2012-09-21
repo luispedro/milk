@@ -27,8 +27,9 @@ inline
 float soft(float val, float lam) {
     return copysign(fdim(fabs(val), lam), val);
 }
+typedef Map<MatrixXf, Aligned> MapXAf;
 struct lasso_solver {
-    lasso_solver(const MatrixXf& X, const MatrixXf& Y, MatrixXf& B, const int max_iter, const float lam, int maxnops=-1, const float eps=1e-15)
+    lasso_solver(const MapXAf& X, const MapXAf& Y, MapXAf& B, const int max_iter, const float lam, int maxnops=-1, const float eps=1e-15)
         :X(X)
         ,Y(Y)
         ,B(B)
@@ -82,21 +83,22 @@ struct lasso_solver {
         return max_iter;
     }
     std::mt19937 r;
-    const MatrixXf& X;
-    const MatrixXf& Y;
-    MatrixXf& B;
+    const MapXAf& X;
+    const MapXAf& Y;
+    MapXAf& B;
     const int max_iter;
     const int maxnops;
     const float lam;
     const float eps;
 };
 
-Map<MatrixXf> as_eigen(PyArrayObject* arr) {
+
+MapXAf as_eigen(PyArrayObject* arr) {
     assert(PyArray_EquivTypenums(PyArray_TYPE(arr), NPY_FLOAT32));
-    return Map<MatrixXf>(
-                    static_cast<float*>(PyArray_DATA(arr)),
-                    PyArray_DIM(arr, 0),
-                    PyArray_DIM(arr, 1));
+    return MapXAf(
+                static_cast<float*>(PyArray_DATA(arr)),
+                PyArray_DIM(arr, 0),
+                PyArray_DIM(arr, 1));
 }
 
 const char* errmsg = "INTERNAL ERROR";
@@ -117,19 +119,12 @@ PyObject* py_lasso(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_RuntimeError,errmsg);
         return 0;
     }
-    MatrixXf mX = as_eigen(X);
-    MatrixXf mY = as_eigen(Y);
-    MatrixXf mB = as_eigen(B);
+    MapXAf mX = as_eigen(X);
+    MapXAf mY = as_eigen(Y);
+    MapXAf mB = as_eigen(B);
     max_iter *= mB.size();
     lasso_solver solver(mX, mY, mB, max_iter, lam, -1, eps);
     const int iters = solver.solve();
-    float* rB = static_cast<float*>(PyArray_DATA(B));
-    for (int y = 0; y != mB.rows(); ++y) {
-        for (int x = 0; x != mB.cols(); ++x) {
-            *rB++ = mB(y,x);
-        }
-
-    }
 
     return Py_BuildValue("i", iters);
 }
