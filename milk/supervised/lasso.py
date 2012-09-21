@@ -44,14 +44,16 @@ def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
         Y.shape[0] != B.shape[0] or \
         X.shape[1] != Y.shape[1]:
         raise ValueError('milk.supervised.lasso: Dimensions do not match')
+    if np.any(np.isnan(X)) or np.any(np.isnan(B)):
+        raise ValueError('milk.supervised.lasso: NaNs are only supported in the ``Y`` matrix')
     W = np.ascontiguousarray(~np.isnan(B), dtype=np.float32)
     Y = np.nan_to_num(Y)
     _lasso.lasso(X, Y, W, B, max_iter, float(lam), float(tol))
     return B
 
-def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None):
+def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None, tol=None):
     '''
-    Bs = lasso_walk(X, Y, B={np.zeros()}, nr_steps={64}, start={automatically inferred}, step={.9})
+    Bs = lasso_walk(X, Y, B={np.zeros()}, nr_steps={64}, start={automatically inferred}, step={.9}, tol=None)
 
     Repeatedly solve LASSO Optimisation
 
@@ -74,6 +76,10 @@ def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None):
         How many steps in the path (default is 64)
     step : float, optional
         Multiplicative step to take (default is 0.9)
+    tol : float, optional
+        This is the tolerance parameter. It is passed to the lasso function
+        unmodified.
+
     Returns
     -------
     Bs : ndarray
@@ -83,14 +89,15 @@ def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None):
     if step is None:
         step = .9
     if start is None:
-        start = np.abs(Y).max()
+        start = np.nanmax(np.abs(Y))*np.abs(X).max()
+
 
     lam = start
     Bs = []
     for i in xrange(nr_steps):
         # The central idea is that each iteration is already "warm" and this
         # should be faster than starting from zero each time
-        B = lasso(X, Y, B, lam=lam)
+        B = lasso(X, Y, B, lam=lam, tol=tol)
         Bs.append(B.copy())
         lam *= step
     return np.array(Bs)
