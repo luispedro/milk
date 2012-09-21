@@ -18,7 +18,8 @@ def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
         Matrix of outputs
     B : ndarray, optional
         Starting values for approximation. This can be used for a warm start if
-        you have an estimate of where the solution should be.
+        you have an estimate of where the solution should be. If used, the
+        solution might be written in-place (if the array has the right format).
     lam : float, optional
         λ (default: 1.0)
     max_iter : int, optional
@@ -43,7 +44,9 @@ def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
         Y.shape[0] != B.shape[0] or \
         X.shape[1] != Y.shape[1]:
         raise ValueError('milk.supervised.lasso: Dimensions do not match')
-    _lasso.lasso(X, Y, B, max_iter, float(lam), float(tol))
+    W = np.asfortranarray(~np.isnan(B), dtype=np.float32)
+    Y *= ~np.isnan(Y)
+    _lasso.lasso(X, Y, W, B, max_iter, float(lam), float(tol))
     return B
 
 def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None):

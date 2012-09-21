@@ -29,9 +29,10 @@ float soft(float val, float lam) {
 }
 typedef Map<MatrixXf, Aligned> MapXAf;
 struct lasso_solver {
-    lasso_solver(const MapXAf& X, const MapXAf& Y, MapXAf& B, const int max_iter, const float lam, int maxnops=-1, const float eps=1e-15)
+    lasso_solver(const MapXAf& X, const MapXAf& Y, const MapXAf& W, MapXAf& B, const int max_iter, const float lam, int maxnops=-1, const float eps=1e-15)
         :X(X)
         ,Y(Y)
+        ,W(W)
         ,B(B)
         ,max_iter(max_iter)
         ,maxnops(maxnops == -1 ? 2*B.size() : maxnops)
@@ -70,6 +71,8 @@ struct lasso_solver {
                 if (std::isnan(Y(i,k))) continue;
                 x2 += X(j,k)*X(j,k);
                 xy += X(j,k)*residuals(i,k);
+                x2 += W(i,k)*X(j,k)*X(j,k);
+                xy += W(i,k)*X(j,k)*residuals(i,k);
             }
             const float raw_step = (x2 == 0. ? 0. : (xy/x2));
             const float best = soft(prev + raw_step, lam);
@@ -89,6 +92,7 @@ struct lasso_solver {
     std::mt19937 r;
     const MapXAf& X;
     const MapXAf& Y;
+    const MapXAf& W;
     MapXAf& B;
     const int max_iter;
     const int maxnops;
@@ -107,13 +111,14 @@ MapXAf as_eigen(PyArrayObject* arr) {
 
 const char* errmsg = "INTERNAL ERROR";
 PyObject* py_lasso(PyObject* self, PyObject* args) {
-    PyArrayObject* Y;
     PyArrayObject* X;
+    PyArrayObject* Y;
+    PyArrayObject* W;
     PyArrayObject* B;
     int max_iter;
     float lam;
     float eps;
-    if (!PyArg_ParseTuple(args, "OOOiff", &X, &Y, &B, &max_iter, &lam, &eps)) return NULL;
+    if (!PyArg_ParseTuple(args, "OOOOiff", &X, &Y, &W, &B, &max_iter, &lam, &eps)) return NULL;
     if (!PyArray_Check(X) || //!PyArray_ISCARRAY_RO(X) ||
         !PyArray_Check(Y) || //!PyArray_ISCARRAY_RO(Y) ||
         !PyArray_Check(B) || //!PyArray_ISCARRAY(B) ||
@@ -125,9 +130,10 @@ PyObject* py_lasso(PyObject* self, PyObject* args) {
     }
     MapXAf mX = as_eigen(X);
     MapXAf mY = as_eigen(Y);
+    MapXAf mW = as_eigen(W);
     MapXAf mB = as_eigen(B);
     max_iter *= mB.size();
-    lasso_solver solver(mX, mY, mB, max_iter, lam, -1, eps);
+    lasso_solver solver(mX, mY, mW, mB, max_iter, lam, -1, eps);
     const int iters = solver.solve();
 
     return Py_BuildValue("i", iters);
