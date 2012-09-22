@@ -22,16 +22,17 @@ import nnmf
 from nnmf import *
 from pdist import pdist, plike
 from .som import som
-from .normalise import zscore
+from .normalise import zscore, center
 
 __all__ = [
+    'center',
     'kmeans',
-    'repeated_kmeans',
-    'select_best_kmeans',
+    'mds'
     'pca',
     'pdist',
     'plike',
-    'mds'
+    'repeated_kmeans',
+    'select_best_kmeans',
     'som',
     'zscore',
     ] + \
