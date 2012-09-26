@@ -98,7 +98,7 @@ def center(features, axis=0, can_have_nans=True, inplace=False):
         meanfunction = _nanmean
     else:
         meanfunction = np.mean
-    features = np.asanyarray(features, copy=(not inplace), dtype=float)
+    features = np.array(features, copy=(not inplace), dtype=float)
     mean = meanfunction(features, axis=axis)
     if axis == 0:
         features -= mean

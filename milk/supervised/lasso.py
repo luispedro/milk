@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*- 
 import numpy as np
 import _lasso
+from .base import supervised_model
+from milk.unsupervised import center
 
 def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
     '''
@@ -110,5 +112,32 @@ def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None, tol=None):
         Bs.append(B.copy())
         lam *= step
     return np.array(Bs)
+
+def _dict_subset(mapping, keys):
+    return dict(
+            [(k,mapping[k]) for k in keys])
+
+class lasso_model(supervised_model):
+    def __init__(self, betas, mean):
+        self.betas = betas
+        self.mean = mean
+
+    def retrain(self, features, labels, lam, **kwargs):
+        features, mean = center(features) 
+        betas = lasso(features, labels, self.betas.copy(), lam=lam, **_dict_subset(kwargs, ['tol', 'max_iter']))
+        return lasso_model(betas, mean)
+        
+    def apply(self, features):
+        return np.dot(self.betas, features) + self.mean
+
+
+class lasso_learner(object):
+    def __init__(self, lam=1.0):
+        self.lam = lam
+
+    def train(self, features, labels, betas=None, **kwargs):
+        labels, mean = center(labels, axis=1) 
+        betas = lasso(features, labels, betas, lam=self.lam)
+        return lasso_model(betas, mean)
 
 

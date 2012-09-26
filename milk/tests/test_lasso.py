@@ -1,3 +1,4 @@
+from milk.supervised.lasso import lasso_learner
 import milk.supervised.lasso
 import numpy as np
 
@@ -57,3 +58,12 @@ def test_lasso_walk_nans():
         B  = milk.supervised.lasso_walk(X,Y, nr_steps=6)
         assert np.all(~np.isnan(B))
 
+
+def test_learner():
+    np.random.seed(334)
+    learner = lasso_learner()
+    X = np.random.rand(100,10)
+    Y = np.random.rand(5,10)
+    model = learner.train(X,Y)
+    test = model.apply(np.random.rand(100))
+    assert len(test) == len(Y)
