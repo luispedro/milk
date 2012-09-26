@@ -53,7 +53,7 @@ from .defaultclassifier import defaultclassifier, svm_simple
 from .classifier import normaliselabels
 from .gridsearch import gridsearch
 from .tree import tree_learner
-from .lasso import lasso, lasso_learner, lasso_walk
+from .lasso import lasso, lasso_learner, lasso_model_walk, lasso_walk
 
 __all__ = [
     'normaliselabels',
@@ -62,6 +62,7 @@ __all__ = [
     'gridsearch',
     'lasso',
     'lasso_learner',
+    'lasso_model_walk',
     'lasso_walk',
     'tree_learner',
     ]

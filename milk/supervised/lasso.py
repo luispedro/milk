@@ -151,4 +151,11 @@ class lasso_learner(object):
         betas = lasso(features, labels, betas, lam=self.lam)
         return lasso_model(betas, mean)
 
+def lasso_model_walk(X, Y, B=None, nr_steps=64, start=None, step=.9, tol=None, return_lams=False):
+    Y, mean = center(Y, axis=1)
+    Bs,lams = lasso_walk(X,Y, B, nr_steps, start, step, tol, return_lams=True)
+    models = [lasso_model(B, mean) for B in Bs]
+    if return_lams:
+        return models, lams
+    return models
 
