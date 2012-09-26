@@ -63,19 +63,36 @@ struct lasso_solver {
 
 
     int solve() {
-        MatrixXf residuals = Y - B*X;
-        MatrixXi active(B.rows(), B.cols());
-        active.fill(1);
-        int nactive = B.size();
+        MatrixXf residuals;
         int i = 0;
         int j = -1;
+        // sweep is whether we are doing a whole-B sweep (i.e., even looking at
+        // non-zero Bs)
+        // changed is whether something has changed
+        // We set this up to trigger computation of residuals and a sweep on
+        // the first iteration
+        bool sweep = false;
         bool changed = false;
         assert(!has_nans(X));
         assert(!has_nans(Y));
         assert(!has_nans(B));
         for (int it = 0; it != max_iter; ++it) {
             this->next_coords(i, j);
-            if (!active(i,j)) continue;
+            if (i == 0 && j == 0) {
+                if (sweep && !changed) {
+                    return it;
+                }
+                if (!changed) {
+                    sweep = true;
+                    // Reset the residuals matrix to the best values to avoid
+                    // drift due to successive rounding:
+                    residuals = Y - B*X;
+                } else {
+                    sweep = false;
+                }
+                changed = false;
+            }
+            if (!sweep && B(i,j) == 0.0) continue;
 
             // We now set βᵢⱼ holding everything else fixed.  This comes down
             // to a very simple 1-dimensional problem.
@@ -90,19 +107,7 @@ struct lasso_solver {
             const float raw_step = (x2 == 0.0 ? 0.0 : xy/x2);
             const float best = soft(prev + raw_step, lam);
             const float step = best - prev;
-            if (std::fabs(step) < eps) {
-                active(i,j) = 0;
-                --nactive;
-                if (!nactive) {
-                    if (!changed) return it;
-                    // Reset the residuals matrix to the best values to avoid
-                    // drift due to successive rounding:
-                    residuals = Y - B*X;
-                    active.fill(1);
-                    nactive = active.size();
-                    changed = false;
-                }
-            } else {
+            if (std::fabs(step) > eps) {
                 assert(!std::isnan(best));
                 B(i,j) = best;
                 residuals.row(i) -= step*X.row(j);
