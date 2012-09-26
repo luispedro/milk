@@ -65,9 +65,10 @@ def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
     _lasso.lasso(X, Y, W, B, max_iter, float(2*n*lam), float(tol))
     return B
 
-def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None, tol=None):
+def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None, tol=None, return_lams=False):
     '''
-    Bs = lasso_walk(X, Y, B={np.zeros()}, nr_steps={64}, start={automatically inferred}, step={.9}, tol=None)
+    Bs = lasso_walk(X, Y, B={np.zeros()}, nr_steps={64}, start={automatically inferred}, step={.9}, tol=None, return_lams=False)
+    Bs,lams = lasso_walk(X, Y, B={np.zeros()}, nr_steps={64}, start={automatically inferred}, step={.9}, tol=None, return_lams=True)
 
     Repeatedly solve LASSO Optimisation
 
@@ -93,6 +94,8 @@ def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None, tol=None):
     tol : float, optional
         This is the tolerance parameter. It is passed to the lasso function
         unmodified.
+    return_lams : bool, optional
+        Whether to return the values of λ used (default: False)
 
     Returns
     -------
@@ -105,17 +108,20 @@ def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None, tol=None):
     if start is None:
         n = Y.shape[1]
         start = 0.5/n*np.nanmax(np.abs(Y))*np.abs(X).max()
-        print start
 
 
     lam = start
+    lams = []
     Bs = []
     for i in xrange(nr_steps):
         # The central idea is that each iteration is already "warm" and this
         # should be faster than starting from zero each time
         B = lasso(X, Y, B, lam=lam, tol=tol)
+        lams.append(lam)
         Bs.append(B.copy())
         lam *= step
+    if return_lams:
+        return np.array(Bs), np.array(lams)
     return np.array(Bs)
 
 def _dict_subset(mapping, keys):
