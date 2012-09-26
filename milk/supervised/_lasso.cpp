@@ -29,6 +29,15 @@ float soft(const float val, const float lam) {
     return std::copysign(std::fdim(std::fabs(val), lam), val);
 }
 typedef Map<Matrix<float, Dynamic, Dynamic, RowMajor>, Aligned> MapXAf;
+bool has_nans(const MapXAf& X) {
+    for (int i = 0; i != X.rows(); ++i) {
+        for (int j = 0; j != X.cols(); ++j) {
+            if (std::isnan(X(i,j))) return true;
+        }
+    }
+    return false;
+}
+
 struct lasso_solver {
     lasso_solver(const MapXAf& X, const MapXAf& Y, const MapXAf& W, MapXAf& B, const int max_iter, const float lam, const float eps)
         :X(X)
@@ -61,6 +70,9 @@ struct lasso_solver {
         int i = 0;
         int j = -1;
         bool changed = false;
+        assert(!has_nans(X));
+        assert(!has_nans(Y));
+        assert(!has_nans(B));
         for (int it = 0; it != max_iter; ++it) {
             this->next_coords(i, j);
             if (!active(i,j)) continue;
@@ -75,7 +87,7 @@ struct lasso_solver {
                 x2 += W(i,k)*X(j,k)*X(j,k);
                 xy += W(i,k)*X(j,k)*residuals(i,k);
             }
-            const float raw_step = xy/x2;
+            const float raw_step = (x2 == 0.0 ? 0.0 : xy/x2);
             const float best = soft(prev + raw_step, lam);
             const float step = best - prev;
             if (std::fabs(step) < eps) {
