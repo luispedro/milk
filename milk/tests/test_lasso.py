@@ -41,10 +41,10 @@ def test_lasso_walk():
     for i in xrange(4):
         X = np.random.rand(100,10)
         Y = np.random.rand(5,10)
-        Bs  = milk.supervised.lasso_walk(X,Y, start=.1, nr_steps=3)
-        B0 = milk.supervised.lasso(X,Y, lam=.1)
+        Bs  = milk.supervised.lasso_walk(X,Y, start=.0001, nr_steps=3)
+        B0 = milk.supervised.lasso(X,Y, lam=.0001)
         assert np.all(Bs[0] == B0)
-        assert not np.all(Bs[0] == Bs[1])
+        assert not np.all(Bs[0] == Bs[-1])
         assert len(Bs) == 3
 
 def test_lasso_walk_nans():

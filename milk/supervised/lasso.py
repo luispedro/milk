@@ -10,7 +10,9 @@ def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
 
     Solve LASSO Optimisation
 
-        B* = arg min_B || Y - BX ||₂² + λ||B||₁
+        B* = arg min_B ½/n || Y - BX ||₂² + λ||B||₁
+
+    where $n$ is the number of samples.
 
     Milk uses coordinate descent, looping through the coordinates in order
     (with an active set strategy to update only non-zero βs, if possible). The
@@ -59,7 +61,8 @@ def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
         raise ValueError('milk.supervised.lasso: NaNs are only supported in the ``Y`` matrix')
     W = np.ascontiguousarray(~np.isnan(B), dtype=np.float32)
     Y = np.nan_to_num(Y)
-    _lasso.lasso(X, Y, W, B, max_iter, float(lam), float(tol))
+    n = Y.shape[1]
+    _lasso.lasso(X, Y, W, B, max_iter, float(2*n*lam), float(tol))
     return B
 
 def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None, tol=None):
@@ -68,7 +71,7 @@ def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None, tol=None):
 
     Repeatedly solve LASSO Optimisation
 
-        B* = arg min_B || Y - BX ||₂² + λ||B||₁
+        B* = arg min_B ½/n || Y - BX ||₂² + λ||B||₁
 
     for different values of λ.
 
@@ -100,7 +103,9 @@ def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None, tol=None):
     if step is None:
         step = .9
     if start is None:
-        start = np.nanmax(np.abs(Y))*np.abs(X).max()
+        n = Y.shape[1]
+        start = 0.5/n*np.nanmax(np.abs(Y))*np.abs(X).max()
+        print start
 
 
     lam = start
