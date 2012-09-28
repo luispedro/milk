@@ -98,12 +98,8 @@ struct lasso_solver {
             // to a very simple 1-dimensional problem.
             // We remember the current value in order to compute update below
             const float prev = B(i,j);
-            float x2 = 0.0;
-            float xy = 0.0;
-            for (int k = 0, cols = Y.cols(); k != cols; ++k) {
-                x2 += W(i,k)*X(j,k)*X(j,k);
-                xy += W(i,k)*X(j,k)*residuals(i,k);
-            }
+            const float x2 = (W.row(i).array()*X.row(j).array() * X.row(j).array()).sum();
+            const float xy = (W.row(i).array()*X.row(j).array() * residuals.row(i).array()).sum();
             const float raw_step = (x2 == 0.0 ? 0.0 : xy/x2);
             const float best = soft(prev + raw_step, lam);
             const float step = best - prev;
