@@ -98,6 +98,9 @@ struct lasso_solver {
             // to a very simple 1-dimensional problem.
             // We remember the current value in order to compute update below
             const float prev = B(i,j);
+            assert(Y.cols() == W.cols());
+            assert(Y.cols() == X.cols());
+            assert(Y.cols() == residuals.cols());
             const float x2 = (W.row(i).array()*X.row(j).array() * X.row(j).array()).sum();
             const float xy = (W.row(i).array()*X.row(j).array() * residuals.row(i).array()).sum();
             const float raw_step = (x2 == 0.0 ? 0.0 : xy/x2);

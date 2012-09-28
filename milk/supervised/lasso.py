@@ -59,7 +59,7 @@ def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
         raise ValueError('milk.supervised.lasso: Dimensions do not match')
     if np.any(np.isnan(X)) or np.any(np.isnan(B)):
         raise ValueError('milk.supervised.lasso: NaNs are only supported in the ``Y`` matrix')
-    W = np.ascontiguousarray(~np.isnan(B), dtype=np.float32)
+    W = np.ascontiguousarray(~np.isnan(Y), dtype=np.float32)
     Y = np.nan_to_num(Y)
     n = Y.shape[1]
     _lasso.lasso(X, Y, W, B, max_iter, float(2*n*lam), float(tol))
