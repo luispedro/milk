@@ -63,7 +63,7 @@ struct lasso_solver {
 
 
     int solve() {
-        MatrixXf residuals;
+        Matrix<float, Dynamic, Dynamic, RowMajor> residuals;
         int i = 0;
         int j = -1;
         // sweep is whether we are doing a whole-B sweep (i.e., even looking at
@@ -129,6 +129,7 @@ struct lasso_solver {
 
 MapXAf as_eigen(PyArrayObject* arr) {
     assert(PyArray_EquivTypenums(PyArray_TYPE(arr), NPY_FLOAT32));
+    assert(PyArray_ISCARRAY_RO(arr));
     return MapXAf(
                 static_cast<float*>(PyArray_DATA(arr)),
                 PyArray_DIM(arr, 0),
