@@ -1,6 +1,7 @@
 Version 0.4.3+
 	* Add coordinate-descent based LASSO
 	* Add unsupervised.center function
+	* Make zscore work with NaNs (by ignoring them)
 
 Version 0.4.3 2012-09-19 by luispedro
 	* Add select_n_best & rank_corr to featureselection

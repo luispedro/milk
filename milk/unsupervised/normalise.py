@@ -26,10 +26,19 @@ __all__ = [
     'center',
     'zscore',
     ]
+def _nanmean(arr, axis=None):
+    nancounts = np.sum(~np.isnan(arr), axis=axis)
+    return np.nansum(arr,axis=axis)/nancounts
+def _nanstd(arr, axis=None):
+    if axis == 1:
+        return _nanstd(arr.T, axis=0)
+    mu = _nanmean(arr,axis=axis)
+    return np.sqrt(_nanmean((arr-mu)**2, axis=axis))
 
-def zscore(features, axis=0, inplace=False):
+
+def zscore(features, axis=0, can_have_nans=True, inplace=False):
     """
-    features = zscore(features, axis=0, inplace=False)
+    features = zscore(features, axis=0, can_have_nans=True, inplace=False)
 
     Returns a copy of features which has been normalised to zscores
 
@@ -39,6 +48,8 @@ def zscore(features, axis=0, inplace=False):
         2-D input array
     axis : integer, optional
         which axis to normalise (default: 0)
+    can_have_nans : boolean, optional
+        whether ``features`` is allowed to have NaNs (default: True)
     inplace : boolean, optional
         Whether to operate inline (i.e., potentially change the input array).
         Default is False
@@ -50,11 +61,15 @@ def zscore(features, axis=0, inplace=False):
     """
     if features.ndim != 2:
         raise('milk.unsupervised.zscore: Can only handle 2-D arrays')
-    mu = features.mean(axis)
-    sigma = np.std(features, axis)
-    sigma[sigma == 0] = 1.
     if not inplace:
         features = features.copy()
+    if can_have_nans:
+        mu = _nanmean(features, axis)
+        sigma = _nanstd(features, axis)
+    else:
+        mu = features.mean(axis)
+        sigma = np.std(features, axis)
+    sigma[sigma == 0] = 1.
     if axis == 0:
         features -= mu
         features /= sigma
@@ -63,10 +78,6 @@ def zscore(features, axis=0, inplace=False):
         features /= sigma[:,None]
     return features
 
-
-def _nanmean(arr, axis=None):
-    nancounts = np.sum(~np.isnan(arr), axis=axis)
-    return np.nansum(arr,axis=axis)/nancounts
 
 
 def center(features, axis=0, can_have_nans=True, inplace=False):

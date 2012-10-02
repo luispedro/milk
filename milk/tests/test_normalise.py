@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2010, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -79,3 +79,12 @@ def test_interval_normalise():
     assert np.allclose(transformed.min(0), -1)
     assert np.allclose(transformed.max(0), +1)
 
+
+
+def test_nanstd():
+    from milk.unsupervised.normalise import _nanstd
+    np.random.seed(234)
+    for i in xrange(8):
+        x = np.random.rand(200,231)
+        np.allclose(_nanstd(x,0), x.std(0))
+        np.allclose(_nanstd(x,1), x.std(1))
