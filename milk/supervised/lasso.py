@@ -61,7 +61,7 @@ def lasso(X, Y, B=None, lam=1., max_iter=None, tol=None):
         raise ValueError('milk.supervised.lasso: NaNs are only supported in the ``Y`` matrix')
     W = np.ascontiguousarray(~np.isnan(Y), dtype=np.float32)
     Y = np.nan_to_num(Y)
-    n = Y.shape[1]
+    n = Y.size
     _lasso.lasso(X, Y, W, B, max_iter, float(2*n*lam), float(tol))
     return B
 
@@ -106,7 +106,7 @@ def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None, tol=None, ret
     if step is None:
         step = .9
     if start is None:
-        n = Y.shape[1]
+        n = Y.size
         start = 0.5/n*np.nanmax(np.abs(Y))*np.abs(X).max()
 
 
