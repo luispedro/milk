@@ -8,7 +8,7 @@ from __future__ import division
 import numpy as np
 from numpy import log, pi, array
 from numpy.linalg import det, inv
-from kmeans import residual_sum_squares, centroid_errors
+from .kmeans import residual_sum_squares, centroid_errors
 
 __all__ = [
     'BIC',
@@ -59,7 +59,7 @@ def log_likelihood(fmatrix,assignments,centroids,model='one_variance',covs=None)
                  -.5 * (diff * icov * diff.T).diagonal().sum() 
         return res
 
-    raise ValueError, "log_likelihood: cannot handle model '%s'" % model
+    raise ValueError("log_likelihood: cannot handle model '%s'" % model)
 
 
 def nr_parameters(fmatrix,k,model='one_variance'):
@@ -90,7 +90,7 @@ def nr_parameters(fmatrix,k,model='one_variance'):
     elif model == 'full_covariance':
         return k*+q*q
 
-    raise ValueError, "milk.unsupervised.gaussianmixture.nr_parameters: cannot handle model '%s'" % model
+    raise ValueError("milk.unsupervised.gaussianmixture.nr_parameters: cannot handle model '%s'" % model)
 
 def _compute(type, fmatrix, assignments, centroids, model='one_variance', covs=None):
     N,q = fmatrix.shape

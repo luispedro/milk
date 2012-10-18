@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2010, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from __future__ import division
+
 import numpy as np
 import random
 
@@ -54,7 +54,7 @@ def get_nprandom(R):
         return np.random.RandomState(R.randint(0, 2**30))
     if type(R) is np.random.RandomState:
         return R
-    raise TypeError,"get_nprandom() does not know how to handle type %s." % type(R)
+    raise TypeError("get_nprandom() does not know how to handle type {0}.".format(type(R)))
 
 def get_pyrandom(R):
     '''
@@ -81,6 +81,6 @@ def get_pyrandom(R):
         return random.Random(R.randint(2**30))
     if type(R) is random.Random:
         return R
-    raise TypeError,"get_pyrandom() does not know how to handle type %s." % type(R)
+    raise TypeError("get_pyrandom() does not know how to handle type {0}.".format(type(R)))
 
 

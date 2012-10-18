@@ -110,7 +110,7 @@ def residual_sum_squares(fmatrix,assignments,centroids,distance='euclidean',**kw
         residual sum squares
     '''
     if distance != 'euclidean':
-        raise NotImplemented, "residual_sum_squares only implemented for 'euclidean' distance"
+        raise NotImplemented("residual_sum_squares only implemented for 'euclidean' distance")
     rss = 0.0
     for k, c in enumerate(centroids):
         diff = fmatrix[assignments == k] - c
