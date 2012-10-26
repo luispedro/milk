@@ -228,15 +228,15 @@ class svm_raw(object):
 
     Parameters
     ----------
-    kernel : the kernel to use.
-             This should be a function that takes two data arguments
-             see rbf_kernel and polynomial_kernel.
-    C : the C parameter
-
-    Other Parameters
-    ----------------
-    eps : the precision to which to solve the problem (default 1e-3)
-    tol : (|x| < tol) is considered zero
+    kernel : callable
+        the kernel to use.  This should be a function that takes two data
+        arguments see rbf_kernel and polynomial_kernel.
+    C : float
+        the C parameter
+    eps : float, optional
+        the precision to which to solve the problem (default 1e-3)
+    tol : float, optional
+        (|x| < tol) is considered zero
     '''
     def __init__(self, kernel=None, C=1., eps=1e-3, tol=1e-8):
         self.C = C
