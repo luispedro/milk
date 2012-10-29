@@ -61,6 +61,12 @@ class ctransforms_model(supervised_model):
     '''
     def __init__(self, models):
         self.models = models
+
+    def apply_many(self, features):
+        for m in self.models:
+            features = m.apply_many(features)
+        return features
+
     def apply(self,features):
         for T in self.models:
             features = T.apply(features)
