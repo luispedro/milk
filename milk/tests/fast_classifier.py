@@ -1,4 +1,5 @@
 import numpy as np
+from milk.supervised.base import supervised_model
 class fast_classifier(object):
     def __init__(self):
         pass
@@ -13,7 +14,7 @@ class fast_classifier(object):
                 examples[lab] = f
         return fast_model(examples)
 
-class fast_model(object):
+class fast_model(supervised_model):
     def __init__(self, examples):
         self.examples = examples
         assert len(self.examples)

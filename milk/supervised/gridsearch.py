@@ -51,7 +51,7 @@ class Grid1(multiprocessing.Process):
         _set_options(self.learner, self.options[index])
         train, test = self.folds[fold]
         model = self.learner.train(self.features[train], self.labels[train], normalisedlabels=True, **self.train_kwargs)
-        preds = [model.apply(f) for f in self.features[test]]
+        preds = model.apply_many(self.features[test])
         error = self.measure(self.labels[test], preds)
         return error
 
