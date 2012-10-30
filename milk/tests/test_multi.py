@@ -28,6 +28,8 @@ def test_one_against_one():
     tlabels = [M.apply(f) for f in features[100:]]
     for tl in tlabels:
         assert tl in labelset
+    tlabels_many = M.apply_many(features[100:])
+    assert np.all(tlabels == tlabels_many)
 
 def test_two_thirds():
     np.random.seed(2345)

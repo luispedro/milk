@@ -126,8 +126,19 @@ class one_against_one(base_adaptor):
 class one_against_one_model(supervised_model):
     def __init__(self, models, names):
         self.models = models
-        self.names = names
+        self.names = _asanyarray(names)
         self.nclasses = len(models)
+
+    def apply_many(self, features):
+        nc = self.nclasses
+        votes = np.zeros((nc, len(features)))
+        for i in xrange(nc):
+            for j in xrange(i+1,nc):
+                vs = self.models[i][j].apply_many(features)
+                vs = _asanyarray(vs)
+                votes[i] += (vs > 0)
+                votes[j] += (vs <= 0)
+        return self.names[votes.argmax(0)]
 
     def apply(self,feats):
         '''
