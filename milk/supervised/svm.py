@@ -116,6 +116,14 @@ class preprocessed_rbf_kernel(object):
         self.sigma = sigma
         self.beta = beta
 
+    def call_many(self, qs):
+        from milk.unsupervised import pdist
+        dists = pdist(self.X, qs, 'euclidean2')
+        dists /= -self.sigma
+        np.exp(dists, dists)
+        dists *= self.beta
+        return dists.T
+
     def __call__(self, q):
         minus_d2_sigma = np.dot(self.X,q)
         minus_d2_sigma *= 2.
@@ -214,6 +222,14 @@ class svm_raw_model(supervised_model):
             self.kernelfunction = self.kernel.preprocess(self.svs)
         except AttributeError:
             self.kernelfunction = _call_kernel(self.kernel, self.svs)
+
+    def apply_many(self, qs):
+        try:
+            qs = self.kernelfunction.call_many(qs)
+        except AttributeError:
+            qs = np.array(map(self.kernelfunction, qs))
+        return np.dot(qs, self.Yw) - self.b
+
 
     def apply(self, q):
         Q = self.kernelfunction(q)

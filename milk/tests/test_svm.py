@@ -234,3 +234,15 @@ def test_not_ndarray_input():
     model = pickle.loads(pickle.dumps(model))
     trainpreds = [model.apply(e) for e in elems]
     assert np.mean((np.array(trainpreds)  > 0 ) == has_one ) > .5
+
+
+def test_rbf_kernel_call_many():
+    from milk.supervised.svm import rbf_kernel
+    np.random.seed(232)
+    X = np.random.random((32,16))
+    k = rbf_kernel(1.)
+    pre = k.preprocess(X)
+    qs = np.random.random((8,16))
+    mapped = np.array(map(pre, qs))
+    manyed = pre.call_many(qs)
+    assert np.allclose(manyed, mapped)
