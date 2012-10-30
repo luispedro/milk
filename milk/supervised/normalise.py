@@ -19,12 +19,15 @@ __all__ = [
 ]
 
 
-class subtract_divide_model(object):
+class subtract_divide_model(supervised_model):
     def __init__(self, shift, factor):
         factor[factor == 0] = 1 # This makes the division a null op.
 
         self.shift = shift
         self.factor = factor
+
+    def apply_many(self, features):
+        return (features - self.shift)/self.factor
 
     def apply(self, features):
         return (features - self.shift)/self.factor
