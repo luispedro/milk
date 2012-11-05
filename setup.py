@@ -66,6 +66,13 @@ ext_modules = [
 
 packages = filter(lambda p: p.startswith('milk'), setuptools.find_packages())
 
+package_dir = {
+    'milk.tests': 'milk/tests',
+    }
+package_data = {
+    'milk.tests': ['data/*'],
+    }
+
 setup(name = 'milk',
       version = __version__,
       description = 'Machine Learning Toolkit',
@@ -75,6 +82,8 @@ setup(name = 'milk',
       url = 'http://luispedro.org/software/milk',
       license = 'MIT',
       packages = packages,
+      package_dir = package_dir,
+      package_data = package_data,
       ext_modules = ext_modules,
       test_suite = 'nose.collector',
       )
