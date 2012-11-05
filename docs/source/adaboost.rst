@@ -46,7 +46,7 @@ class::
         plt.plot([y],[x], colors[p]+code)
     plt.show()
 
-.. plot:: ./../milk/demos/adaboost.py
+.. plot:: ../../milk/demos/adaboost.py
     :include-source:
 
 API Documentation

@@ -36,7 +36,7 @@ If you have `milksets <milksets.html>`__ installed, you can try it on one of its
 
 We can finally plot the results (mapped to 2 dimensions using PCA):
 
-.. plot:: ./../milk/demos/rf_wine_2d.py
+.. plot:: ../../milk/demos/rf_wine_2d.py
     :include-source:
 
 Colours indicate the classification output. A circle means that it matches the
