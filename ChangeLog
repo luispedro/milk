@@ -1,4 +1,4 @@
-Version 0.4.3+
+Version 0.5 2012-11-05 by luispedro
 	* Add coordinate-descent based LASSO
 	* Add unsupervised.center function
 	* Make zscore work with NaNs (by ignoring them)

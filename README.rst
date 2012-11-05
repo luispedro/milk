@@ -79,6 +79,7 @@ Mailing List: `http://groups.google.com/group/milk-users
 Features
 --------
 - SVMs. Using the libsvm solver with a pythonesque wrapper around it.
+- LASSO
 - K-means using as little memory as possible. It can cluster millions of
   instances efficiently.
 - Random forests
@@ -91,6 +92,16 @@ Recent History
 --------------
 
 The ChangeLog file contains a more complete history.
+
+
+New in 0.5 (05 Nov 2012)
+~~~~~~~~~~~~~~~~~~~~~~~~
+- Add coordinate-descent based LASSO
+- Add unsupervised.center function
+- Make zscore work with NaNs (by ignoring them)
+- Propagate apply_many calls through transformers
+- Much faster SVM classification with means a much faster defaultlearner()
+  [measured 2.5x speedup on yeast dataset!]
 
 
 New in 0.4.3 (17 Sept 2012)
@@ -141,45 +152,4 @@ New in 0.4.0
 - Make sigmoidal fitting for SVM probability estimates faster
 - Fix bug in randomforest (patch by Wei on milk-users mailing list)
 
-New in 0.3.10
-~~~~~~~~~~~~~
-- Add ext.jugparallel for integration with `jug <http://luispedro.org/software/jug>`_
-- parallel nfold crossvalidation using jug
-- parallel multiple kmeans runs using jug
-- cluster_agreement for non-ndarrays
-- Add histogram & normali(z|s)e options to ``milk.kmeans.assign_centroid``
-- Fix bug in sda when features were constant for a class
-- Add select_best_kmeans
-- Added defaultlearner as a better name than defaultclassifier
-- Add ``measures.curves.precision_recall``
-- Add ``unsupervised.parzen.parzen``
-
-New in 0.3.9
-~~~~~~~~~~~~
-- Add ``folds`` argument to ``nfoldcrossvalidation``
-- Add ``assign_centroid`` function in milk.unsupervised.nfoldcrossvalidation
-- Improve speed of k-nearest neighbour (10x on scikits-learn benchmark)
-- Improve kmeans on newer numpy (works for larger datasets too)
-- Faster kmeans by coding centroid recalculation in C++
-- Fix gridminize for low count labels
-- Fix bug with non-integer labels for tree learning
-
-New in 0.3.8
-~~~~~~~~~~~~
-- Fix compilation on Windows
-
-New in 0.3.7
-~~~~~~~~~~~~
-- Logistic regression
-- Source demos included (in source and documentation)
-- Add cluster agreement metrics
-- Fix nfoldcrossvalidation bug when using origins
-
-New in 0.3.6
-~~~~~~~~~~~~
-- Unsupervised (1-class) kernel density modeling
-- Fix for when SDA returns empty
-- weights option to some learners
-- stump learner
-- Adaboost (result of above changes)
-
+For older versions, see ``ChangeLog`` file
