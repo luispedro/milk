@@ -1,6 +1,5 @@
 import numpy as np
 import milk.supervised.knn
-import numpy
 
 def test_simple():
     X=np.array([
@@ -29,3 +28,12 @@ def test_nnclassifier():
     assert model.apply([.9,.9]) == 1
     middle = model.apply([.5,.5])
     assert (middle == 0) or (middle == 1)
+
+def test_approx_nnclassifier():
+    import milksets.wine
+    features,labels = milksets.wine.load()
+    for k in (1,3,5):
+        learner = milk.supervised.knn.approximate_knn_learner(k)
+        model = learner.train(features[::2], labels[::2])
+        testing = model.apply_many(features[1::2])
+        assert np.mean(testing == labels[1::2]) > .5

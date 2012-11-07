@@ -1,3 +1,6 @@
+Version 0.5+
+	* Add subspace projection kNN
+
 Version 0.5 2012-11-05 by luispedro
 	* Add coordinate-descent based LASSO
 	* Add unsupervised.center function
