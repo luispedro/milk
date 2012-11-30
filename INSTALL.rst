@@ -17,3 +17,13 @@ For example::
 
 If you have mingw installed.
 
+---------------
+Building on OSX
+---------------
+
+Because the standard library used with OS X doesn't include the C++11 libraries by default, you will need to specify
+it in ``setup.py``::
+
+    extra_compile_args=['-std=c++0x', '-stdlib=libc++'],
+
+is what the final line should look like.
