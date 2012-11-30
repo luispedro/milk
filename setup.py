@@ -59,7 +59,7 @@ ext_modules = [
                 sources=sources,
                 undef_macros=undef_macros,
                 define_macros=define_macros,
-                extra_compile_args=['--std=c++0x'],
+                extra_compile_args=['-std=c++0x', '-stdlib=libc++'],
                 )
         for key,sources in _extensions.items()
 ]
