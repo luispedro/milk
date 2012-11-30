@@ -22,6 +22,8 @@
 
 from __future__ import division
 import os
+import platform
+
 try:
     import setuptools
 except:
@@ -31,6 +33,7 @@ setuptools not found.
 On linux, the package is often called python-setuptools'''
     from sys import exit
     exit(1)
+
 from numpy.distutils.core import setup, Extension
 execfile('milk/milk_version.py')
 long_description = file('README.rst').read()
@@ -44,7 +47,6 @@ if os.environ.get('DEBUG'):
                 ('EIGEN_INTERNAL_DEBUGGING', '1'),
                 ]
 
-
 _extensions = {
         'milk.unsupervised._kmeans' : ['milk/unsupervised/_kmeans.cpp'],
         'milk.unsupervised._som' : ['milk/unsupervised/_som.cpp'],
@@ -54,12 +56,17 @@ _extensions = {
         'milk.supervised._perceptron' : ['milk/supervised/_perceptron.cpp'],
         'milk.supervised._lasso' : ['milk/supervised/_lasso.cpp'],
 }
+
+compiler_args = ['-std=c++0x']
+if platform.system() == 'Darwin':
+  compiler_args.append('-stdlib=libc++')
+
 ext_modules = [
     Extension(key,
                 sources=sources,
                 undef_macros=undef_macros,
                 define_macros=define_macros,
-                extra_compile_args=['-std=c++0x', '-stdlib=libc++'],
+                extra_compile_args=compiler_args,
                 )
         for key,sources in _extensions.items()
 ]
