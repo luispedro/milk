@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2011, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -58,6 +58,7 @@ try:
     from .supervised.defaultclassifier import defaultclassifier
     from .supervised.defaultlearner import defaultlearner
     from .unsupervised.kmeans import kmeans
+    from .unsupervised import pdist
     from milk_version import __version__
 except ImportError, e:
     import sys
@@ -75,6 +76,7 @@ Try installing and then changing to another directory before importing milk.
 __all__ = [
     '__version__',
     'kmeans',
+    'pdist',
     'defaultclassifier',
     'defaultlearner',
     'nfoldcrossvalidation',
