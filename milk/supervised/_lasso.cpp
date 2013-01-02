@@ -7,7 +7,7 @@
 #include <random>
 #include <cassert>
 #include <queue>
-#include <eigen3/Eigen/Dense>
+#include "eigen3/Eigen/Dense"
 
 using namespace Eigen;
 
