@@ -4,6 +4,7 @@ Version 0.5+
 	* Add Eigen to source distribution
 	* Add measures.curves.roc
 	* Add ``mds_dists`` function
+	* Add ``verbose`` argument to milk.tests.run
 
 Version 0.5 2012-11-05 by luispedro
 	* Add coordinate-descent based LASSO
