@@ -3,6 +3,7 @@ Version 0.5+
 	* Export ``pdist`` in milk namespace
 	* Add Eigen to source distribution
 	* Add measures.curves.roc
+	* Add ``mds_dists`` function
 
 Version 0.5 2012-11-05 by luispedro
 	* Add coordinate-descent based LASSO

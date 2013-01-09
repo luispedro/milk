@@ -24,3 +24,14 @@ def test_mds():
         assert np.mean( (D - D2) ** 2) < 10e-4
 
 
+def test_mds_dists():
+    from milk.unsupervised import pdist
+    np.random.seed(232)
+    for _ in xrange(12):
+        features = np.random.random_sample((12,4))
+        D = pdist(features)
+        X = milk.unsupervised.mds(features,4)
+        X2 = milk.unsupervised.mds_dists(D, 4)
+        assert np.mean( (X - X2) ** 2) < 10e-4
+
+

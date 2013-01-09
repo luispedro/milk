@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2013, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 #
 # License: MIT. See COPYING.MIT file in the milk distribution
@@ -65,13 +65,42 @@ def mds(features, ndims, zscore=False):
     -------
     X : ndarray
         array of size ``(m, ndims)`` where ``m = len(features)``
+
+    See Also
+    --------
+    mds_dists : function
     '''
     if zscore:
         X = normalise.zscore(features)
     P2 = pdist(features)
-    n = len(P2)
+    return mds_dists(P2, ndims)
+
+def mds_dists(distances, ndims):
+    '''
+    X = mds_dists(distances, ndims)
+
+    Euclidean Multi-dimensional Scaling based on a distance matrix
+
+    Parameters
+    ----------
+    distances : ndarray
+        data matrix
+    ndims : int
+        Number of dimensions to return
+
+    Returns
+    -------
+    X : ndarray
+        array of size ``(m, ndims)`` where ``m = len(features)``
+
+    See Also
+    --------
+    mds : function
+    '''
+
+    n = len(distances)
     J = np.eye(n) - (1./n)* np.ones((n,n))
-    B = -.5 * np.dot(J,np.dot(P2,J))
+    B = -.5 * np.dot(J,np.dot(distances,J))
     w,v = np.linalg.eig(B)
 
 
