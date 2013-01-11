@@ -94,6 +94,16 @@ Recent History
 The ChangeLog file contains a more complete history.
 
 
+New in 0.5.1 (11 Jan 2013)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Add subspace projection kNN
+- Export ``pdist`` in milk namespace
+- Add Eigen to source distribution
+- Add measures.curves.roc
+- Add ``mds_dists`` function
+- Add ``verbose`` argument to milk.tests.run
+
+
 New in 0.5 (05 Nov 2012)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 - Add coordinate-descent based LASSO

@@ -1,4 +1,4 @@
-Version 0.5+
+Version 0.5.1 2013-01-11 by luispedro
 	* Add subspace projection kNN
 	* Export ``pdist`` in milk namespace
 	* Add Eigen to source distribution
