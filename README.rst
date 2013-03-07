@@ -93,6 +93,9 @@ Recent History
 
 The ChangeLog file contains a more complete history.
 
+New in 0.5.2 (7 Mar 2013)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fix distribution of Eigen with source
 
 New in 0.5.1 (11 Jan 2013)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
