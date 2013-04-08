@@ -19,11 +19,6 @@ extern "C" {
 
 namespace {
 
-template <typename T>
-int random_int(T& random, const int max) {
-    std::uniform_int_distribution<int> dist(0, max - 1);
-    return dist(random);
-}
 inline
 float soft(const float val, const float lam) {
     return std::copysign(std::fdim(std::fabs(val), lam), val);
