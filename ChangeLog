@@ -1,3 +1,6 @@
+Version 0.5.2+
+	* Fix MDS for non-array inputs
+
 Version 0.5.2 2013-03-07 by luispedro
 	* Fix distribution of Eigen with source
 

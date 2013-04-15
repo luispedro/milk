@@ -35,3 +35,10 @@ def test_mds_dists():
         assert np.mean( (X - X2) ** 2) < 10e-4
 
 
+
+def test_mds_list():
+    from milk.unsupervised.pca import mds
+    data = np.random.random((128,16))
+    V  = mds(data,2)
+    V2 = mds(list(data),2)
+    assert np.all(V == V2)

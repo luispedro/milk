@@ -71,7 +71,9 @@ def mds(features, ndims, zscore=False):
     mds_dists : function
     '''
     if zscore:
-        X = normalise.zscore(features)
+        features = normalise.zscore(features)
+    else:
+        features = np.asarray(features)
     P2 = pdist(features)
     return mds_dists(P2, ndims)
 
