@@ -104,6 +104,10 @@ def mds_dists(distances, ndims):
     J = np.eye(n) - (1./n)* np.ones((n,n))
     B = -.5 * np.dot(J,np.dot(distances,J))
     w,v = np.linalg.eig(B)
+    worder = w.argsort()
+    worder = worder[::-1]
+    w = w[worder]
+    v = v[:,worder]
 
 
     w = w[:ndims]
