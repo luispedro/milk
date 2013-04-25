@@ -172,9 +172,11 @@ def _pycomputecentroids(fmatrix, centroids, assignments, counts):
             any_empty = True
     return any_empty
 
-def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, **kwargs):
+def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assignments=True, return_centroids=True, **kwargs):
     '''
     assignments, centroids = kmean(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None)
+    centroids = kmean(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None, return_assignments=False)
+    assignments= kmean(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None, return_centroids=False)
 
     k-Means Clustering
 
@@ -194,6 +196,10 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, **kwargs):
     max_iter : integer, optional
         Maximum number of iteration (default: 1000)
     R : source of randomness, optional
+    return_centroids : boolean, optional
+        Whether to return centroids (default: True)
+    return_assignments: boolean, optional
+        Whether to return centroid assignments (default: True)
 
     Returns
     -------
@@ -202,6 +208,8 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, **kwargs):
     centroids : ndarray
         An array of `k'` centroids
     '''
+    if not (return_centroids or return_assignments):
+        return None
     fmatrix = np.asanyarray(fmatrix)
     if not np.issubdtype(fmatrix.dtype, np.float):
         fmatrix = fmatrix.astype(np.float)
@@ -252,7 +260,11 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, **kwargs):
             # This will cause new matrices to be allocated in the next iteration
             dists = None
         prev[:] = assignments
-    return assignments, centroids
+    if return_centroids and return_assignments:
+        return assignments, centroids
+    elif return_centroids:
+        return centroids
+    return assignments
 
 def repeated_kmeans(fmatrix,k,iterations,distance='euclidean',max_iter=1000,R=None,**kwargs):
     '''

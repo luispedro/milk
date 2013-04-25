@@ -48,3 +48,12 @@ def test_repeated_kmeans():
     cids,cs = repeated_kmeans(features, 3, 2)
     assert len(cids) == len(features)
 
+def test_kmeans_return_partial():
+    np.random.seed(132)
+    features = np.r_[np.random.rand(20,3)-.5,.5+np.random.rand(20,3)]
+    assignments,centroids = milk.unsupervised.kmeans(features, 2, R=129)
+    centroids_ = milk.unsupervised.kmeans(features, 2, R=129, return_assignments=False)
+    assignments_ = milk.unsupervised.kmeans(features, 2, R=129, return_centroids=False)
+    assert np.all(centroids == centroids_)
+    assert np.all(assignments == assignments_)
+
