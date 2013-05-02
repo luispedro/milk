@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2013, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -59,10 +59,12 @@ def zscore(features, axis=0, can_have_nans=True, inplace=False):
     features : ndarray
         zscored version of features
     """
-    if features.ndim != 2:
-        raise('milk.unsupervised.zscore: Can only handle 2-D arrays')
     if not inplace:
         features = features.copy()
+    else:
+        features = np.asarray(features)
+    if features.ndim != 2:
+        raise('milk.unsupervised.zscore: Can only handle 2-D arrays')
     if can_have_nans:
         mu = _nanmean(features, axis)
         sigma = _nanstd(features, axis)
