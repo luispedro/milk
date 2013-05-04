@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2011-2013, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # License: MIT. See COPYING.MIT file in the milk distribution
 
@@ -155,4 +155,24 @@ class select_precluster(object):
             (codebook,) = codebooks
         base.codebook = codebook
         return base.train(features, labels)
+
+class frac_precluster_learner(object):
+
+    def __init__(self, k=None, kfrac=None, sample=16):
+        self.k = k
+        self.kfrac = kfrac
+        self.sample = sample
+
+    def train(self, features, labels, R=134, **kwargs):
+        from milk.supervised.gridsearch import gridminimise
+        from milk.supervised import svm
+        c_features = np.concatenate([f for f,_ in features if f.size])
+        c_features = c_features[::self.sample]
+
+        learner = milk.defaultlearner()
+        k = (self.k if self.k is not None else len(features)//self.kfrac)
+        _,codebook = milk.kmeans(c_features, k=k, R=R)
+        features = project.f(features, codebook)
+        model = learner.train(features, labels)
+        return codebook_model(codebook, model)
 

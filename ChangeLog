@@ -3,6 +3,7 @@ Version 0.5.2+
 	* Fix MDS bug
 	* Add return_* arguments to kmeans
 	* Extend zscore() to work on non-ndarrays
+	* Add frac_precluster_learner
 
 Version 0.5.2 2013-03-07 by luispedro
 	* Fix distribution of Eigen with source
