@@ -19,15 +19,31 @@ extern "C" {
 
 namespace {
 
+#if defined(_MSC_VER)
+inline
+float _fdim(const float x, const float y) {
+   return (x > y) ? (x - y) : 0;
+}
+inline
+float soft(const float val, const float lam) {
+    return copysign(_fdim(std::fabs(val), lam), val);
+}
+#else
 inline
 float soft(const float val, const float lam) {
     return std::copysign(std::fdim(std::fabs(val), lam), val);
 }
+#endif
+
 typedef Map<Matrix<float, Dynamic, Dynamic, RowMajor>, Aligned> MapXAf;
 bool has_nans(const MapXAf& X) {
     for (int i = 0; i != X.rows(); ++i) {
         for (int j = 0; j != X.cols(); ++j) {
+#if defined(_MSC_VER)
+            if (_isnan(X(i,j))) return true;
+#else
             if (std::isnan(X(i,j))) return true;
+#endif
         }
     }
     return false;
@@ -102,7 +118,11 @@ struct lasso_solver {
             const float best = soft(prev + raw_step, lam);
             const float step = best - prev;
             if (std::fabs(step) > eps) {
+#if defined(_MSC_VER)
+                assert(!_isnan(best));
+#else
                 assert(!std::isnan(best));
+#endif
                 B(i,j) = best;
                 residuals.row(i) -= step*X.row(j);
                 changed = true;
@@ -110,7 +130,11 @@ struct lasso_solver {
         }
         return max_iter;
     }
+#if defined(_MSC_VER) && (_MSC_VER==1500)
+    std::tr1::mt19937 r;
+#else
     std::mt19937 r;
+#endif
     const MapXAf& X;
     const MapXAf& Y;
     const MapXAf& W;
