@@ -93,6 +93,16 @@ Recent History
 
 The ChangeLog file contains a more complete history.
 
+New in 0.5.3 (19 Jun 2013)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fix MDS for non-array inputs
+- Fix MDS bug
+- Add return_* arguments to kmeans
+- Extend zscore() to work on non-ndarrays
+- Add frac_precluster_learner
+- Work with older C++ compilers
+
+
 New in 0.5.2 (7 Mar 2013)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fix distribution of Eigen with source
@@ -116,53 +126,5 @@ New in 0.5 (05 Nov 2012)
 - Much faster SVM classification with means a much faster defaultlearner()
   [measured 2.5x speedup on yeast dataset!]
 
-
-New in 0.4.3 (17 Sept 2012)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Add select_n_best & rank_corr to featureselection
-- Add Euclidean MDS
-- Add tree multi-class strategy
-- Fix adaboost with boolean weak learners (issue #6, reported by audy
-  (Austin Richardson))
-- Add ``axis`` arguments to zscore()
-
-
-New in 0.4.2 (16 Jan 2012)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- Make defaultlearner able to take extra arguments
-- Make ctransforms_model a supervised_model (adds apply_many)
-- Add expanded argument to defaultlearner
-- Fix corner case in SDA
-- Fix repeated_kmeans
-- Fix parallel gridminimise on Windows
-- Add multi_label argument to normaliselabels
-- Add multi_label argument to nfoldcrossvalidation.foldgenerator
-- Do not fork a process in gridminimise if nprocs == 1 (makes for easier
-  debugging, at the cost of slightly more complex code).
-- Add milk.supervised.multi_label
-- Fix ext.jugparallel when features is a Task
-- Add milk.measures.bayesian_significance
-
-
-New in 0.4.1
-~~~~~~~~~~~~
-- Fix important bug in multi-process gridsearch
-
-New in 0.4.0
-~~~~~~~~~~~~
-- Use multiprocessing to take advantage of multi core machines (off by
-  default).
-- Add perceptron learner
-- Set random seed in random forest learner
-- Add warning to milk/__init__.py if import fails
-- Add return value to ``gridminimise``
-- Set random seed in ``precluster_learner``
-- Implemented Error-Correcting Output Codes for reduction of multi-class
-  to binary (including probability estimation)
-- Add ``multi_strategy`` argument to ``defaultlearner()``
-- Make the dot kernel in svm much, much, faster
-- Make sigmoidal fitting for SVM probability estimates faster
-- Fix bug in randomforest (patch by Wei on milk-users mailing list)
 
 For older versions, see ``ChangeLog`` file

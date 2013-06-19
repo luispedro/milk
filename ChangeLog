@@ -1,9 +1,10 @@
-Version 0.5.2+
+Version 0.5.3 1013-06-19 by luispedro
 	* Fix MDS for non-array inputs
 	* Fix MDS bug
 	* Add return_* arguments to kmeans
 	* Extend zscore() to work on non-ndarrays
 	* Add frac_precluster_learner
+	* Work with older C++ compilers
 
 Version 0.5.2 2013-03-07 by luispedro
 	* Fix distribution of Eigen with source
