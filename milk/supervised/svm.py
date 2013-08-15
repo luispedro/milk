@@ -154,6 +154,9 @@ class rbf_kernel(object):
         d2 = d2.sum()
         res = self.beta*np.exp(-d2/self.sigma)
         return res
+    def __str__(self):
+        return 'rbf_kernel(%s, %s)' % (self.sigma, self.beta)
+    __repr__ = __str__
 
     def preprocess(self, X):
         return preprocessed_rbf_kernel(X, self.sigma, self.beta)
