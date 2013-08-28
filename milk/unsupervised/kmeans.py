@@ -220,7 +220,8 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assig
         distance = 'euclidean'
     if distance == 'euclidean':
         def distfunction(fmatrix, cs, dists):
-            dists = _dot3(fmatrix, (-2)*cs.T, dists)
+            dists = _dot3(fmatrix, cs.T, dists)
+            dists = np.multiply(dists, -2, dists)
             dists += np.einsum('ij,ij->i', cs, cs)
             # For a distance, we'd need to add the fmatrix**2 components, but
             # it doesn't matter because we are going to perform an argmin() on
