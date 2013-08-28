@@ -221,7 +221,7 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assig
     if distance == 'euclidean':
         def distfunction(fmatrix, cs, dists):
             dists = _dot3(fmatrix, (-2)*cs.T, dists)
-            dists += np.array([np.dot(c,c) for c in cs])
+            dists += np.einsum('ij,ij->i', cs, cs)
             # For a distance, we'd need to add the fmatrix**2 components, but
             # it doesn't matter because we are going to perform an argmin() on
             # the result.
@@ -254,22 +254,23 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assig
     else:
         centroids = np.array(R.sample(fmatrix,k), fmatrix.dtype)
 
-    prev = np.zeros(len(fmatrix), np.int32)
+    N = len(fmatrix)
     counts = np.empty(k, np.int32)
+    prev = None
     dists = None
     for i in xrange(max_iter):
         dists = distfunction(fmatrix, centroids, dists)
         assignments = dists.argmin(1)
-        if np.all(assignments == prev):
+        if prev is not None and all(assignments[i] == prev[i] for i in xrange(N)):
             break
-        if computecentroids(fmatrix, centroids, assignments.astype(np.int32), counts):
+        if computecentroids(fmatrix, centroids, assignments.astype(np.int64, copy=False), counts):
             (empty,) = np.where(counts == 0)
             centroids = np.delete(centroids, empty, axis=0)
             k = len(centroids)
-            counts = np.empty(k, np.int32)
+            counts.resize((k,))
             # This will cause new matrices to be allocated in the next iteration
             dists = None
-        prev[:] = assignments
+        prev = assignments
     if return_centroids and return_assignments:
         return assignments, centroids
     elif return_centroids:
