@@ -172,7 +172,7 @@ def _pycomputecentroids(fmatrix, centroids, assignments, counts):
             any_empty = True
     return any_empty
 
-def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assignments=True, return_centroids=True, **kwargs):
+def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assignments=True, return_centroids=True, centroids=None, **kwargs):
     '''
     assignments, centroids = kmean(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None)
     centroids = kmean(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None, return_assignments=False)
@@ -200,6 +200,8 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assig
         Whether to return centroids (default: True)
     return_assignments: boolean, optional
         Whether to return centroid assignments (default: True)
+    centroids: ndarray (optional)
+        Initial centroids to use for clustering. If not supplied, centroids will be randomly initialized. 2-ndarray (k x Nfeatures)
 
     Returns
     -------
@@ -241,9 +243,17 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assig
         computecentroids = _kmeans.computecentroids
     else:
         computecentroids = _pycomputecentroids
-    R = get_pyrandom(R)
 
-    centroids = np.array(R.sample(fmatrix,k), fmatrix.dtype)
+    R = get_pyrandom(R)
+    if centroids is not None:
+        if centroids.shape[0] != k:
+            raise ValueError('milk.unsupervised.kmeans `centroids` should contain `k` points')
+        if centroids.shape[1] != fmatrix.shape[1]:
+            raise ValueError('milk.unsupervised.kmeans `centroids` should have the same dimenionality as `fmatrix`')
+        centroids = np.asarray(centroids)
+    else:
+        centroids = np.array(R.sample(fmatrix,k), fmatrix.dtype)
+
     prev = np.zeros(len(fmatrix), np.int32)
     counts = np.empty(k, np.int32)
     dists = None
