@@ -262,7 +262,7 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assig
     for i in xrange(max_iter):
         dists = distfunction(fmatrix, centroids, dists)
         assignments = dists.argmin(1)
-        if prev is not None and all(assignments[i] == prev[i] for i in xrange(N)):
+        if prev is not None and np.equal(assignments, prev).all():
             break
         if computecentroids(fmatrix, centroids, assignments.astype(np.int64, copy=False), counts):
             (empty,) = np.where(counts == 0)
