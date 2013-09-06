@@ -24,7 +24,7 @@ int computecentroids(ftype* f, ftype* centroids, PyArrayObject* a_assignments, P
 
     int zero_counts = 0;
     Py_BEGIN_ALLOW_THREADS
-    const npy_int32* assignments = static_cast<npy_int32*>(PyArray_DATA(a_assignments));
+    const npy_int64* assignments = static_cast<npy_int64*>(PyArray_DATA(a_assignments));
     npy_int32* counts = static_cast<npy_int32*>(PyArray_DATA(a_counts));
 
     std::fill(counts, counts + k, 0);
