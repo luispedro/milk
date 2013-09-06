@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2013, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -174,9 +174,9 @@ def _pycomputecentroids(fmatrix, centroids, assignments, counts):
 
 def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assignments=True, return_centroids=True, centroids=None, **kwargs):
     '''
-    assignments, centroids = kmean(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None)
-    centroids = kmean(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None, return_assignments=False)
-    assignments= kmean(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None, return_centroids=False)
+    assignments, centroids = kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None)
+    centroids = kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None, return_assignments=False)
+    assignments= kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, icov=None, covmat=None, return_centroids=False)
 
     k-Means Clustering
 
