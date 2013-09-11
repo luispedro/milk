@@ -6,10 +6,11 @@ virtualenv:
     system_site_packages: true
 before_install:
     - sudo apt-get update -qq
-    - sudo apt-get install -qq python-numpy libatlas-dev liblapack-dev gfortran
+    - sudo apt-get install -qq python-numpy python-scipy libatlas-dev liblapack-dev gfortran
     - sudo apt-get install -qq libeigen3-dev
 install:
     - pip install numpy
+    - pip install scipy
     - pip install milksets
     - make debug
 script: nosetests
