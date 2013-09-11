@@ -105,8 +105,45 @@ PyObject* py_computecentroids(PyObject* self, PyObject* args) {
     }
 }
 
+template<typename T>
+bool check_equal(PyArrayObject* a, PyArrayObject* b) {
+    const int N = PyArray_SIZE(a);
+    if (PyArray_SIZE(b) != N)  return false;
+    const T* data_a = static_cast<T*>(PyArray_DATA(a));
+    const T* data_b = static_cast<T*>(PyArray_DATA(b));
+    for (int i = 0; i < N; ++i) {
+        if (data_a[i] != data_b[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+PyObject* py_areequal(PyObject* self, PyObject* args) {
+    try {
+        PyArrayObject* a;
+        PyArrayObject* b;
+        if (!PyArg_ParseTuple(args, "OO", &a, &b)) { throw Kmeans_Exception("Wrong number of arguments for are_equal."); }
+        if (!PyArray_Check(a) || !PyArray_ISCONTIGUOUS(a)) throw Kmeans_Exception("a not what was expected.");
+        if (!PyArray_Check(b) || !PyArray_ISCONTIGUOUS(b)) throw Kmeans_Exception("b not what was expected.");
+        if (PyArray_TYPE(a) != NPY_INT32 && PyArray_TYPE(a) != NPY_INT64) throw Kmeans_Exception("a should be int32 or int64.");
+        if (PyArray_TYPE(a) != PyArray_TYPE(b)) throw Kmeans_Exception("b and fmatrix should have same type.");
+
+        const bool ret = (PyArray_TYPE(a) == NPY_INT32 ? check_equal<npy_int32>(a,b) : check_equal<npy_int64>(a,b));
+        if (ret) Py_RETURN_TRUE;
+        Py_RETURN_FALSE;
+    } catch (const Kmeans_Exception& exc) {
+        PyErr_SetString(PyExc_RuntimeError,exc.msg);
+        return 0;
+    } catch (...) {
+        PyErr_SetString(PyExc_RuntimeError,"Some sort of exception in computecentroids.");
+        return 0;
+    }
+}
+
 PyMethodDef methods[] = {
   {"computecentroids", py_computecentroids, METH_VARARGS , "Do NOT call directly.\n" },
+  {"are_equal", py_areequal, METH_VARARGS , "Do NOT call directly.\n" },
   {NULL, NULL,0,NULL},
 };
 

@@ -57,3 +57,14 @@ def test_kmeans_return_partial():
     assert np.all(centroids == centroids_)
     assert np.all(assignments == assignments_)
 
+
+
+def test_kmeans_all_equal():
+    import milk.unsupervised._kmeans
+    np.random.seed(132)
+    for _ in xrange(8):
+        a = (np.random.random(1024*128)*250).astype(int)
+        b = a.copy()
+        assert milk.unsupervised._kmeans.are_equal(a,b)
+        a[3435] += 1
+        assert not milk.unsupervised._kmeans.are_equal(a,b)
