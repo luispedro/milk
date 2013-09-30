@@ -64,7 +64,7 @@ def zscore(features, axis=0, can_have_nans=True, inplace=False):
     else:
         features = np.asarray(features)
     if features.ndim != 2:
-        raise('milk.unsupervised.zscore: Can only handle 2-D arrays')
+        raise ValueError('milk.unsupervised.zscore: Can only handle 2-D arrays')
     if can_have_nans:
         mu = _nanmean(features, axis)
         sigma = _nanstd(features, axis)
