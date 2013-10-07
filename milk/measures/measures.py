@@ -121,7 +121,7 @@ def confusion_matrix(real, predicted, normalisedlabels=False, names=None):
         real, names = normaliselabels(real)
         predicted = map(names.index, predicted)
     n = np.max(real)+1
-    cmat = np.zeros((n,n), int)
+    cmat = np.zeros((n,n))
     for r,p in zip(real, predicted):
         cmat[r,p] += 1
     return cmat
