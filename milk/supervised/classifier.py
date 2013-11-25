@@ -42,11 +42,19 @@ class threshold_model(object):
     def apply(self, f):
         return f >= self.threshold
 
+    def __repr__(self):
+        return 'threshold_model({})'.format(self.threshold)
+    __str__ = __repr__
+
 class fixed_threshold_learner(object):
     def __init__(self, threshold=.5):
         self.threshold = threshold
     def train(self, features, labels, **kwargs):
         return threshold_model(self.threshold)
+
+    def __repr__(self):
+        return 'fixed_threshold_learner({})'.format(self.threshold)
+    __str__ = __repr__
 
 
 class ctransforms_model(supervised_model):
@@ -66,6 +74,10 @@ class ctransforms_model(supervised_model):
         for m in self.models:
             features = m.apply_many(features)
         return features
+
+    def __repr__(self):
+        return 'ctransforms_model({})'.format(self.models)
+    __str__ = __repr__
 
     def apply(self,features):
         for T in self.models:
@@ -92,6 +104,10 @@ class ctransforms(object):
             models.append(model)
         return ctransforms_model(models)
 
+    def __repr__(self):
+        return 'ctransforms(*{})'.format(self.transforms)
+
+    __str__ = __repr__
 
     def set_option(self, opt, val):
         idx, opt = opt
