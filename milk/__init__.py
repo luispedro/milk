@@ -58,7 +58,7 @@ try:
     from .supervised.defaultclassifier import defaultclassifier
     from .supervised.defaultlearner import defaultlearner
     from .unsupervised.kmeans import kmeans
-    from .unsupervised import pdist, zscore
+    from .unsupervised import pdist, zscore, pca
     from milk_version import __version__
 except ImportError, e:
     import sys
