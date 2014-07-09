@@ -34,6 +34,7 @@ def pdist(X, Y=None, distance='euclidean2'):
     if Y is None:
         D = np.dot(X, X.T)
         x2 = D.diagonal()
+        x2 = x2.copy()
         y2 = x2
     else:
         D = np.dot(X, Y.T)
