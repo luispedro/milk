@@ -27,6 +27,8 @@ class subtract_divide_model(supervised_model):
         self.factor = factor
 
     def apply_many(self, features):
+        if len(features) == 0:
+            return features
         return (features - self.shift)/self.factor
 
     def apply(self, features):

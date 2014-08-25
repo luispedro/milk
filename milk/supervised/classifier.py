@@ -71,6 +71,8 @@ class ctransforms_model(supervised_model):
         self.models = models
 
     def apply_many(self, features):
+        if len(features) == 0:
+            return features
         for m in self.models:
             features = m.apply_many(features)
         return features
