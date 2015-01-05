@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2014, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,16 +27,17 @@ import platform
 try:
     import setuptools
 except:
-    print '''
+    print('''
 setuptools not found.
 
-On linux, the package is often called python-setuptools'''
+On linux, the package is often called python-setuptools''')
     from sys import exit
     exit(1)
 
 from numpy.distutils.core import setup, Extension
-execfile('milk/milk_version.py')
-long_description = file('README.rst').read()
+exec(compile(open('milk/milk_version.py').read(),
+             'milk/milk_version.py', 'exec'))
+long_description = open('README.rst').read()
 undef_macros = []
 define_macros = []
 if os.environ.get('DEBUG'):
@@ -71,7 +72,8 @@ ext_modules = [
         for key,sources in _extensions.items()
 ]
 
-packages = filter(lambda p: p.startswith('milk'), setuptools.find_packages())
+packages = [p for p in setuptools.find_packages()
+                if p.startswith('milk')]
 
 package_dir = {
     'milk.tests': 'milk/tests',
