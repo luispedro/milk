@@ -13,6 +13,7 @@ from .pdist import pdist
 __all__ = [
     'pca',
     'mds',
+    'mds_dists',
     ]
 
 def pca(X, zscore=True):
