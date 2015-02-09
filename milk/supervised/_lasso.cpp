@@ -8,6 +8,7 @@
 #include <cassert>
 #include <queue>
 #include "eigen3/Eigen/Dense"
+#include "../utils/utils.h"
 
 using namespace Eigen;
 
@@ -198,10 +199,5 @@ const char  * module_doc =
 
 } // namespace
 
-extern "C"
-void init_lasso()
-  {
-    import_array();
-    (void)Py_InitModule3("_lasso", methods, module_doc);
-  }
+DECLARE_MODULE(_lasso)
 

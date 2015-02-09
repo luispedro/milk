@@ -35,7 +35,7 @@ def test_voting():
 
 def test_filter_outliers():
     np.random.seed(22)
-    features = [np.random.randn(10,10) for i in xrange(20)]
+    features = [np.random.randn(10,10) for i in range(20)]
     for f in features:
         f[0] *= 10
         
@@ -49,13 +49,13 @@ def test_filter_outliers():
 
 def test_nfoldcrossvalidation():
     np.random.seed(22)
-    features = np.array([np.random.rand(8+(i%3), 12)*(i//20) for i in xrange(40)], dtype=object)
+    features = np.array([np.random.rand(8+(i%3), 12)*(i//20) for i in range(40)], dtype=object)
     labels = np.zeros(40, int)
     labels[20:] = 1
     classifier = milk.supervised.grouped.voting_classifier(milk.supervised.svm_simple(C=1., kernel=rbf_kernel(1./12)))
     cmat, names = milk.nfoldcrossvalidation(features, labels, classifier=classifier)
     assert cmat.shape == (2,2)
-    assert sorted(names) == range(2)
+    assert sorted(names) == list(range(2))
 
 
 

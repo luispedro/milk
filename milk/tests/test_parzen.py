@@ -10,9 +10,9 @@ def _slow_parzen(features, labels, sigma):
     labels = 2*labels - 1
     def kernel(fi, fj):
         return np.exp(-((fi-fj)**2).sum()/sigma)
-    for i in xrange(N):
+    for i in range(N):
         C = 0.
-        for j in xrange(N):
+        for j in range(N):
             if i == j: continue
             C += labels[j] * kernel(features[i],features[j])
         if (C*labels[i] > 0): correct += 1

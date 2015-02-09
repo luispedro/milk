@@ -16,7 +16,7 @@ learner = one_against_one(rf_learner)
 # cross validate with this learner and return predictions on left-out elements
 cmat,names, preds = milk.nfoldcrossvalidation(features, labels, classifier=learner, return_predictions=1)
 
-print 'cross-validation accuracy:', cmat.trace()/float(cmat.sum())
+print('cross-validation accuracy:', cmat.trace()/float(cmat.sum()))
 
 # dimensionality reduction for display
 x,v = milk.unsupervised.pca(features)

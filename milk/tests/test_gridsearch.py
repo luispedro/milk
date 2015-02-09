@@ -58,7 +58,7 @@ def test_with_error():
     learner = error_learner()
     G = milk.supervised.gridsearch(
         error_learner(),
-        params = { 'error' : range(3), 'error2' : range(5) }
+        params = { 'error' : list(range(3)), 'error2' : list(range(5)) }
         )
     G.train(features,labels)
     

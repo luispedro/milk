@@ -33,9 +33,9 @@ def _adaboost(features, labels, base, max_iters):
     Y = names[labels]
     H = []
     A = []
-    for t in xrange(max_iters):
+    for t in range(max_iters):
         Ht = base.train(features, labels, weights=D)
-        train_out = np.array(map(Ht.apply, features))
+        train_out = np.array(list(map(Ht.apply, features)))
         train_out = names[train_out.astype(int)]
         Et = np.dot(D, (Y != train_out))
         if Et > .5:

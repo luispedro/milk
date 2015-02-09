@@ -19,9 +19,9 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-import lee_seung as ls
-from hoyer import sparse_nnmf
-import hoyer
+from . import lee_seung as ls
+from .hoyer import sparse_nnmf
+from . import hoyer
 lee_seung = ls.nnmf
 
 __all__ = ['lee_seung','sparse_nnmf']

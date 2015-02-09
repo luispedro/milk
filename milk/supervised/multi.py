@@ -52,7 +52,7 @@ class one_against_rest(base_adaptor):
         labels, names = normaliselabels(labels)
         nclasses = labels.max() + 1
         models  = []
-        for i in xrange(nclasses):
+        for i in range(nclasses):
             model = self.base.train(features, (labels == i).astype(int), normalisedlabels=True)
             models.append(model)
         return one_against_rest_model(models, names)
@@ -108,11 +108,11 @@ class one_against_one(base_adaptor):
             weights = np.asanyarray(weights)
         features = _asanyarray(features)
         nclasses = labels.max() + 1
-        models = [ [None for i in xrange(nclasses)] for j in xrange(nclasses)]
+        models = [ [None for i in range(nclasses)] for j in range(nclasses)]
         child_kwargs = kwargs.copy()
         child_kwargs['normalisedlabels'] = True
-        for i in xrange(nclasses):
-            for j in xrange(i+1, nclasses):
+        for i in range(nclasses):
+            for j in range(i+1, nclasses):
                 idxs = (labels == i) | (labels == j)
                 if not np.any(idxs):
                     raise ValueError('milk.multi.one_against_one: Pair-wise classifier has no data')
@@ -132,8 +132,8 @@ class one_against_one_model(supervised_model):
     def apply_many(self, features):
         nc = self.nclasses
         votes = np.zeros((nc, len(features)))
-        for i in xrange(nc):
-            for j in xrange(i+1,nc):
+        for i in range(nc):
+            for j in range(i+1,nc):
                 vs = self.models[i][j].apply_many(features)
                 vs = _asanyarray(vs)
                 votes[i] += (vs > 0)
@@ -148,8 +148,8 @@ class one_against_one_model(supervised_model):
         '''
         nc = self.nclasses
         votes = np.zeros(nc)
-        for i in xrange(nc):
-            for j in xrange(i+1,nc):
+        for i in range(nc):
+            for j in range(i+1,nc):
                 c = self.models[i][j].apply(feats)
                 if c:
                     votes[i] += 1
@@ -162,7 +162,7 @@ class one_against_rest_multi_model(supervised_model):
         self.models = models
 
     def apply(self, feats):
-        return [lab for lab,model in self.models.iteritems() if model.apply(feats)]
+        return [lab for lab,model in self.models.items() if model.apply(feats)]
 
 class one_against_rest_multi(base_adaptor):
     '''
@@ -240,7 +240,7 @@ class ecoc_learner(base_adaptor):
         k = len(labelset)
         n = 2**(k-1)
         codes = np.zeros((k,n),bool)
-        for k_ in xrange(1,k):
+        for k_ in range(1,k):
             codes[k_].reshape( (-1, 2**(k-k_-1)) )[::2] = 1
         codes = ~codes
         # The last column of codes is not interesting (all 1s). The array is

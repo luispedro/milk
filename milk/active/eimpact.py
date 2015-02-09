@@ -44,7 +44,7 @@ def expected_impacts(D,labels,U):
     u_labels = (u_probs > .5)
     impacts = []
     for u,p in zip(U,u_probs):
-        print len(impacts)
+        print(len(impacts))
         label_classifier.train(numpy.vstack((D,u)),numpy.hstack((labels,[0])))
         u_labels_0 = label_classifier(U)
 

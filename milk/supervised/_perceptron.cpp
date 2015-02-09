@@ -1,10 +1,11 @@
-// Copyright (C) 2011, Luis Pedro Coelho <luis@luispedro.org>
+// Copyright (C) 2011-2015, Luis Pedro Coelho <luis@luispedro.org>
 // License: MIT
 
 #include <iostream>
 #include <memory>
 #include <cmath>
 #include <cassert>
+#include "../utils/utils.h"
 extern "C" {
     #include <Python.h>
     #include <numpy/ndarrayobject.h>
@@ -82,10 +83,5 @@ const char  * module_doc =
 
 } // namespace
 
-extern "C"
-void init_perceptron()
-  {
-    import_array();
-    (void)Py_InitModule3("_perceptron", methods, module_doc);
-  }
+DECLARE_MODULE(_perceptron)
 

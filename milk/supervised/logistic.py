@@ -87,7 +87,7 @@ Fall back to very simple gradient descent (which is slow).''')
             bs = np.zeros(f+1)
             cur = 1.e-6
             ebs = error(bs)
-            for i in xrange(1000000):
+            for i in range(1000000):
                 dir = error_prime(bs)
                 step = (lambda e : bs - e *dir)
                 enbs = ebs + 1

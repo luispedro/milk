@@ -1,4 +1,4 @@
-// Copyright (C) 2008, Luis Pedro Coelho <luis@luispedro.org>
+// Copyright (C) 2008-2015, Luis Pedro Coelho <luis@luispedro.org>
 // Copyright (c) 2000-2008 Chih-Chung Chang and Chih-Jen Lin (LIBSVM Code)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -34,10 +34,7 @@
 
 using std::vector;
 using std::list;
-extern "C" {
-    #include <Python.h>
-    #include <numpy/ndarrayobject.h>
-}
+#include "../utils/utils.h"
 
 
 namespace { 
@@ -353,8 +350,8 @@ std::auto_ptr<KernelComputation> get_kernel(PyObject* X, PyObject* kernel) {
     if (!PyTuple_Check(kernel) || PyTuple_Size(kernel) != 2) throw SMO_Exception("Cannot parse kernel.");
     PyObject* type = PyTuple_GET_ITEM(kernel,0);
     PyObject* arg = PyTuple_GET_ITEM(kernel,1);
-    if (!PyInt_Check(type) || !PyFloat_Check(arg)) throw SMO_Exception("Cannot parse kernel (wrong types)");
-    long type_nr = PyInt_AsLong(type);
+    if (!PyLong_Check(type) || !PyFloat_Check(arg)) throw SMO_Exception("Cannot parse kernel (wrong types)");
+    long type_nr = PyLong_AsLong(type);
     double arg_value = PyFloat_AsDouble(arg);
     switch (type_nr) {
         case 0:
@@ -1159,10 +1156,6 @@ const char  * module_doc =
 
 } // namespace
 
-extern "C"
-void init_svm()
-  {
-    import_array();
-    (void)Py_InitModule3("_svm", methods, module_doc);
-  }
+
+DECLARE_MODULE(_svm)
 

@@ -64,10 +64,10 @@ def nfoldcrossvalidation(features, labels, **kwargs):
     jug.CompoundTask : This function can be used as argument to CompoundTask
     '''
     nfolds = kwargs.get('nfolds', 10)
-    features,labels = map(identity, (features,labels))
-    kwargs = dict( (k,identity(v)) for k,v in kwargs.iteritems())
+    features,labels = list(map(identity, (features,labels)))
+    kwargs = dict( (k,identity(v)) for k,v in kwargs.items())
     nfold_one = TaskGenerator(milk.nfoldcrossvalidation)
-    mapped = [nfold_one(features, labels, folds=[i], **kwargs) for i in xrange(nfolds)]
+    mapped = [nfold_one(features, labels, folds=[i], **kwargs) for i in range(nfolds)]
     return jug_reduce(_nfold_reduce, mapped)
 
 
@@ -137,7 +137,7 @@ def kmeans_select_best(features, ks, repeats=1, method='AIC', R=None, **kwargs):
         start = 7
     results = []
     for ki,k in enumerate(ks):
-        for i in xrange(repeats):
+        for i in range(repeats):
             results.append(kmeans(features, k, R=(start+7*repeats*ki+i), **kwargs))
     return _select_best(features, results, method)[1]
 

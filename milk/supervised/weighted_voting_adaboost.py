@@ -21,7 +21,7 @@ class weighted_voting_adaboost(object):
             else:
                 answers[answer] = coefficient
         # dict maximum by value
-        result = max(answers.iteritems(), key=itemgetter(1))
+        result = max(iter(answers.items()), key=itemgetter(1))
         return result[0]
          
 
@@ -39,7 +39,7 @@ class weighted_voting_ada_learner(object):
     def train(self, in_features, in_labels):
         self.reset(in_features)
         
-        for iteration in xrange(self.composition_size):
+        for iteration in range(self.composition_size):
             self.classifiers.append(self.learner.train(in_features, in_labels, weights=self.weights))
             # new classifier initially gets weight 1
             self.coefficients.append(1)
@@ -61,16 +61,16 @@ class weighted_voting_ada_learner(object):
     def compute_weighted_error(self, in_labels, in_answers):
         error = 0.
         w_sum = sum(self.weights)
-        for ind in xrange(len(in_labels)):
+        for ind in range(len(in_labels)):
             error += (in_answers[ind] != in_labels[ind]) * self.weights[ind] / w_sum
         return error
 
     def update_weights(self, in_labels, in_answers, in_alpha):
-        for ind in xrange(len(in_labels)):
+        for ind in range(len(in_labels)):
             self.weights[ind] *= exp(in_alpha * (in_answers[ind] != in_labels[ind]))
 
     def normalize_weights(self):
         w_sum = sum(self.weights)
 
-        for ind in xrange(len(self.weights)):
+        for ind in range(len(self.weights)):
             self.weights[ind] /= w_sum

@@ -74,7 +74,7 @@ def get_pyrandom(R):
     R' : random.Random
     '''
     if R is None:
-        return random.seed.im_self
+        return random.seed.__self__
     if type(R) is int:
         return random.Random(R)
     if type(R) is np.random.RandomState:

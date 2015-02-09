@@ -6,6 +6,7 @@
 from __future__ import division
 from ..supervised.classifier import normaliselabels
 import numpy as np
+from functools import reduce
 
 __all__ = ['foldgenerator', 'getfold', 'nfoldcrossvalidation']
 def foldgenerator(labels, nfolds=None, origins=None, folds=None, multi_label=False):
@@ -45,7 +46,7 @@ def foldgenerator(labels, nfolds=None, origins=None, folds=None, multi_label=Fal
              'milk.nfoldcrossvalidation.foldgenerator: origins must be of same size as labels')
         origins = np.asanyarray(origins)
     fmin = len(labels)
-    for ell in xrange(len(names)):
+    for ell in range(len(names)):
         if multi_label:
             matching = (orig for i,orig in enumerate(origins) if labels[i,ell])
         else:
@@ -92,7 +93,7 @@ If you passed in an origins parameter, it might be caused by having a class come
                 fold[origins == orig] = f
                 foldweight[f] += w
 
-    for f in xrange(nfolds):
+    for f in range(nfolds):
         if folds is not None and f not in folds: continue
         yield (fold != f), (fold == f)
 

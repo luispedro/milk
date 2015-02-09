@@ -14,22 +14,22 @@ def _slow_f(features,labels,kernel_or_sigma):
     x1 = features[labels == 0]
     x2 = features[labels == 1]
     dm = 0
-    for i in xrange(N1):
-        for j in xrange(N1):
+    for i in range(N1):
+        for j in range(N1):
             dm += kernel(x1[i],x1[j])/N1/N1
-    for i in xrange(N2):
-        for j in xrange(N2):
+    for i in range(N2):
+        for j in range(N2):
             dm += kernel(x2[i],x2[j])/N2/N2
-    for i in xrange(N1):
-        for j in xrange(N2):
+    for i in range(N1):
+        for j in range(N2):
             dm -= 2*kernel(x1[i],x2[j])/N1/N2
     s1 = N1
-    for i in xrange(N1):
-        for j in xrange(N1):
+    for i in range(N1):
+        for j in range(N1):
             s1 -= kernel(x1[i],x1[j])/N1
     s2 = N2
-    for i in xrange(N2):
-        for j in xrange(N2):
+    for i in range(N2):
+        for j in range(N2):
             s2 -= kernel(x2[i],x2[j])/N2
     return (s1 + s2)/dm
 

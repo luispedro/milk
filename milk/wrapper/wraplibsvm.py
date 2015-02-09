@@ -59,8 +59,8 @@ class libsvmClassifier(object):
         if self.auto_weighting:
             nlabels = labels.max() + 1
             self.param.nr_weight = int(nlabels)
-            self.param.weight_label = range(nlabels)
-            self.param.weight = [(labels != i).mean() for i in xrange(nlabels)]
+            self.param.weight_label = list(range(nlabels))
+            self.param.weight = [(labels != i).mean() for i in range(nlabels)]
         problem = libsvm.svm_problem(labels.astype(float), features)
         model = libsvm.svm_model(problem, self.param)
         return libsvmModel(model, names, self.output_probability)

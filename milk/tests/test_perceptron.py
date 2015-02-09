@@ -10,7 +10,7 @@ def test_raw():
     labels = np.repeat((0,1), 50)
     weights = np.zeros((11))
     eta = 0.1
-    for i in xrange(20):
+    for i in range(20):
         _perceptron.perceptron(data, labels, weights, eta)
     errs =  _perceptron.perceptron(data, labels, weights, eta)
     assert errs < 10
@@ -21,5 +21,5 @@ def test_wrapper():
 
     learner = perceptron_learner()
     model = learner.train(features, labels)
-    test = map(model.apply, features)
+    test = list(map(model.apply, features))
     assert np.mean(labels != test) < .35

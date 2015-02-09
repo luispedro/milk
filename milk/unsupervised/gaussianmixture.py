@@ -35,7 +35,7 @@ def log_likelihood(fmatrix,assignments,centroids,model='one_variance',covs=None)
         errors = errors.sum(1)
         Rss = np.zeros(k)
         counts = np.zeros(k)
-        for i in xrange(fmatrix.shape[0]):
+        for i in range(fmatrix.shape[0]):
             c = assignments[i]
             Rss[c] += errors[i]
             counts[c] += 1
@@ -44,7 +44,7 @@ def log_likelihood(fmatrix,assignments,centroids,model='one_variance',covs=None)
     elif model == 'full_covariance':
         res = -N*q/2.*log(2*pi)
 
-        for k in xrange(len(centroids)):
+        for k in range(len(centroids)):
             diff = (fmatrix[assignments == k] - centroids[k])
             if covs is None:
                 covm = np.cov(diff.T)

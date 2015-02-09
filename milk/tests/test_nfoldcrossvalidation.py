@@ -2,7 +2,7 @@ import milk.measures.nfoldcrossvalidation
 from milk.measures.nfoldcrossvalidation import nfoldcrossvalidation, foldgenerator
 import milk.supervised.tree
 import numpy as np
-from fast_classifier import fast_classifier
+from .fast_classifier import fast_classifier
 
 def test_foldgenerator():
     labels = np.array([1]*20+[2]*30+[3]*20)
@@ -133,11 +133,11 @@ def test_predictions():
 def test_multi():
     np.random.seed(30)
     r = np.random.random
-    for _ in xrange(10):
+    for _ in range(10):
         labels = []
         p = np.array([.24,.5,.1,.44])
-        for i in xrange(100):
-            cur = [j for j in xrange(4) if r() < p[j]]
+        for i in range(100):
+            cur = [j for j in range(4) if r() < p[j]]
             if not cur: cur = [0]
             labels.append(cur)
 

@@ -94,7 +94,7 @@ class kmeans_cluster(multiprocessing.Process):
     def run(self):
         try:
             self.execute()
-        except Exception, e:
+        except Exception as e:
             errstr = r'''\
 Error in milk.supervised.precluster.learn_codebook internal
 
@@ -126,18 +126,18 @@ class select_precluster(object):
         tow = multiprocessing.Queue()
         fromw = multiprocessing.Queue()
         for k in self.ks:
-            for ri in xrange(self.rmax):
+            for ri in range(self.rmax):
                 tow.put((k,ri))
-        for i in xrange(nprocs):
+        for i in range(nprocs):
             tow.put(('shutdown',None))
-        workers = [kmeans_cluster(c_features, tow, fromw) for i in xrange(nprocs)]
+        workers = [kmeans_cluster(c_features, tow, fromw) for i in range(nprocs)]
         for w in workers:
             if nprocs > 1:
                 w.start()
             else:
                 w.execute()
         try:
-            codebooks = [fromw.get() for i in xrange(len(self.ks)*self.rmax)]
+            codebooks = [fromw.get() for i in range(len(self.ks)*self.rmax)]
         finally:
             tow.close()
             tow.join_thread()

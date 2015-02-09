@@ -22,7 +22,7 @@ class fast_model(supervised_model):
     def apply(self, f):
         best = None
         best_val = +np.inf
-        for k,v in self.examples.iteritems():
+        for k,v in self.examples.items():
             d = v-f
             dist = np.dot(d,d)
             if dist < best_val:

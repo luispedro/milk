@@ -34,7 +34,7 @@ def old_learn_sigmoid_constants(F,Y,
     B = log( (prior0+1.)/(prior1+1.) )
     def target(A,B):
         fval = 0.
-        for i in xrange(N):
+        for i in range(N):
             fApB = F[i]*A+B
             if fApB >= 0:
                 fval += T[i]*fApB+log(1+exp(-fApB))
@@ -42,13 +42,13 @@ def old_learn_sigmoid_constants(F,Y,
                 fval += (T[i]-1.)*fApB+log(1+exp(fApB))
         return fval
     fval = target(A,B)
-    for iter in xrange(max_iters):
+    for iter in range(max_iters):
         h11=sigma
         h22=sigma
         h21=0.
         g1=0.
         g2=0.
-        for i in xrange(N):
+        for i in range(N):
             fApB = F[i]*A+B
             if (fApB >= 0):
                 p = exp(-fApB)/(1.+exp(-fApB))
@@ -90,7 +90,7 @@ def old_learn_sigmoid_constants(F,Y,
 def test_learn_sigmoid_contants():
     Y = np.repeat((0,1),100)
     np.random.seed(3)
-    for i in xrange(10):
+    for i in range(10):
         F = np.random.rand(200)-.3
         F[100:] *= -1
         old = old_learn_sigmoid_constants(F,Y)

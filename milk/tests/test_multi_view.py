@@ -16,8 +16,8 @@ def test_multi_view():
     assert np.all(labels0 == labels1)
     assert np.all(labels1 == labels2)
     labels = labels0
-    train_features = zip(features0,features1,features2)
-    test_features = zip(features[3::10], features[4::10], features[5::10])
+    train_features = list(zip(features0,features1,features2))
+    test_features = list(zip(features[3::10], features[4::10], features[5::10]))
     base = milk.supervised.classifier.ctransforms(
                 feature_selection_simple(),
                 milk.supervised.svm.svm_raw(C=128, kernel=milk.supervised.svm.rbf_kernel(4.)),

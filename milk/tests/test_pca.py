@@ -16,7 +16,7 @@ def test_pca():
 def test_mds():
     from milk.unsupervised import pdist
     np.random.seed(232)
-    for _ in xrange(12):
+    for _ in range(12):
         features = np.random.random_sample((12,4))
         X = milk.unsupervised.mds(features,4)
         D = pdist(features)
@@ -27,7 +27,7 @@ def test_mds():
 def test_mds_dists():
     from milk.unsupervised import pdist
     np.random.seed(232)
-    for _ in xrange(12):
+    for _ in range(12):
         features = np.random.random_sample((12,4))
         D = pdist(features)
         X = milk.unsupervised.mds(features,4)

@@ -44,12 +44,12 @@ class Node(object): # This could be replaced by a namedtuple
 def _split(features, labels, weights, criterion, subsample, R):
     N,f = features.shape
     if subsample is not None:
-        samples = np.array(R.sample(xrange(features.shape[1]), subsample))
+        samples = np.array(R.sample(range(features.shape[1]), subsample))
         features = features[:, samples]
         f = subsample
     best = None
     best_val = float('-Inf')
-    for i in xrange(f):
+    for i in range(f):
         domain_i = sorted(set(features[:,i]))
         for d in domain_i[1:]:
             cur_split = (features[:,i] < d)

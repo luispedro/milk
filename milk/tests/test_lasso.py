@@ -4,7 +4,7 @@ import numpy as np
 
 def test_lasso_smoke():
     np.random.seed(3)
-    for i in xrange(8):
+    for i in range(8):
         X = np.random.rand(100,10)
         Y = np.random.rand(5,10)
         B = np.random.rand(5,100)
@@ -16,18 +16,18 @@ def test_lasso_smoke():
 
 def test_lasso_nans():
     np.random.seed(3)
-    for i in xrange(8):
+    for i in range(8):
         X = np.random.rand(100,10)
         Y = np.random.rand(5,10)
         B = np.random.rand(5,100)
-        for j in xrange(12):
+        for j in range(12):
             Y.flat[np.random.randint(0,Y.size-1)] = float('nan')
         B  = milk.supervised.lasso(X,Y)
         assert np.all(~np.isnan(B))
 
 def test_lam_zero():
     np.random.seed(2)
-    for i in xrange(8):
+    for i in range(8):
         X = np.random.rand(24,2)
         Y = np.random.rand(1,2)
         B  = milk.supervised.lasso(X,Y, lam=0.0)
@@ -38,7 +38,7 @@ def test_lam_zero():
 
 def test_lasso_walk():
     np.random.seed(5)
-    for i in xrange(4):
+    for i in range(4):
         X = np.random.rand(100,10)
         Y = np.random.rand(5,10)
         Bs  = milk.supervised.lasso_walk(X,Y, start=.0001, nr_steps=3)
@@ -49,11 +49,11 @@ def test_lasso_walk():
 
 def test_lasso_walk_nans():
     np.random.seed(5)
-    for i in xrange(3):
+    for i in range(3):
         X = np.random.rand(100,10)
         Y = np.random.rand(5,10)
         B = np.random.rand(5,100)
-        for j in xrange(12):
+        for j in range(12):
             Y.flat[np.random.randint(0,Y.size-1)] = float('nan')
         B  = milk.supervised.lasso_walk(X,Y, nr_steps=6)
         assert np.all(~np.isnan(B))

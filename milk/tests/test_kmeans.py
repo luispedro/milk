@@ -19,7 +19,7 @@ def test_kmeans_centroids():
     features = np.random.rand(201,30)
     for k in [2,3,5,10]:
         indices,centroids = milk.unsupervised.kmeans(features, k)
-        for i in xrange(k):
+        for i in range(k):
             if np.any(indices == i):
                 assert np.allclose(centroids[i], features[indices == i].mean(0))
 
@@ -62,7 +62,7 @@ def test_kmeans_return_partial():
 def test_kmeans_all_equal():
     import milk.unsupervised._kmeans
     np.random.seed(132)
-    for _ in xrange(8):
+    for _ in range(8):
         a = (np.random.random(1024*128)*250).astype(int)
         b = a.copy()
         assert milk.unsupervised._kmeans.are_equal(a,b)

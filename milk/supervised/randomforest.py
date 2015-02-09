@@ -48,7 +48,7 @@ def _sample(features, labels, n, R):
     N = len(features)
     sfeatures = []
     slabels = []
-    for i in xrange(n):
+    for i in range(n):
         idx = R.randint(N)
         sfeatures.append(features[idx])
         slabels.append(labels[idx])
@@ -99,7 +99,7 @@ class rf_learner(object):
             labels,names = normaliselabels(labels)
         elif names is None:
             names = (0,1)
-        for i in xrange(self.rf):
+        for i in range(self.rf):
             forest.append(
                     tree.train(*_sample(features, labels, n, R),
                                **{'normalisedlabels' : True})) # This syntax is necessary for Python 2.5

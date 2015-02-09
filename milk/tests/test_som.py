@@ -8,8 +8,8 @@ def _slow_putpoints(grid, points, L=.2):
     for point in points:
         dpoint = grid-point
         y,x = np.unravel_index(np.abs(dpoint).argmin(), dpoint.shape)
-        for dy in xrange(-4, +4):
-            for dx in xrange(-4, +4):
+        for dy in range(-4, +4):
+            for dx in range(-4, +4):
                 ny = y + dy
                 nx = x + dx
                 if ny < 0 or ny >= grid.shape[0]:
@@ -24,7 +24,7 @@ def _slow_putpoints(grid, points, L=.2):
 def data_grid():
     np.random.seed(22)
     data = np.arange(100000, dtype=np.float32)
-    grid = np.array([data.flat[np.random.randint(0, data.size)] for i in xrange(64*64)]).reshape((64,64,1))
+    grid = np.array([data.flat[np.random.randint(0, data.size)] for i in range(64*64)]).reshape((64,64,1))
     data = data.reshape((-1,1))
     return grid, data
 

@@ -20,15 +20,15 @@ def _allassignments(options):
     except ImportError:
         def product(*args, **kwds):
             # from http://docs.python.org/library/itertools.html#itertools.product
-            pools = map(tuple, args) * kwds.get('repeat', 1)
+            pools = list(map(tuple, args)) * kwds.get('repeat', 1)
             result = [[]]
             for pool in pools:
                 result = [x+[y] for x in result for y in pool]
             for prod in result:
                 yield tuple(prod)
-    from itertools import repeat, izip
-    for ks,vs in izip(repeat(options.keys()), product(*options.values())):
-        yield zip(ks,vs)
+    from itertools import repeat
+    for ks,vs in zip(repeat(list(options.keys())), product(*list(options.values()))):
+        yield list(zip(ks,vs))
 
 def _set_options(learner, options):
     for k,v in options:
@@ -65,7 +65,7 @@ class Grid1(multiprocessing.Process):
                     return
                 error = self.execute_one(index, fold)
                 self.outq.put( (index, error) )
-        except Exception, e:
+        except Exception as e:
             import traceback
             errstr = r'''\
 Error in milk.gridminimise internal
@@ -165,7 +165,7 @@ def gridminimise(learner, features, labels, params, measure=None, nfolds=10, ret
     if nprocs > 1:
         inqueue = multiprocessing.Queue()
         outqueue = multiprocessing.Queue()
-        for i in xrange(nprocs):
+        for i in range(nprocs):
             inqueue.put((i,0))
             executing.add(i)
 

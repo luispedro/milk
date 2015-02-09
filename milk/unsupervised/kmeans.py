@@ -148,7 +148,7 @@ def assign_centroids(fmatrix, centroids, histogram=False, normalize=False, norma
     cids = dists.argmin(1)
     if histogram:
         hist = np.array(
-            [np.sum(cids == ci) for ci in xrange(len(centroids))],
+            [np.sum(cids == ci) for ci in range(len(centroids))],
             np.float)
         if (normalize or normalise) and len(fmatrix):
             hist /= hist.sum()
@@ -259,7 +259,7 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assig
     counts = np.empty(k, np.int32)
     prev = None
     dists = None
-    for i in xrange(max_iter):
+    for i in range(max_iter):
         dists = distfunction(fmatrix, centroids, dists)
         assignments = dists.argmin(1)
         if prev is not None and _kmeans.are_equal(assignments, prev):
@@ -352,7 +352,7 @@ def select_best_kmeans(fmatrix, ks, repeats=1, method='AIC', R=None, **kwargs):
     if 'distance' in kwargs and kwargs['distance'] == 'seuclidean':
         fmatrix = zscore(fmatrix)
     for k in ks:
-        for i in xrange(repeats):
+        for i in range(repeats):
             As,Cs = kmeans(fmatrix, k, R=R, **kwargs)
             value = method(fmatrix, As, Cs)
             if value < best_val:

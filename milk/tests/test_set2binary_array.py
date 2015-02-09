@@ -8,5 +8,5 @@ def test_set2binary_array_len():
     model = s2f.train(inputs,labels)
     assert len(model.apply(inputs[0])) == len(model.apply(inputs[1]))
     assert len(model.apply(inputs[0])) == len(model.apply(inputs[2]))
-    assert len(model.apply(inputs[0])) == len(model.apply(range(128)))
+    assert len(model.apply(inputs[0])) == len(model.apply(list(range(128))))
 

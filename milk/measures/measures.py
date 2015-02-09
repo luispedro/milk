@@ -119,7 +119,7 @@ def confusion_matrix(real, predicted, normalisedlabels=False, names=None):
     if not normalisedlabels:
         from ..supervised.normalise import normaliselabels
         real, names = normaliselabels(real)
-        predicted = map(names.index, predicted)
+        predicted = list(map(names.index, predicted))
     n = np.max(real)+1
     cmat = np.zeros((n,n))
     for r,p in zip(real, predicted):

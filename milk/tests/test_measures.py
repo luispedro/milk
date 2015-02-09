@@ -42,19 +42,19 @@ def test_confusion_matrix():
     labels0 = np.arange(101)%3
     labels1 = (labels0 + np.random.rand(101)*2).astype(np.int) % 3
     cmat = milk.measures.measures.confusion_matrix(labels0, labels1)
-    for i in xrange(3):
-        for j in xrange(3):
+    for i in range(3):
+        for j in range(3):
             assert cmat[i,j] == np.sum( (labels0 == i) & (labels1 == j) )
 
 
 
 def test_significance():
-    assert np.allclose(.5, [bayesian_significance(1024,i,i) for i in xrange(0, 1025, 3)])
+    assert np.allclose(.5, [bayesian_significance(1024,i,i) for i in range(0, 1025, 3)])
 
 
 def test_roc():
     np.random.seed(3)
-    for i in xrange(4):
+    for i in range(4):
         labels = np.repeat([False,True], 50)
         response = labels + np.random.random(100)*i
         P,R = milk.measures.curves.roc(response, labels != 0)

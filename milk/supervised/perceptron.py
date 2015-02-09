@@ -30,7 +30,7 @@ class perceptron_learner(object):
         if features.dtype not in (np.float32, np.float64):
             features = features.astype(np.float64)
         weights = np.zeros(features.shape[1]+1, features.dtype)
-        for i in xrange(self.max_iters):
+        for i in range(self.max_iters):
             errors = _perceptron.perceptron(features, labels, weights, self.eta)
             if not errors:
                 break

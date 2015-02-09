@@ -12,9 +12,9 @@ def gen_data(seed, with_nums=False):
 
     features = []
     labels =[]
-    for i in xrange(200):
+    for i in range(200):
         f = []
-        for j in xrange(40):
+        for j in range(40):
             use_0 = (i < 100 and j < 30) or (i >= 100 and j >= 30)
             if use_0: f.append(c0())
             else: f.append(c1())
@@ -31,8 +31,8 @@ def test_precluster():
     features, labels = gen_data(22)
     model = learner.train(features,labels)
 
-    assert model.apply([c0() for i in xrange(35)])
-    assert not model.apply([c1() for i in xrange(35)])
+    assert model.apply([c0() for i in range(35)])
+    assert not model.apply([c1() for i in range(35)])
 
 def test_codebook_learner():
     learner = select_precluster([2,3,4], base=fast_classifier())
@@ -40,8 +40,8 @@ def test_codebook_learner():
     features, labels = gen_data(23, 1)
     model = learner.train(features,labels)
 
-    assert model.apply(([c0() for i in xrange(35)],[]))
-    assert not model.apply(([c1() for i in xrange(35)],[]))
+    assert model.apply(([c0() for i in range(35)],[]))
+    assert not model.apply(([c1() for i in range(35)],[]))
 
 def test_codebook_learner_case1():
     learner = select_precluster([2], base=fast_classifier())
@@ -49,6 +49,6 @@ def test_codebook_learner_case1():
     features, labels = gen_data(23, 1)
     model = learner.train(features,labels)
 
-    assert model.apply(([c0() for i in xrange(35)],[]))
-    assert not model.apply(([c1() for i in xrange(35)],[]))
+    assert model.apply(([c0() for i in range(35)],[]))
+    assert not model.apply(([c1() for i in range(35)],[]))
 

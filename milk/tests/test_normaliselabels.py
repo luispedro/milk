@@ -15,15 +15,15 @@ def test_normaliselabels():
 def test_normaliselabels_multi():
     np.random.seed(30)
     r = np.random.random
-    for v in xrange(10):
+    for v in range(10):
         labels = []
         p = np.array([.24,.5,.1,.44])
-        for i in xrange(100):
-            cur = [j for j in xrange(4) if r() < p[j]]
+        for i in range(100):
+            cur = [j for j in range(4) if r() < p[j]]
             if not cur: cur = [0]
             labels.append(cur)
         nlabels, names = normaliselabels(labels, True)
         assert len(labels) == len(nlabels)
-        assert len(nlabels[0]) == max(map(max,labels))+1
+        assert len(nlabels[0]) == max(list(map(max,labels)))+1
         assert nlabels.sum() == sum(map(len,labels))
 

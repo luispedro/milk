@@ -113,7 +113,7 @@ def lasso_walk(X, Y, B=None, nr_steps=None, start=None, step=None, tol=None, ret
     lam = start
     lams = []
     Bs = []
-    for i in xrange(nr_steps):
+    for i in range(nr_steps):
         # The central idea is that each iteration is already "warm" and this
         # should be faster than starting from zero each time
         B = lasso(X, Y, B, lam=lam, tol=tol)

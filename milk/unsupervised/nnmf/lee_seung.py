@@ -67,14 +67,14 @@ def nnmf(V, r, cost='norm2', max_iter=int(1e4), tol=1e-8, R=None):
     R = get_nprandom(R)
     W = R.standard_normal((n,r))**2
     H = R.standard_normal((r,m))**2
-    for i in xrange(max_iter):
+    for i in range(max_iter):
         if cost == 'norm2':
             updateH = dot(W.T,V)/(dot(dot(W.T,W),H)+eps)
             H *= updateH
             updateW = dot(V,H.T)/(dot(W,dot(H,H.T))+eps)
             W *= updateW
         elif cost == 'i-div':
-            raise NotImplementedError,'I-Div not implemented in lee_seung.nnmf'
+            raise NotImplementedError('I-Div not implemented in lee_seung.nnmf')
         if True or (i % 10) == 0:
             max_update = max(updateW.max(),updateH.max())
             if abs(1.-max_update) < tol:

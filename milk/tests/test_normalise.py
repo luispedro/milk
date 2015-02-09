@@ -84,7 +84,7 @@ def test_interval_normalise():
 def test_nanstd():
     from milk.unsupervised.normalise import _nanstd
     np.random.seed(234)
-    for i in xrange(8):
+    for i in range(8):
         x = np.random.rand(200,231)
         np.allclose(_nanstd(x,0), x.std(0))
         np.allclose(_nanstd(x,1), x.std(1))

@@ -73,7 +73,7 @@ def sda(features, labels, tolerance=.01, significance_in=.05, significance_out=.
     df = features - features.mean(0)
     T = np.dot(df.T, df)
 
-    dfs = [(features[labels == i] - features[labels == i].mean(0)) for i in xrange(q)]
+    dfs = [(features[labels == i] - features[labels == i].mean(0)) for i in range(q)]
     W = np.sum(np.dot(d.T, d) for d in dfs)
 
     ignoreidx = ( W.diagonal() == 0 )

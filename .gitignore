@@ -9,3 +9,4 @@ build
 dist/
 milk.egg-info
 docs/milk/
+*.cpython*.so

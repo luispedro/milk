@@ -13,7 +13,7 @@ class one_by_one_model(supervised_model):
 
     def apply(self, fs):
         result = []
-        for ell,model in self.models.iteritems():
+        for ell,model in self.models.items():
             if model.apply(fs):
                 result.append(ell)
         return result

@@ -14,7 +14,7 @@ def approximate(a,b):
 def assert_kkt(SVM):
     X,Y,Alphas,b,C,kernel=SVM
     N=len(Alphas)
-    for i in xrange(N):
+    for i in range(N):
         if Alphas[i] == 0.:
             assert Y[i]*_svm_apply(SVM,X[i])+eps >= 1
         elif Alphas[i] == C:
@@ -24,13 +24,13 @@ def assert_kkt(SVM):
 
 def assert_all_correctly_classified(SVM,X,Y):
     N = len(X)
-    for i in xrange(N):
+    for i in range(N):
         assert _svm_apply(SVM,X[i]) * Y[i] > 0
 
 def assert_more_than_50(SVM,X,Y):
     N = len(X)
     correct = 0
-    for i in xrange(N):
+    for i in range(N):
         correct += (_svm_apply(SVM,X[i]) * Y[i] > 0)
     assert correct > N/2
 
@@ -144,7 +144,7 @@ def test_perfect():
     labels[5:] = 1
     classifier=milk.supervised.svm.svm_raw(kernel=milk.supervised.svm.rbf_kernel(1),C=4)
     model = classifier.train(data,labels)
-    assert numpy.all( (numpy.array([model.apply(data[i]) for i in xrange(10)]) > 0) == labels )
+    assert numpy.all( (numpy.array([model.apply(data[i]) for i in range(10)]) > 0) == labels )
 
 def test_smart_rbf():
     import milksets.wine
@@ -243,6 +243,6 @@ def test_rbf_kernel_call_many():
     k = rbf_kernel(1.)
     pre = k.preprocess(X)
     qs = np.random.random((8,16))
-    mapped = np.array(map(pre, qs))
+    mapped = np.array(list(map(pre, qs)))
     manyed = pre.call_many(qs)
     assert np.allclose(manyed, mapped)

@@ -1,9 +1,6 @@
 #include <algorithm>
+#include "../utils/utils.h"
 
-extern "C" {
-    #include <Python.h>
-    #include <numpy/ndarrayobject.h>
-}
 
 namespace {
 struct Kmeans_Exception {
@@ -153,10 +150,6 @@ const char  * module_doc =
     "Do NOT use directly!\n";
 
 } // namespace
-extern "C"
-void init_kmeans()
-  {
-    import_array();
-    (void)Py_InitModule3("_kmeans", methods, module_doc);
-  }
+
+DECLARE_MODULE(_kmeans)
 

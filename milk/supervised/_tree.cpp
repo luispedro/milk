@@ -1,14 +1,11 @@
-// Copyright (C) 2010, Luis Pedro Coelho <luis@luispedro.org>
+// Copyright (C) 2010-2015, Luis Pedro Coelho <luis@luispedro.org>
 // License: MIT
 
 #include <iostream>
 #include <memory>
 #include <cmath>
 #include <cassert>
-extern "C" {
-    #include <Python.h>
-    #include <numpy/ndarrayobject.h>
-}
+#include "../utils/utils.h"
 
 
 namespace {
@@ -135,10 +132,6 @@ const char  * module_doc =
 
 } // namespace
 
-extern "C"
-void init_tree()
-  {
-    import_array();
-    (void)Py_InitModule3("_tree", methods, module_doc);
-  }
+
+DECLARE_MODULE(_tree)
 

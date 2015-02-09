@@ -21,7 +21,7 @@ class supervised_model(object):
         -------
         labels : sequence of labels
         '''
-        return map(self.apply, fs)
+        return list(map(self.apply, fs))
 
 
 class base_adaptor(object):

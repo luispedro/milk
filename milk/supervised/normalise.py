@@ -89,9 +89,9 @@ def sample_to_2min(labels):
         counts[n] += 1
 
     labels = np.asanyarray(labels)
-    max_entries = np.min(counts.values())*2
+    max_entries = np.min(list(counts.values()))*2
     selected = np.zeros(len(labels), bool)
-    for c in counts.iterkeys():
+    for c in counts.keys():
         p, = np.where(labels == c)
         p = p[:max_entries]
         selected[p] = 1
@@ -156,6 +156,6 @@ def normaliselabels(labels, multi_label=False):
         return normalised, names
     else:
         names = sorted(set(labels))
-        normalised = map(names.index, labels)
+        normalised = list(map(names.index, labels))
         return np.array(normalised), names
 

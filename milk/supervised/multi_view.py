@@ -40,7 +40,7 @@ class multi_view_learner(object):
         self.bases = bases
 
     def train(self, features, labels, normalisedlabels=False):
-        features = zip(*features)
+        features = list(zip(*features))
         if len(features) != len(self.bases):
             raise ValueError('milk.supervised.multi_view_learner: ' +
                         'Nr of features does not match classifiser construction (got %s, expected %s)'

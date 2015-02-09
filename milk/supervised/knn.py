@@ -20,7 +20,7 @@ def _plurality(xs):
     from collections import defaultdict
     counts = defaultdict(int)
     for x in xs: counts[x] += 1
-    best,_ = max(counts.iteritems(), key=(lambda k_v: k_v[1]))
+    best,_ = max(iter(counts.items()), key=(lambda k_v: k_v[1]))
     return best
 
 class kNN(object):

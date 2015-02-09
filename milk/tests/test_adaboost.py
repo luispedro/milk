@@ -9,7 +9,7 @@ def test_learner():
     labels = labels[labels < 2] == 0
     labels = labels.astype(int)
     model = learner.train(features[::2], labels[::2])
-    train_out = np.array(map(model.apply, features))
+    train_out = np.array(list(map(model.apply, features)))
     assert (train_out == labels).mean() > .9
 
 

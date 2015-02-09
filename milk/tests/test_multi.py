@@ -3,7 +3,7 @@ import random
 import milk.supervised.svm
 import milk.supervised.multi
 from milk.supervised.classifier import ctransforms
-from fast_classifier import fast_classifier
+from .fast_classifier import fast_classifier
 
 import milksets.wine
 features,labels = milksets.wine.load()

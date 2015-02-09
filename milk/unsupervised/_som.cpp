@@ -1,6 +1,7 @@
 #include <limits>
 #include <iostream>
 #include <cstdlib>
+#include "../utils/utils.h"
 
 extern "C" {
     #include <Python.h>
@@ -108,10 +109,7 @@ const char  * module_doc =
     "Do NOT use directly!\n";
 
 } // namespace
-extern "C"
-void init_som()
-  {
-    import_array();
-    (void)Py_InitModule3("_som", methods, module_doc);
-  }
+
+
+DECLARE_MODULE(_som)
 

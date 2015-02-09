@@ -36,7 +36,7 @@ def _svm_apply(SVM, q):
     X,Y,Alphas,b,C,kernel=SVM
     N = len(X)
     s = 0.0
-    for i in xrange(N):
+    for i in range(N):
         s += Alphas[i] * Y[i] * kernel(q, X[i])
     return s - b
 
@@ -230,7 +230,7 @@ class svm_raw_model(supervised_model):
         try:
             qs = self.kernelfunction.call_many(qs)
         except AttributeError:
-            qs = np.array(map(self.kernelfunction, qs))
+            qs = np.array(list(map(self.kernelfunction, qs)))
         return np.dot(qs, self.Yw) - self.b
 
 
@@ -366,7 +366,7 @@ def learn_sigmoid_constants(F,Y,
         return np.sum(fvals)
 
     fval = target(A,B)
-    for iter in xrange(max_iters):
+    for iter in range(max_iters):
         fApB = F*A + B
         ef = np.exp(fApB)
         emf = np.exp(-fApB)
@@ -400,7 +400,7 @@ def learn_sigmoid_constants(F,Y,
                 break
             stepsize /= 2
         else:
-            print 'Line search fails'
+            print('Line search fails')
             break
     np.seterr(**errorstate)
     return A,B

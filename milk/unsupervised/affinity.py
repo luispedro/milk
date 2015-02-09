@@ -134,10 +134,10 @@ def affinity_propagation(S, p=None, convit=30, maxit=200, damping=0.5, copy=True
             se = np.sum(e, axis=1);
             unconverged = np.sum((se == convit) + (se == 0)) != n_points
             if (not unconverged and (K>0)) or (it==maxit):
-                print "Converged after %d iterations." % it
+                print("Converged after %d iterations." % it)
                 break
     else:
-        print "Did not converge"
+        print("Did not converge")
 
     I = np.where(np.diag(A+R) > 0)[0]
     K = I.size # Identify exemplars

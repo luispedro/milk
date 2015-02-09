@@ -31,7 +31,7 @@ def test_ecoc_probability():
     base = ctransforms(raw, svm.svm_sigmoidal_correction())
     learner = ecoc_learner(base, probability=True)
     model = learner.train(features[::2], labels[::2])
-    results = map(model.apply, features[1::2])
+    results = list(map(model.apply, features[1::2]))
     results = np.array(results)
     assert results.shape[1] == len(set(labels))
     assert np.mean(results.argmax(1) == labels[1::2]) > .5

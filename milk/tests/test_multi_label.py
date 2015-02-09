@@ -8,13 +8,13 @@ def test_one_by_one():
     r = np.random.random
     ps = np.array([.7,.5,.8,.3,.8])
     learner = milk.supervised.multi_label.one_by_one(fast_classifier())
-    universe = range(len(ps))
+    universe = list(range(len(ps)))
 
-    for _ in xrange(10):
+    for _ in range(10):
         labels = []
         features = []
         bases = [np.random.rand(20) for pj in ps]
-        for i in xrange(256):
+        for i in range(256):
             cur = []
             curf = np.zeros(20,float)
             for j,pj in enumerate(ps):

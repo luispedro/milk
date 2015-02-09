@@ -22,7 +22,7 @@ def test_split_subsample():
     labels = labels.astype(np.int)
 
     seen = set()
-    for i in xrange(20):
+    for i in range(20):
         random.seed(2)
         i,s = milk.supervised.tree._split(features[::10], labels[::10], None, milk.supervised.tree.information_gain, 2, random)
         seen.add(i)
@@ -33,7 +33,7 @@ def test_set_entropy():
     labels = np.arange(101)%3
     counts = np.zeros(3)
     entropy = milk.supervised._tree.set_entropy(labels, counts)
-    slow_counts = np.array([(labels == i).sum() for i in xrange(3)])
+    slow_counts = np.array([(labels == i).sum() for i in range(3)])
     assert np.all(counts == slow_counts)
     px = slow_counts.astype(float)/ slow_counts.sum()
     slow_entropy = - np.sum(px * np.log(px))
@@ -51,7 +51,7 @@ def slow_information_gain(labels0, labels1):
 
 def test_information_gain():
     np.random.seed(22)
-    for i in xrange(8):
+    for i in range(8):
         labels0 = (np.random.randn(20) > .2).astype(int)
         labels1 = (np.random.randn(33) > .8).astype(int)
         fast = information_gain(labels0, labels1)
@@ -80,7 +80,7 @@ def test_z1_loss():
 def test_stump_learner():
     learner = stump_learner()
     np.random.seed(111)
-    for i in xrange(8):
+    for i in range(8):
         features = np.random.random_sample((40,2))
         features[:20,0] += .5
         labels = np.repeat((0,1),20)

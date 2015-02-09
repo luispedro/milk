@@ -20,7 +20,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-from __future__ import division
+
 import numpy as np
 from ...utils import get_nprandom
 
@@ -114,7 +114,7 @@ def sparse_nnmf(V, r, sparsenessW=None, sparsenessH=None, max_iter=10000, R=None
     H = R.standard_normal((r,m))**2
 
     def fix(X, sparseness):
-        for i in xrange(r):
+        for i in range(r):
             row = X[i]
             L2 = np.sqrt(np.dot(row, row))
             row /= L2
@@ -127,7 +127,7 @@ def sparse_nnmf(V, r, sparsenessW=None, sparsenessH=None, max_iter=10000, R=None
 
     if sparsenessW is not None: fixW()
     if sparsenessH is not None: fixH()
-    for i in xrange(max_iter):
+    for i in range(max_iter):
         if sparsenessW is not None:
             W -= mu_W * np.dot(np.dot(W,H)-V,H.T)
             fixW()

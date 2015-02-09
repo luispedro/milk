@@ -62,7 +62,7 @@ class voting_model(supervised_model):
             votes[self.base.apply(feats)] += 1
         best = None
         most_votes = 0
-        for k,v in votes.iteritems():
+        for k,v in votes.items():
             if v > most_votes:
                 best = k
                 most_votes = v
