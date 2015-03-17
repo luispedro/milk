@@ -404,8 +404,12 @@ def learn_sigmoid_constants(F,Y,
 class svm_binary_model(supervised_model):
     def __init__(self, classes):
         self.classes = classes
+        self.raw = False
     def apply(self,f):
+        if self.raw:
+            return f
         return self.classes[f >= 0.]
+
 class svm_binary(object):
     '''
     classifier = svm_binary()
