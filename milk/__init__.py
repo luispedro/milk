@@ -62,8 +62,8 @@ try:
     from .milk_version import __version__
 except ImportError as e:
     import sys
-    print('''\
-Could not import submodules (exact error was: %s).
+    sys.stderr.write('''\
+Could not import submodules (exact error was: {}).
 
 There are many reasons for this error the most common one is that you have
 either not built the packages or have built (using `python setup.py build`) or
@@ -71,7 +71,7 @@ installed them (using `python setup.py install`) and then proceeded to test
 milk **without changing the current directory**.
 
 Try installing and then changing to another directory before importing milk.
-''' % e, file=sys.stderr)
+'''.format(e))
 
 __all__ = [
     '__version__',

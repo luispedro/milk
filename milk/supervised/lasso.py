@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- 
 import numpy as np
-import _lasso
+from . import _lasso
 from .base import supervised_model
 from milk.unsupervised import center
 
