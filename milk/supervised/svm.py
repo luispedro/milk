@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2015, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 #
 # License: MIT. See COPYING.MIT file in the milk distribution
@@ -7,10 +7,8 @@
 from __future__ import division
 from .classifier import normaliselabels, ctransforms_model
 from .base import supervised_model
-from collections import deque
 import numpy
 import numpy as np
-import random
 from . import _svm
 
 __all__ = [
@@ -348,8 +346,6 @@ def learn_sigmoid_constants(F,Y,
 
     prior1 = Y.sum()
     prior0 = len(F)-prior1
-
-    small_nr = 1e-4
 
     hi_t = (prior1+1.)/(prior1+2.)
     lo_t = 1./(prior0+2.)
