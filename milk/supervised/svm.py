@@ -180,12 +180,12 @@ class precomputed_kernel(object):
     A "fake" kernel which is precomputed.
     '''
     def __init__(self, kmatrix, copy=False):
-        kmatrix = np.ascontiguousarray(kmatrix, np.double, copy=copy)
+        self.kmatrix = np.ascontiguousarray(kmatrix, np.double, copy=copy)
         self.kernel_nr_ = 1
         self.kernel_arg_ = 0.
 
     def __call__(self, x0, x1):
-        return kmatrix[x0,x1]
+        return self.kmatrix[x0,x1]
 
 class _call_kernel(object):
     def __init__(self, k, svs):
