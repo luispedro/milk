@@ -344,14 +344,32 @@ double PrecomputedKernel::do_kernel(int i1, int i2) const {
     return *data;
 }
 
+
+long is_longint(PyObject* obj) {
+#if PY_MAJOR_VERSION >= 3
+    return PyLong_Check(obj);
+#else
+    return PyInt_Check(obj);
+#endif
+}
+
+long get_long(PyObject* obj) {
+#if PY_MAJOR_VERSION >= 3
+    return PyLong_AsLong(obj);
+#else
+    return PyInt_AsLong(obj);
+#endif
+}
+
 std::auto_ptr<KernelComputation> get_kernel(PyObject* X, PyObject* kernel) {
     typedef std::auto_ptr<KernelComputation> res_type;
     if (PyCallable_Check(kernel)) return res_type(new PyKernel(X, kernel, PySequence_Length(X)));
     if (!PyTuple_Check(kernel) || PyTuple_Size(kernel) != 2) throw SMO_Exception("Cannot parse kernel.");
     PyObject* type = PyTuple_GET_ITEM(kernel,0);
     PyObject* arg = PyTuple_GET_ITEM(kernel,1);
-    if (!PyLong_Check(type) || !PyFloat_Check(arg)) throw SMO_Exception("Cannot parse kernel (wrong types)");
-    long type_nr = PyLong_AsLong(type);
+    if (!is_longint(type)) throw SMO_Exception("Cannot parse kernel (first arg is not long)");
+    if (!PyFloat_Check(arg)) throw SMO_Exception("Cannot parse kernel (second arg is not float)");
+    long type_nr = get_long(type);
     double arg_value = PyFloat_AsDouble(arg);
     switch (type_nr) {
         case 0:
