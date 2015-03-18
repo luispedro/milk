@@ -49,11 +49,13 @@ class one_against_rest(base_adaptor):
 
 
     def train(self, features, labels, normalisedlabels=False):
-        labels, names = normaliselabels(labels)
-        nclasses = labels.max() + 1
+        nlabels, names = normaliselabels(labels)
+        nclasses = nlabels.max() + 1
+        if nclasses == 2:
+            return self.base.train(features, labels)
         models  = []
         for i in range(nclasses):
-            model = self.base.train(features, (labels == i).astype(int), normalisedlabels=True)
+            model = self.base.train(features, (nlabels == i).astype(int), normalisedlabels=True)
             models.append(model)
         return one_against_rest_model(models, names)
 
@@ -103,22 +105,25 @@ class one_against_one(base_adaptor):
         '''
         one_against_one.train(objs,labels)
         '''
-        labels, names = normaliselabels(labels)
+        nlabels, names = normaliselabels(labels)
+        nclasses = nlabels.max() + 1
+        if nclasses == 2:
+            return self.base.train(features, labels)
+
         if weights is not None:
             weights = np.asanyarray(weights)
         features = _asanyarray(features)
-        nclasses = labels.max() + 1
         models = [ [None for i in range(nclasses)] for j in range(nclasses)]
         child_kwargs = kwargs.copy()
         child_kwargs['normalisedlabels'] = True
         for i in range(nclasses):
             for j in range(i+1, nclasses):
-                idxs = (labels == i) | (labels == j)
+                idxs = (nlabels == i) | (nlabels == j)
                 if not np.any(idxs):
                     raise ValueError('milk.multi.one_against_one: Pair-wise classifier has no data')
                 if weights is not None:
                     child_kwargs['weights'] = weights[idxs]
-                model = self.base.train(features[idxs], (labels[idxs]==i).astype(int), **child_kwargs)
+                model = self.base.train(features[idxs], (nlabels[idxs]==i).astype(int), **child_kwargs)
                 models[i][j] = model
         return one_against_one_model(models, names)
 
@@ -176,7 +181,6 @@ class one_against_rest_multi(base_adaptor):
     def train(self, features, labels, normalisedlabels=False, weights=None):
         '''
         '''
-        import operator
         all_labels = set()
         for ls in labels:
             all_labels.update(ls)
@@ -305,24 +309,22 @@ class multi_tree_learner(base_adaptor):
 
     def train(self, features, labels, normalisedlabels=False, **kwargs):
         if not normalisedlabels:
-            labels,names = normaliselabels(labels)
-            labelset = np.arange(len(names))
+            nlabels,names = normaliselabels(labels)
         else:
-            labels = np.asanyarray(labels)
-            labelset = np.arange(labels.max()+1)
+            nlabels = np.asanyarray(labels)
 
 
         def recursive(labelset, counts):
             if len(labelset) == 1:
                 return labelset
             g0,g1 = split(counts)
-            nlabels = np.array([(ell in g0) for ell in labels], int)
-            model = self.base.train(features, nlabels, normaliselabels=True, **kwargs)
+            alabels = np.array([(ell in g0) for ell in nlabels], int)
+            model = self.base.train(features, alabels, normaliselabels=True, **kwargs)
             m0 = recursive(labelset[g0], counts[g0])
             m1 = recursive(labelset[g1], counts[g1])
             return (model, m0, m1)
-        counts = np.zeros(labels.max()+1)
-        for ell in labels:
+        counts = np.zeros(nlabels.max()+1)
+        for ell in nlabels:
             counts[ell] += 1
-        return multi_tree_model(recursive(np.arange(labels.max()+1), counts))
+        return multi_tree_model(recursive(np.arange(nlabels.max()+1), counts))
 
