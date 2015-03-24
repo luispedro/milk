@@ -253,9 +253,8 @@ def kmeans(fmatrix, k, distance='euclidean', max_iter=1000, R=None, return_assig
             raise ValueError('milk.unsupervised.kmeans `centroids` should have the same dimenionality as `fmatrix`')
         centroids = np.asarray(centroids)
     else:
-        centroids = np.array(R.sample(fmatrix,k), fmatrix.dtype)
+        centroids = np.array(R.sample(list(fmatrix), k), fmatrix.dtype)
 
-    N = len(fmatrix)
     counts = np.empty(k, np.int32)
     prev = None
     dists = None

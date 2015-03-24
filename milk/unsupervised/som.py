@@ -107,6 +107,6 @@ def som(data, shape, iterations=1000, L=.2, radius=4, R=None):
     d = data.shape[1]
     if data.dtype != np.float32:
         data = data.astype(np.float32)
-    grid = np.array(R.sample(data, np.product(shape))).reshape(shape + (d,))
+    grid = np.array(R.sample(list(data), np.product(shape))).reshape(shape + (d,))
     putpoints(grid, data, L=L, radius=radius, iterations=iterations, shuffle=True, R=R)
     return grid
