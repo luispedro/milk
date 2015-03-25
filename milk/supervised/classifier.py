@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2008-2012, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2008-2015, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -80,6 +80,9 @@ class ctransforms_model(supervised_model):
     def __repr__(self):
         return 'ctransforms_model({})'.format(self.models)
     __str__ = __repr__
+
+    def __getitem__(self, ix):
+        return self.models[ix]
 
     def apply(self,features):
         for T in self.models:
