@@ -1,7 +1,7 @@
 Version 0.5.3+
 	* Update for Python 3
 
-Version 0.5.3 1013-06-19 by luispedro
+Version 0.5.3 2013-06-19 by luispedro
 	* Fix MDS for non-array inputs
 	* Fix MDS bug
 	* Add return_* arguments to kmeans
