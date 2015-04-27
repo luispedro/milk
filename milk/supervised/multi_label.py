@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011, Luis Pedro Coelho <luis@luispedro.org>
+# Copyright (C) 2011-2015, Luis Pedro Coelho <luis@luispedro.org>
 # vim: set ts=4 sts=4 sw=4 expandtab smartindent:
 # License: MIT. See COPYING.MIT file in the milk distribution
 
@@ -50,3 +50,5 @@ class one_by_one(base_adaptor):
             models[ell] = self.base.train(features, contained, normalisedlabels=True)
         return one_by_one_model(models)
 
+    def __str__(self):
+        return 'one_by_one({})'.format(self.base)
