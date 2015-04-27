@@ -93,6 +93,10 @@ Recent History
 
 The ChangeLog file contains a more complete history.
 
+New in 0.6 (27 Apr 2015)
+~~~~~~~~~~~~~~~~~~~~~~~~
+- Update for Python 3
+
 New in 0.5.3 (19 Jun 2013)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fix MDS for non-array inputs
