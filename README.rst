@@ -93,6 +93,10 @@ Recent History
 
 The ChangeLog file contains a more complete history.
 
+New in 0.6.1 (11 May 2015)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed source distribution
+
 New in 0.6 (27 Apr 2015)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 - Update for Python 3
